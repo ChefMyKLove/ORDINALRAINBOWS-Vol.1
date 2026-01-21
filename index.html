@@ -263,55 +263,73 @@ h1 {
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
 }
 
-.modal {
-    display: none;
+.sale-link.unavailable {
+    background: rgba(100, 100, 100, 0.5);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Printify Modal */
+.printify-modal {
+    display: block;
     position: fixed;
-    z-index: 9999;
+    z-index: 10000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
-.modal-content {
+.printify-modal-content {
     position: relative;
-    margin: 5% auto;
-    padding: 30px;
-    width: 90%;
-    max-width: 1200px;
-    max-height: 80vh;
-    background: rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin: 2% auto;
+    width: 95%;
+    max-width: 1400px;
+    height: 90vh;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 20px;
-    box-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
-    backdrop-filter: blur(20px) saturate(180%) brightness(110%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(110%);
+    box-shadow: 0 0 50px rgba(102, 126, 234, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
 }
 
-.modal-content h2 {
-    color: #fff;
-    margin-bottom: 20px;
-    text-align: center;
+.printify-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.close-modal {
+.printify-modal-header h2 {
+    margin: 0;
     color: #fff;
-    float: right;
-    font-size: 35px;
-    font-weight: bold;
+}
+
+.printify-modal-close {
+    font-size: 40px;
+    color: #fff;
     cursor: pointer;
     transition: 0.3s;
+    line-height: 1;
 }
 
-.close-modal:hover {
+.printify-modal-close:hover {
     color: #feca57;
+    transform: scale(1.1);
 }
 
-.modal iframe {
-    border-radius: 10px;
+.printify-iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+    border-radius: 0 0 20px 20px;
 }
 
 @media (max-width: 768px) {
@@ -333,94 +351,79 @@ h1 {
     <div class="container">
         <header>
             <h1>ORDINAL 🌈 RAINBOWS Vol. 1</h1>
-            <p class="subtitle"> A PATENTED HARVESTING PROCESS YIELDS SOME AMAZING RESULTS!!  ADORN YOUR ENVIRONMENT WITH RAINBOW MAGIC </p>
+            <p class="subtitle">A PATENTED HARVESTING PROCESS YIELDS SOME AMAZING RESULTS!! ADORN YOUR ENVIRONMENT WITH RAINBOW MAGIC</p>
         </header>
 
         <div class="gallery" id="gallery"></div>
     </div>
 
-    <!-- Printify Store Modal -->
-    <div id="printifyModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>Order Prints</h2>
-            <iframe 
-                src="" 
-                width="100%" 
-                height="600px" 
-                frameborder="0"
-                allow="payment"
-            ></iframe>
-        </div>
-    </div>
-
     <script>
-        // NFT data array - ADD YOUR PRINTIFY PRODUCT IDs HERE
+        // NFT data with full Printify URLs
         const nfts = [
-            { id: "AlchemyBow", title: "AlchemyBow", subtitle: "Magical Transformation of Light Into Gold", rarity: "Exotic", printifyId: "YOUR_PRODUCT_ID_1" },
-            { id: "AuroraBow#1", title: "AuroraBow #1", subtitle: "First Whisper of the Polar Veil", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_2" },
-            { id: "AuroraBow#2", title: "AuroraBow #2", subtitle: "At Peace in an Optical Embrace", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_3" },
-            { id: "AuroraBow#3", title: "AuroraBow #3", subtitle: "Heavenly Dreams in Electric Motion", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_4" },
-            { id: "CometBow#1", title: "CometBow #1", subtitle: "Streak Across the Void", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_5" },
-            { id: "CometBow#2", title: "CometBow #2", subtitle: "Ripples Through Space and Time", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_6" },
-            { id: "CometBow#3", title: "CometBow #3", subtitle: "Slash Splits the Darkness", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_7" },
-            { id: "CosmicBow#1", title: "CosmicBow #1", subtitle: "Smiling Deep Space Into a Whirl", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_8" },
-            { id: "CosmicBow#2", title: "CosmicBow #2", subtitle: "Transmissions of the Satellite Heart", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_9" },
-            { id: "CosmicBow#3", title: "CosmicBow #3", subtitle: "A Comet Disappears", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_10" },
-            { id: "Do-ItBow#1", title: "Do-ItBow #1", subtitle: "Soft Focus, Bold Swoosh", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_11" },
-            { id: "Do-ItBow#2", title: "Do-ItBow #2", subtitle: "Swoosh the Prismatic Moment", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_12" },
-            { id: "Do-ItBow#3", title: "Do-ItBow #3", subtitle: "Swoosh Like Nike", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_13" },
-            { id: "DreamyBow#1", title: "DreamyBow #1", subtitle: "Float Through Liquid Reverie", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_14" },
-            { id: "DreamyBow#2", title: "DreamyBow #2", subtitle: "Twin Portals to Elsewhere Dimensions", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_15" },
-            { id: "DreamyBow#3", title: "DreamyBow #3", subtitle: "Tumbling Towards Ecstacy", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_16" },
-            { id: "EclipseBow#1", title: "EclipseBow #1", subtitle: "Light Surrenders to shadow", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_17" },
-            { id: "EclipseBow#2", title: "EclipseBow #2", subtitle: "Cascading Into an Infinite Void", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_18" },
-            { id: "EclipseBow#3", title: "EclipseBow #3", subtitle: "Darkness at the Threshold of Light", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_19" },
-            { id: "ElectraBow#1", title: "ElectraBow #1", subtitle: "Charged Grid of Possibilities", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_20" },
-            { id: "ElectraBow#2", title: "ElectraBow #2", subtitle: "Spectrum Shimmer, Restless. Alive", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_21" },
-            { id: "ElectraBow#3", title: "ElectraBow #3", subtitle: "Waves of Rainbows Surge", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_22" },
-            { id: "EyeBow#1", title: "EyeBow #1", subtitle: "Watching You From Beyond the Darkness", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_23" },
-            { id: "EyeBow#2", title: "EyeBow #2", subtitle: "Perception Transmuted Into Awareness", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_24" },
-            { id: "FishBow#1", title: "FishBow #1", subtitle: "Rainbows in the Midnight Zone", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_25" },
-            { id: "FishBow#2", title: "FishBow #2", subtitle: "Shimmer Beneath Refracted Waters", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_26" },
-            { id: "FishBow#3", title: "FishBow #3", subtitle: "Deception at Depth of Scale", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_27" },
-            { id: "FishBow#4", title: "FishBow #4", subtitle: "All Coming Into Focus", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_28" },
-            { id: "FlowBow#1", title: "FlowBow #1", subtitle: "Mirrored Ribbons of Light in motion", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_29" },
-            { id: "FlowBow#2", title: "FlowBow #2", subtitle: "Getting Out of Hand", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_30" },
-            { id: "FlowBow#3", title: "FlowBow #3", subtitle: "Melted Waves of Harmony", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_31" },
-            { id: "FlowBow#4", title: "FlowBow #4", subtitle: "Painting the Milky Depths", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_32" },
-            { id: "GhostyBow#1", title: "GhostyBow #1", subtitle: "Ethereal Presence Glowing", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_33" },
-            { id: "GhostyBow#2", title: "GhostyBow #2", subtitle: "Happy Phantom From Beyond", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_34" },
-            { id: "GhostyBow#3", title: "GhostyBow #3", subtitle: "Translucent Soul Drifting Ethereally", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_35" },
-            { id: "GhostyBow#4", title: "GhostyBow #4", subtitle: "Haunting at the Edge of Night", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_36" },
-            { id: "HazeBow#1", title: "HazeBow #1", subtitle: "Lost in Soft Rainbow Phases", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_37" },
-            { id: "HazeBow#2", title: "HazeBow #2", subtitle: "Between Reality and Dreams", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_38" },
-            { id: "HazeBow#3", title: "HazeBow #3", subtitle: "When First You Open Your Eyes", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_39" },
-            { id: "HeartBow", title: "HeartBow", subtitle: "Love In the Palm of Your Hand", rarity: "Legendary", printifyId: "YOUR_PRODUCT_ID_40" },
-            { id: "HummingBow#1", title: "HummingBow #1", subtitle: "Hovering Prism Heartbeat", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_41" },
-            { id: "HummingBow#2", title: "HummingBow #2", subtitle: "How Rapid is Rapid?", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_42" },
-            { id: "MirrorBow#1", title: "MirrorBow #1", subtitle: "Infinite Reflection Chamber", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_43" },
-            { id: "MirrorBow#2", title: "MirrorBow #2", subtitle: "A Chance Spectral Meeting", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_44" },
-            { id: "MirrorBow#3", title: "MirrorBow #3", subtitle: "Echoes of Tumbling Rainbows", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_45" },
-            { id: "MirrorBow#4", title: "MirrorBow #4", subtitle: "Depths of Illusion", rarity: "Uncommon", printifyId: "YOUR_PRODUCT_ID_46" },
-            { id: "NebulaBow#1", title: "NebulaBow #1", subtitle: "Clouds of Prismatic Stardust", rarity: "Epic", printifyId: "YOUR_PRODUCT_ID_47" },
-            { id: "NebulaBow#2", title: "NebulaBow #2", subtitle: "Interstellar Overdrive", rarity: "Epic", printifyId: "YOUR_PRODUCT_ID_48" },
-            { id: "NebulaBow#3", title: "NebulaBow #3", subtitle: "A Cosmic Nursery Blooming", rarity: "Epic", printifyId: "YOUR_PRODUCT_ID_49" },
-            { id: "NebulaBow#4", title: "NebulaBow #4", subtitle: "Stardust Dreaming Into Shapes", rarity: "Epic", printifyId: "YOUR_PRODUCT_ID_50" },
-            { id: "NebulaBow#5", title: "NebulaBow #5", subtitle: "Celestial Whirlpool Casting Hues", rarity: "Epic", printifyId: "YOUR_PRODUCT_ID_51" },
-            { id: "NebulaBow#6", title: "NebulaBow #6", subtitle: "Chromatic Creation torn apart", rarity: "Epic", printifyId: "YOUR_PRODUCT_ID_52" },
-            { id: "RoadBow#1", title: "RoadBow #1", subtitle: "Red Light District", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_53" },
-            { id: "RoadBow#2", title: "RoadBow #2", subtitle: "Textured Trail to a Spectral Tomorrow", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_54" },
-            { id: "RoadBow#3", title: "RoadBow #3", subtitle: "Follow the Rainbow Brick Road", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_55" },
-            { id: "SkyBow#1", title: "SkyBow #1", subtitle: "Droplets of the Essence of Life", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_56" },
-            { id: "SkyBow#2", title: "SkyBow #2", subtitle: "Fire of Sunrise Across the Horizon", rarity: "Rare", printifyId: "YOUR_PRODUCT_ID_57" },
-            { id: "TieDyeBow#1", title: "TieDyeBow #1", subtitle: "Saturated in Psychedelic Bliss", rarity: "Legendary", printifyId: "YOUR_PRODUCT_ID_58" },
-            { id: "TieDyeBow#2", title: "TieDyeBow #2", subtitle: "Kaleidoscope of Prescience", rarity: "Legendary", printifyId: "YOUR_PRODUCT_ID_59" },
-            { id: "TunnelBow#1", title: "TunnelBow #1", subtitle: "Portal Into Chromatic Unknowns", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_60" },
-            { id: "TunnelBow#2", title: "TunnelBow #2", subtitle: "Vortex of Warm Invitation", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_61" },
-            { id: "TunnelBow#3", title: "TunnelBow #3", subtitle: "Return From the Mystic Void", rarity: "Common", printifyId: "YOUR_PRODUCT_ID_62" },
-            { id: "UniverseBow", title: "UniverseBow", subtitle: "Everything, Everywhere, All at Once", rarity: "Legendary", printifyId: "YOUR_PRODUCT_ID_63" },
-            { id: "ZippyBow", title: "ZippyBow", subtitle: "(In Case You Missed It)", rarity: "Exotic", printifyId: "YOUR_PRODUCT_ID_64" }
+            { id: "AlchemyBow", title: "AlchemyBow", subtitle: "Magical Transformation of Light Into Gold", rarity: "Exotic", printifyUrl: "https://ordinalrainbows.printify.me/product/26270333/alchemybow-magical-transformation-of-light-into-gold" },
+            { id: "AuroraBow#1", title: "AuroraBow #1", subtitle: "First Whisper of the Polar Veil", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26270391/aurorabow-1-first-whisper-of-the-polar-veil" },
+            { id: "AuroraBow#2", title: "AuroraBow #2", subtitle: "At Peace in an Optical Embrace", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26270419/aurorabow-2-at-peace-in-an-optical-embrace" },
+            { id: "AuroraBow#3", title: "AuroraBow #3", subtitle: "Heavenly Dreams in Electric Motion", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26282847/aurorabow3-heavenly-dreams-in-electric-motion" },
+            { id: "CometBow#1", title: "CometBow #1", subtitle: "Streak Across the Void", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26282992/cometbow-1-streak-across-the-void" },
+            { id: "CometBow#2", title: "CometBow #2", subtitle: "Ripples Through Space and Time", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26284639/cometbow-2-ripples-through-space-and-time" },
+            { id: "CometBow#3", title: "CometBow #3", subtitle: "Slash Splits the Darkness", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26284652/cometbow-3-slash-splits-the-darkness" },
+            { id: "CosmicBow#1", title: "CosmicBow #1", subtitle: "Smiling Deep Space Into a Whirl", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293528/cosmicbow-1-smiling-deep-space-into-a-whirl" },
+            { id: "CosmicBow#2", title: "CosmicBow #2", subtitle: "Transmissions of the Satellite Heart", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293547/cosmicbow-2-transmissions-of-the-satellite-heart" },
+            { id: "CosmicBow#3", title: "CosmicBow #3", subtitle: "A Comet Disappears", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293564/cosmicbow-3-a-comet-disappears" },
+            { id: "Do-ItBow#1", title: "Do-ItBow #1", subtitle: "Soft Focus, Bold Swoosh", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293778/do-itbow-1-soft-focus-bold-swoosh" },
+            { id: "Do-ItBow#2", title: "Do-ItBow #2", subtitle: "Swoosh the Prismatic Moment", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293799/do-itbow-2-swoosh-the-prismatic-moment" },
+            { id: "Do-ItBow#3", title: "Do-ItBow #3", subtitle: "Swoosh Like Nike", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293817/do-itbow-3-swoosh-like-nike" },
+            { id: "DreamyBow#1", title: "DreamyBow #1", subtitle: "Float Through Liquid Reverie", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293830/dreamybow-1-float-through-liquid-reverie" },
+            { id: "DreamyBow#2", title: "DreamyBow #2", subtitle: "Twin Portals to Elsewhere Dimensions", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293854/dreamybow-2-twin-portals-to-elsewhere-dimensions" },
+            { id: "DreamyBow#3", title: "DreamyBow #3", subtitle: "Tumbling Towards Ecstacy", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293873/dreamybow-3-tumbling-towards-ecstacy" },
+            { id: "EclipseBow#1", title: "EclipseBow #1", subtitle: "Light Surrenders to shadow", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26293894/eclipsebow-1-light-surrenders-to-shadow" },
+            { id: "EclipseBow#2", title: "EclipseBow #2", subtitle: "Cascading Into an Infinite Void", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26294035/eclipsebow-2-cascading-into-an-infinite-void" },
+            { id: "EclipseBow#3", title: "EclipseBow #3", subtitle: "Darkness at the Threshold of Light", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26294053/eclipsebow-3-darkness-at-the-threshold-of-light" },
+            { id: "ElectraBow#1", title: "ElectraBow #1", subtitle: "Charged Grid of Possibilities", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26294074/electrabow-1-charged-grid-of-possibilities" },
+            { id: "ElectraBow#2", title: "ElectraBow #2", subtitle: "Spectrum Shimmer, Restless. Alive", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312143/electrabow-2-spectrum-shimmer-restless-alive" },
+            { id: "ElectraBow#3", title: "ElectraBow #3", subtitle: "Waves of Rainbows Surge", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312152/electrabow-3-waves-of-rainbows-surge" },
+            { id: "EyeBow#1", title: "EyeBow #1", subtitle: "Watching You From Beyond the Darkness", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312176/eyebow-1-watching-you-from-beyond-the-darkness" },
+            { id: "EyeBow#2", title: "EyeBow #2", subtitle: "Perception Transmuted Into Awareness", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312183/eyebow-2-perception-transmuted-into-awareness" },
+            { id: "FishBow#1", title: "FishBow #1", subtitle: "Rainbows in the Midnight Zone", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312205/fishbow-1-rainbows-in-the-midnight-zone" },
+            { id: "FishBow#2", title: "FishBow #2", subtitle: "Shimmer Beneath Refracted Waters", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312224/fishbow-2-shimmer-beneath-refracted-waters" },
+            { id: "FishBow#3", title: "FishBow #3", subtitle: "Deception at Depth of Scale", rarity: "Uncommon", printifyUrl: null },
+            { id: "FishBow#4", title: "FishBow #4", subtitle: "All Coming Into Focus", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312237/fishbow-4-all-coming-into-focus" },
+            { id: "FlowBow#1", title: "FlowBow #1", subtitle: "Mirrored Ribbons of Light in motion", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312264/flowbow-1-mirrored-ribbons-of-light-in-motion" },
+            { id: "FlowBow#2", title: "FlowBow #2", subtitle: "Getting Out of Hand", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312275/flowbow-2-getting-out-of-hand" },
+            { id: "FlowBow#3", title: "FlowBow #3", subtitle: "Melted Waves of Harmony", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312283/flowbow-3-melted-waves-of-harmony" },
+            { id: "FlowBow#4", title: "FlowBow #4", subtitle: "Painting the Milky Depths", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312296/flowbow-4-painting-the-milky-depths" },
+            { id: "GhostyBow#1", title: "GhostyBow #1", subtitle: "Ethereal Presence Glowing", rarity: "Uncommon", printifyUrl: null },
+            { id: "GhostyBow#2", title: "GhostyBow #2", subtitle: "Happy Phantom From Beyond", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312312/ghostybow-2-happy-phantom-from-beyond" },
+            { id: "GhostyBow#3", title: "GhostyBow #3", subtitle: "Translucent Soul Drifting Ethereally", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312321/ghostybow-3-translucent-soul-drifting-ethereally" },
+            { id: "GhostyBow#4", title: "GhostyBow #4", subtitle: "Haunting at the Edge of Night", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312329/ghostybow-4-haunting-at-the-edge-of-night" },
+            { id: "HazeBow#1", title: "HazeBow #1", subtitle: "Lost in Soft Rainbow Phases", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312342/hazebow-1-lost-in-soft-rainbow-phases" },
+            { id: "HazeBow#2", title: "HazeBow #2", subtitle: "Between Reality and Dreams", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26313072/hazebow-2-between-reality-and-dreams" },
+            { id: "HazeBow#3", title: "HazeBow #3", subtitle: "When First You Open Your Eyes", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26313088/hazebow-3-when-first-you-open-your-eyes" },
+            { id: "HeartBow", title: "HeartBow", subtitle: "Love In the Palm of Your Hand", rarity: "Legendary", printifyUrl: "https://ordinalrainbows.printify.me/product/26312781/heartbow-love-in-the-palm-of-your-hand" },
+            { id: "HummingBow#1", title: "HummingBow #1", subtitle: "Hovering Prism Heartbeat", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312802/hummingbow-1-hovering-prism-heartbeat" },
+            { id: "HummingBow#2", title: "HummingBow #2", subtitle: "How Rapid is Rapid?", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312814/hummingbow-2-how-rapid-is-rapid" },
+            { id: "MirrorBow#1", title: "MirrorBow #1", subtitle: "Infinite Reflection Chamber", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312825/mirrorbow-1-infinite-reflection-chamber" },
+            { id: "MirrorBow#2", title: "MirrorBow #2", subtitle: "A Chance Spectral Meeting", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312841/mirrorbow-2-a-chance-spectral-meeting" },
+            { id: "MirrorBow#3", title: "MirrorBow #3", subtitle: "Echoes of Tumbling Rainbows", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312853/mirrorbow-3l-echoes-of-tumbling-rainbows" },
+            { id: "MirrorBow#4", title: "MirrorBow #4", subtitle: "Depths of Illusion", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312867/mirrorbow-4-depths-of-illusion" },
+            { id: "NebulaBow#1", title: "NebulaBow #1", subtitle: "Clouds of Prismatic Stardust", rarity: "Epic", printifyUrl: "https://ordinalrainbows.printify.me/product/26312876/nebulabow-1-clouds-of-prismatic-stardust" },
+            { id: "NebulaBow#2", title: "NebulaBow #2", subtitle: "Interstellar Overdrive", rarity: "Epic", printifyUrl: "https://ordinalrainbows.printify.me/product/26312881/nebulabow-2-interstellar-overdrive" },
+            { id: "NebulaBow#3", title: "NebulaBow #3", subtitle: "A Cosmic Nursery Blooming", rarity: "Epic", printifyUrl: "https://ordinalrainbows.printify.me/product/26312891/nebulabow-3-a-cosmic-nursery-blooming" },
+            { id: "NebulaBow#4", title: "NebulaBow #4", subtitle: "Stardust Dreaming Into Shapes", rarity: "Epic", printifyUrl: "https://ordinalrainbows.printify.me/product/26312905/nebulabow-4-stardust-dreaming-into-shapes" },
+            { id: "NebulaBow#5", title: "NebulaBow #5", subtitle: "Celestial Whirlpool Casting Hues", rarity: "Epic", printifyUrl: "https://ordinalrainbows.printify.me/product/26312924/nebulabow-5-celestial-whirlpool-casting-hues" },
+            { id: "NebulaBow#6", title: "NebulaBow #6", subtitle: "Chromatic Creation torn apart", rarity: "Epic", printifyUrl: "https://ordinalrainbows.printify.me/product/26312935/nebulabow-6-chromatic-creation-torn-apart" },
+            { id: "RoadBow#1", title: "RoadBow #1", subtitle: "Red Light District", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312959/roadbow-1-red-light-district" },
+            { id: "RoadBow#2", title: "RoadBow #2", subtitle: "Textured Trail to a Spectral Tomorrow", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312976/roadbow-2-textured-trail-to-a-spectral-tomorrow" },
+            { id: "RoadBow#3", title: "RoadBow #3", subtitle: "Follow the Rainbow Brick Road", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312997/roadbow-3-follow-the-rainbow-brick-road" },
+            { id: "SkyBow#1", title: "SkyBow #1", subtitle: "Droplets of the Essence of Life", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26313007/skybow-1-droplets-of-the-essence-of-life" },
+            { id: "SkyBow#2", title: "SkyBow #2", subtitle: "Fire of Sunrise Across the Horizon", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26313018/skybow-2-fire-of-sunrise-across-the-horizon" },
+            { id: "TieDyeBow#1", title: "TieDyeBow #1", subtitle: "Saturated in Psychedelic Bliss", rarity: "Legendary", printifyUrl: "https://ordinalrainbows.printify.me/product/26312757/tiedyebow-1-saturated-in-psychedelic-bliss" },
+            { id: "TieDyeBow#2", title: "TieDyeBow #2", subtitle: "Kaleidoscope of Prescience", rarity: "Legendary", printifyUrl: "https://ordinalrainbows.printify.me/product/26312740/tiedyebow-2-kaleidoscope-of-prescience" },
+            { id: "TunnelBow#1", title: "TunnelBow #1", subtitle: "Portal Into Chromatic Unknowns", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/25134633/tunnelbow1-portal-into-chromatic-unknowns" },
+            { id: "TunnelBow#2", title: "TunnelBow #2", subtitle: "Vortex of Warm Invitation", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26313100/tunnelbow-2-vortex-of-warm-invitation" },
+            { id: "TunnelBow#3", title: "TunnelBow #3", subtitle: "Return From the Mystic Void", rarity: "Common", printifyUrl: null },
+            { id: "UniverseBow", title: "UniverseBow", subtitle: "Everything, Everywhere, All at Once", rarity: "Legendary", printifyUrl: null },
+            { id: "ZippyBow", title: "ZippyBow", subtitle: "(In Case You Missed It)", rarity: "Exotic", printifyUrl: null }
         ];
 
         const gallery = document.getElementById('gallery');
@@ -431,6 +434,7 @@ h1 {
             card.className = 'nft-card';
 
             const rarityClass = nft.rarity.toLowerCase();
+            const hasUrl = nft.printifyUrl && nft.printifyUrl !== null;
 
             card.innerHTML = `
                 <div class="nft-header">
@@ -451,50 +455,61 @@ h1 {
                         <span class="info-label">Inscription ID:</span>
                         <span class="info-value" style="font-size: 0.85em; word-break: break-all;">Coming Soon</span>
                     </div>
-                    <a href="#" class="sale-link" onclick="openPrintifyStore('${nft.printifyId}'); return false;">Order Prints</a>
+                    ${hasUrl ? 
+                        `<a href="#" class="sale-link" onclick="openPrintifyStore('${nft.printifyUrl}'); return false;">Order Prints</a>` :
+                        `<div class="sale-link unavailable">Coming Soon</div>`
+                    }
                 </div>
             `;
 
             gallery.appendChild(card);
         });
 
-        // Modal functionality
-        const printifyModal = document.getElementById('printifyModal');
-        const closeModal = document.querySelector('.close-modal');
-
-        function openPrintifyStore(productId) {
-            const iframe = printifyModal.querySelector('iframe');
-
-            if (productId && productId !== 'YOUR_PRODUCT_ID_1' && !productId.startsWith('YOUR_PRODUCT_ID')) {
-                // Open specific product page
-                iframe.src = `https://ordinalrainbows.printify.me/product/${productId}`;
-            } else {
-                // Fallback to products page if no valid product ID
-                iframe.src = 'https://ordinalrainbows.printify.me/products';
+        // Open Printify store in modal
+        function openPrintifyStore(printifyUrl) {
+            if (!printifyUrl) {
+                alert('Product not yet available');
+                return;
             }
-
-            printifyModal.style.display = 'block';
+            
+            const modal = document.createElement('div');
+            modal.className = 'printify-modal';
+            
+            const nft = nfts.find(n => n.printifyUrl === printifyUrl);
+            const title = nft ? nft.title : 'Product';
+            
+            modal.innerHTML = `
+              <div class="printify-modal-content">
+                <div class="printify-modal-header">
+                  <h2>${title}</h2>
+                  <span class="printify-modal-close">&times;</span>
+                </div>
+                <iframe src="${printifyUrl}" class="printify-iframe"></iframe>
+              </div>
+            `;
+            
+            document.body.appendChild(modal);
             document.body.style.overflow = 'hidden';
+            
+            const closeBtn = modal.querySelector('.printify-modal-close');
+            closeBtn.onclick = () => closePrintifyModal(modal);
+            
+            modal.onclick = (e) => {
+              if (e.target === modal) closePrintifyModal(modal);
+            };
+            
+            document.addEventListener('keydown', function escHandler(e) {
+              if (e.key === 'Escape') {
+                closePrintifyModal(modal);
+                document.removeEventListener('keydown', escHandler);
+              }
+            });
         }
 
-        closeModal.onclick = function() {
-            printifyModal.style.display = 'none';
-            document.body.style.overflow = 'auto';
+        function closePrintifyModal(modal) {
+            modal.remove();
+            document.body.style.overflow = '';
         }
-
-        window.onclick = function(event) {
-            if (event.target == printifyModal) {
-                printifyModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && printifyModal.style.display === 'block') {
-                printifyModal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-        });
     </script>
 </body>
 </html>

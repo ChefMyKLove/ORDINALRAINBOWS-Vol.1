@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ORDINAL 🌈 RAINBOWS Vol. 1</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
 * {
     margin: 0;
@@ -25,6 +26,7 @@ body {
     margin: 0 auto;
 }
 
+/* Rainbow background carousel animation */
 body::before {
     content: '';
     position: fixed;
@@ -36,6 +38,8 @@ body::before {
     background-position: center;
     background-repeat: no-repeat;
     z-index: -1;
+    will-change: background-image;
+    transform: translate3d(0, 0, 0);
     animation: backgroundCycle 104s infinite ease-in-out;
 }
 
@@ -67,6 +71,7 @@ header {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
     backdrop-filter: blur(15px) saturate(180%) brightness(110%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%) brightness(110%);
 }
 
 h1 {
@@ -74,237 +79,34 @@ h1 {
     margin-bottom: 10px;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
     animation: backgroundCycle 12s infinite ease-in-out;
-    filter: drop-shadow(0 0 0.5px #fff) drop-shadow(0 0 0.5px #00ff00);
+    filter: drop-shadow(0 0 0.5px #fff) drop-shadow(0 0 0.5px #00ff00) drop-shadow(0 0 .5px #00ff00);
     -webkit-text-stroke: 0.5px #000;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .subtitle {
     font-size: 1.8em;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
     animation: backgroundCycle 22s infinite ease-in-out;
     filter: drop-shadow(0 0 0.3px #fff) drop-shadow(0 0 1px #00ff00);
     -webkit-text-stroke: 0.5px #000;
 }
 
-/* DISCOVERY CONTROLS */
-.discovery-controls {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px) saturate(180%) brightness(110%);
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 40px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.search-wrapper {
-    position: relative;
-    margin-bottom: 25px;
-}
-
-.search-input {
-    width: 100%;
-    padding: 15px 50px 15px 20px;
-    font-size: 1.1em;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50px;
-    background: rgba(0, 0, 0, 0.3);
-    color: #fff;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-}
-
-.search-input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: rgba(102, 126, 234, 0.6);
-    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-    background: rgba(0, 0, 0, 0.4);
-}
-
-.search-icon {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.3em;
-    color: rgba(255, 255, 255, 0.5);
-    pointer-events: none;
-}
-
-.filter-section {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.filter-label {
-    font-weight: 600;
-    font-size: 1.1em;
-    margin-right: 10px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-}
-
-.rarity-filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.rarity-btn {
-    padding: 10px 20px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 25px;
-    background: rgba(0, 0, 0, 0.3);
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 600;
-    font-size: 0.95em;
-    backdrop-filter: blur(10px);
-}
-
-.rarity-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-}
-
-.rarity-btn.active {
-    border-color: rgba(102, 126, 234, 0.8);
-    background: rgba(102, 126, 234, 0.3);
-    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
-}
-
-.rarity-btn.legendary { border-color: rgba(245, 87, 108, 0.6); }
-.rarity-btn.legendary.active { background: rgba(245, 87, 108, 0.3); box-shadow: 0 0 20px rgba(245, 87, 108, 0.5); }
-
-.rarity-btn.exotic { border-color: rgba(250, 112, 154, 0.6); }
-.rarity-btn.exotic.active { background: rgba(250, 112, 154, 0.3); box-shadow: 0 0 20px rgba(250, 112, 154, 0.5); }
-
-.rarity-btn.epic { border-color: rgba(161, 140, 209, 0.6); }
-.rarity-btn.epic.active { background: rgba(161, 140, 209, 0.3); box-shadow: 0 0 20px rgba(161, 140, 209, 0.5); }
-
-.rarity-btn.rare { border-color: rgba(79, 172, 254, 0.6); }
-.rarity-btn.rare.active { background: rgba(79, 172, 254, 0.3); box-shadow: 0 0 20px rgba(79, 172, 254, 0.5); }
-
-.rarity-btn.uncommon { border-color: rgba(67, 233, 123, 0.6); }
-.rarity-btn.uncommon.active { background: rgba(67, 233, 123, 0.3); box-shadow: 0 0 20px rgba(67, 233, 123, 0.5); }
-
-.rarity-btn.common { border-color: rgba(102, 126, 234, 0.6); }
-.rarity-btn.common.active { background: rgba(102, 126, 234, 0.3); box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
-
-.sort-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.custom-select {
-    position: relative;
-    width: 220px;
-}
-
-.select-styled {
-    padding: 12px 40px 12px 20px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 25px;
-    background: rgba(0, 0, 0, 0.3);
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    font-weight: 600;
-    position: relative;
-}
-
-.select-styled:after {
-    content: '▼';
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.8em;
-    transition: transform 0.3s ease;
-}
-
-.select-styled.active:after {
-    transform: translateY(-50%) rotate(180deg);
-}
-
-.select-styled:hover {
-    border-color: rgba(102, 126, 234, 0.6);
-    box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
-}
-
-.select-options {
-    position: absolute;
-    top: calc(100% + 5px);
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.9);
-    border: 2px solid rgba(102, 126, 234, 0.4);
-    border-radius: 15px;
-    overflow: hidden;
-    z-index: 100;
-    display: none;
-    backdrop-filter: blur(20px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-}
-
-.select-options.active {
-    display: block;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.select-options div {
-    padding: 12px 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #fff;
-    font-weight: 500;
-}
-
-.select-options div:hover {
-    background: rgba(102, 126, 234, 0.3);
-    padding-left: 25px;
-}
-
-.results-info {
-    text-align: center;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 15px;
-    font-size: 1.1em;
-    font-weight: 600;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-}
-
 .gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 40px;
     margin-top: 40px;
 }
@@ -313,31 +115,24 @@ h1 {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
     border: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px) saturate(180%) brightness(110%);
-    opacity: 1;
-    animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.nft-card.hidden {
-    display: none;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(110%);
 }
 
 .nft-card:hover {
     transform: translateY(-10px) scale(1.02);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(25px) saturate(200%) brightness(120%);
+    -webkit-backdrop-filter: blur(25px) saturate(200%) brightness(120%);
 }
 
 .nft-header {
     padding: 25px;
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .nft-title {
@@ -346,9 +141,11 @@ h1 {
     margin-bottom: 8px;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
     animation: backgroundCycle 22s infinite ease-in-out;
     filter: drop-shadow(0 0 0.5px #fff) drop-shadow(0 0 1.8px #00ff00);
     -webkit-text-stroke: 0.8px #000;
@@ -359,9 +156,11 @@ h1 {
     font-style: italic;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
     animation: backgroundCycle 52s infinite ease-in-out;
     filter: drop-shadow(0 0 0.3px #fff) drop-shadow(0 0 0.5px #00ff00);
     -webkit-text-stroke: 0.3px #000;
@@ -446,6 +245,7 @@ h1 {
     padding: 12px;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     color: #fff;
     text-align: center;
     text-decoration: none;
@@ -469,6 +269,7 @@ h1 {
     opacity: 0.6;
 }
 
+/* Printify Modal */
 .printify-modal {
     display: block;
     position: fixed;
@@ -479,6 +280,7 @@ h1 {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .printify-modal-content {
@@ -492,6 +294,7 @@ h1 {
     border-radius: 20px;
     box-shadow: 0 0 50px rgba(102, 126, 234, 0.6);
     backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
 }
@@ -533,49 +336,13 @@ h1 {
     .gallery {
         grid-template-columns: 1fr;
     }
-    
+
     h1 {
         font-size: 2em;
     }
-    
+
     .nft-image {
         height: 300px;
-    }
-    
-    .filter-section {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .custom-select {
-        width: 100%;
-    }
-    
-    .rarity-filter {
-        justify-content: center;
-    }
-    
-    /* Mobile Performance Optimization - Keep background animation, remove from everything else */
-    h1, .subtitle, .nft-title, .nft-subtitle {
-        animation: none !important;
-        -webkit-background-clip: initial !important;
-        background-clip: initial !important;
-        -webkit-text-fill-color: #fff !important;
-        color: #fff !important;
-        filter: none !important;
-        -webkit-text-stroke: 0 !important;
-    }
-    
-    /* Reduce backdrop blur intensity */
-    header, .discovery-controls, .nft-card {
-        backdrop-filter: blur(5px) !important;
-        -webkit-backdrop-filter: blur(5px) !important;
-    }
-    
-    /* Simpler button/link styles - no animation */
-    .sale-link {
-        animation: none !important;
-        background: linear-gradient(45deg, #667eea, #764ba2) !important;
     }
 }
     </style>
@@ -587,47 +354,34 @@ h1 {
             <p class="subtitle">A PATENTED HARVESTING PROCESS YIELDS SOME AMAZING RESULTS!! ADORN YOUR ENVIRONMENT WITH RAINBOW MAGIC</p>
         </header>
 
-        <div class="discovery-controls">
-            <div class="search-wrapper">
-                <input type="text" class="search-input" id="searchInput" placeholder="Search by name or subtitle...">
-                <span class="search-icon">🔍</span>
-            </div>
-
-            <div class="filter-section">
-                <span class="filter-label">Filter by Rarity:</span>
-                <div class="rarity-filter">
-                    <button class="rarity-btn legendary" data-rarity="legendary">Legendary</button>
-                    <button class="rarity-btn exotic" data-rarity="exotic">Exotic</button>
-                    <button class="rarity-btn epic" data-rarity="epic">Epic</button>
-                    <button class="rarity-btn rare" data-rarity="rare">Rare</button>
-                    <button class="rarity-btn uncommon" data-rarity="uncommon">Uncommon</button>
-                    <button class="rarity-btn common" data-rarity="common">Common</button>
-                    <button class="rarity-btn" data-rarity="all">Show All</button>
-                </div>
-            </div>
-
-            <div class="sort-wrapper">
-                <span class="filter-label">Sort:</span>
-                <div class="custom-select">
-                    <div class="select-styled" id="sortSelect">Alphabetical (A-Z)</div>
-                    <div class="select-options" id="sortOptions">
-                        <div data-value="alpha-asc">Alphabetical (A-Z)</div>
-                        <div data-value="alpha-desc">Alphabetical (Z-A)</div>
-                        <div data-value="rarity-high">Rarity (High to Low)</div>
-                        <div data-value="rarity-low">Rarity (Low to High)</div>
-                        <div data-value="available">Available First</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="results-info" id="resultsInfo">Showing all 65 items</div>
-        </div>
-
         <div class="gallery" id="gallery"></div>
     </div>
 
     <script>
+        // NFT data with full Printify URLs
         const nfts = [
+            { id: "AlchemyBow", title: "AlchemyBow", subtitle: "Magical Transformation of Light Into Gold", rarity: "Exotic", printifyUrl: "https://ordinalrainbows.printify.me/product/26270333/alchemybow-magical-transformation-of-light-into-gold" },
+            { id: "AuroraBow#1", title: "AuroraBow #1", subtitle: "First Whisper of the Polar Veil", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26270391/aurorabow-1-first-whisper-of-the-polar-veil" },
+            { id: "AuroraBow#2", title: "AuroraBow #2", subtitle: "At Peace in an Optical Embrace", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26270419/aurorabow-2-at-peace-in-an-optical-embrace" },
+            { id: "AuroraBow#3", title: "AuroraBow #3", subtitle: "Heavenly Dreams in Electric Motion", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26282847/aurorabow3-heavenly-dreams-in-electric-motion" },
+            { id: "CometBow#1", title: "CometBow #1", subtitle: "Streak Across the Void", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26282992/cometbow-1-streak-across-the-void" },
+            { id: "CometBow#2", title: "CometBow #2", subtitle: "Ripples Through Space and Time", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26284639/cometbow-2-ripples-through-space-and-time" },
+            { id: "CometBow#3", title: "CometBow #3", subtitle: "Slash Splits the Darkness", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26284652/cometbow-3-slash-splits-the-darkness" },
+            { id: "CosmicBow#1", title: "CosmicBow #1", subtitle: "Smiling Deep Space Into a Whirl", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293528/cosmicbow-1-smiling-deep-space-into-a-whirl" },
+            { id: "CosmicBow#2", title: "CosmicBow #2", subtitle: "Transmissions of the Satellite Heart", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293547/cosmicbow-2-transmissions-of-the-satellite-heart" },
+            { id: "CosmicBow#3", title: "CosmicBow #3", subtitle: "A Comet Disappears", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293564/cosmicbow-3-a-comet-disappears" },
+            { id: "Do-ItBow#1", title: "Do-ItBow #1", subtitle: "Soft Focus, Bold Swoosh", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293778/do-itbow-1-soft-focus-bold-swoosh" },
+            { id: "Do-ItBow#2", title: "Do-ItBow #2", subtitle: "Swoosh the Prismatic Moment", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293799/do-itbow-2-swoosh-the-prismatic-moment" },
+            { id: "Do-ItBow#3", title: "Do-ItBow #3", subtitle: "Swoosh Like Nike", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293817/do-itbow-3-swoosh-like-nike" },
+            { id: "DreamyBow#1", title: "DreamyBow #1", subtitle: "Float Through Liquid Reverie", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293830/dreamybow-1-float-through-liquid-reverie" },
+            { id: "DreamyBow#2", title: "DreamyBow #2", subtitle: "Twin Portals to Elsewhere Dimensions", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293854/dreamybow-2-twin-portals-to-elsewhere-dimensions" },
+            { id: "DreamyBow#3", title: "DreamyBow #3", subtitle: "Tumbling Towards Ecstacy", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26293873/dreamybow-3-tumbling-towards-ecstacy" },
+            { id: "EclipseBow#1", title: "EclipseBow #1", subtitle: "Light Surrenders to shadow", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26293894/eclipsebow-1-light-surrenders-to-shadow" },
+            { id: "EclipseBow#2", title: "EclipseBow #2", subtitle: "Cascading Into an Infinite Void", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26294035/eclipsebow-2-cascading-into-an-infinite-void" },
+            { id: "EclipseBow#3", title: "EclipseBow #3", subtitle: "Darkness at the Threshold of Light", rarity: "Rare", printifyUrl: "https://ordinalrainbows.printify.me/product/26294053/eclipsebow-3-darkness-at-the-threshold-of-light" },
+            { id: "ElectraBow#1", title: "ElectraBow #1", subtitle: "Charged Grid of Possibilities", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26294074/electrabow-1-charged-grid-of-possibilities" },
+            { id: "ElectraBow#2", title: "ElectraBow #2", subtitle: "Spectrum Shimmer, Restless. Alive", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312143/electrabow-2-spectrum-shimmer-restless-alive" },
+            { id: "ElectraBow#3", title: "ElectraBow #3", subtitle: "Waves of Rainbows Surge", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312152/electrabow-3-waves-of-rainbows-surge" },
             { id: "EyeBow#1", title: "EyeBow #1", subtitle: "Watching You From Beyond the Darkness", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312176/eyebow-1-watching-you-from-beyond-the-darkness" },
             { id: "EyeBow#2", title: "EyeBow #2", subtitle: "Perception Transmuted Into Awareness", rarity: "Common", printifyUrl: "https://ordinalrainbows.printify.me/product/26312183/eyebow-2-perception-transmuted-into-awareness" },
             { id: "FishBow#1", title: "FishBow #1", subtitle: "Rainbows in the Midnight Zone", rarity: "Uncommon", printifyUrl: "https://ordinalrainbows.printify.me/product/26312205/fishbow-1-rainbows-in-the-midnight-zone" },
@@ -673,152 +427,43 @@ h1 {
         ];
 
         const gallery = document.getElementById('gallery');
-        const searchInput = document.getElementById('searchInput');
-        const resultsInfo = document.getElementById('resultsInfo');
-        const sortSelect = document.getElementById('sortSelect');
-        const sortOptions = document.getElementById('sortOptions');
-        
-        let currentFilter = 'all';
-        let currentSort = 'alpha-asc';
-        let filteredNfts = [...nfts];
-
-        // Rarity hierarchy for sorting
-        const rarityOrder = {
-            'Legendary': 6,
-            'Exotic': 5,
-            'Epic': 4,
-            'Rare': 3,
-            'Uncommon': 2,
-            'Common': 1
-        };
 
         // Generate NFT cards
-        function renderGallery(nftsToRender) {
-            gallery.innerHTML = '';
-            
-            nftsToRender.forEach(nft => {
-                const card = document.createElement('div');
-                card.className = 'nft-card';
-                card.dataset.rarity = nft.rarity.toLowerCase();
-                card.dataset.title = nft.title.toLowerCase();
-                card.dataset.subtitle = nft.subtitle.toLowerCase();
+        nfts.forEach(nft => {
+            const card = document.createElement('div');
+            card.className = 'nft-card';
 
-                const rarityClass = nft.rarity.toLowerCase();
-                const hasUrl = nft.printifyUrl && nft.printifyUrl !== null;
+            const rarityClass = nft.rarity.toLowerCase();
+            const hasUrl = nft.printifyUrl && nft.printifyUrl !== null;
 
-                card.innerHTML = `
-                    <div class="nft-header">
-                        <div class="nft-title">${nft.title}</div>
-                        <div class="nft-subtitle">${nft.subtitle}</div>
+            card.innerHTML = `
+                <div class="nft-header">
+                    <div class="nft-title">${nft.title}</div>
+                    <div class="nft-subtitle">${nft.subtitle}</div>
+                </div>
+                <img src="images/${encodeURIComponent(nft.id)}.JPG" alt="${nft.title}" class="nft-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22400%22/%3E%3Ctext fill=%22%23fff%22 font-size=%2220%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3EImage Loading...%3C/text%3E%3C/svg%3E">
+                <div class="nft-info">
+                    <div class="info-row">
+                        <span class="info-label">Rarity:</span>
+                        <span class="rarity ${rarityClass}">${nft.rarity}</span>
                     </div>
-                    <img src="images/${encodeURIComponent(nft.id)}.JPG" alt="${nft.title}" class="nft-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22400%22%3E%3Crect fill=%22%23333%22 width=%22400%22 height=%22400%22/%3E%3Ctext fill=%22%23fff%22 font-size=%2220%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3EImage Loading...%3C/text%3E%3C/svg%3E">
-                    <div class="nft-info">
-                        <div class="info-row">
-                            <span class="info-label">Rarity:</span>
-                            <span class="rarity ${rarityClass}">${nft.rarity}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Original:</span>
-                            <span class="info-value">PNG 5000px × 5000px</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Inscription ID:</span>
-                            <span class="info-value" style="font-size: 0.85em; word-break: break-all;">Coming Soon</span>
-                        </div>
-                        ${hasUrl ? 
-                            `<a href="#" class="sale-link" onclick="openPrintifyStore('${nft.printifyUrl}'); return false;">Order Prints</a>` :
-                            `<div class="sale-link unavailable">Coming Soon</div>`
-                        }
+                    <div class="info-row">
+                        <span class="info-label">Original:</span>
+                        <span class="info-value">PNG 5000px × 5000px</span>
                     </div>
-                `;
+                    <div class="info-row">
+                        <span class="info-label">Inscription ID:</span>
+                        <span class="info-value" style="font-size: 0.85em; word-break: break-all;">Coming Soon</span>
+                    </div>
+                    ${hasUrl ? 
+                        `<a href="#" class="sale-link" onclick="openPrintifyStore('${nft.printifyUrl}'); return false;">Order Prints</a>` :
+                        `<div class="sale-link unavailable">Coming Soon</div>`
+                    }
+                </div>
+            `;
 
-                gallery.appendChild(card);
-            });
-
-            updateResultsInfo(nftsToRender.length);
-        }
-
-        // Search functionality
-        searchInput.addEventListener('input', (e) => {
-            filterAndSort();
+            gallery.appendChild(card);
         });
-
-        // Rarity filter
-        document.querySelectorAll('.rarity-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.rarity-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.dataset.rarity;
-                filterAndSort();
-            });
-        });
-
-        // Custom select dropdown
-        sortSelect.addEventListener('click', () => {
-            sortSelect.classList.toggle('active');
-            sortOptions.classList.toggle('active');
-        });
-
-        sortOptions.querySelectorAll('div').forEach(option => {
-            option.addEventListener('click', (e) => {
-                currentSort = e.target.dataset.value;
-                sortSelect.textContent = e.target.textContent;
-                sortSelect.classList.remove('active');
-                sortOptions.classList.remove('active');
-                filterAndSort();
-            });
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.custom-select')) {
-                sortSelect.classList.remove('active');
-                sortOptions.classList.remove('active');
-            }
-        });
-
-        // Filter and sort function
-        function filterAndSort() {
-            const searchTerm = searchInput.value.toLowerCase();
-            
-            // Filter
-            filteredNfts = nfts.filter(nft => {
-                const matchesSearch = nft.title.toLowerCase().includes(searchTerm) || 
-                                    nft.subtitle.toLowerCase().includes(searchTerm);
-                const matchesRarity = currentFilter === 'all' || 
-                                    nft.rarity.toLowerCase() === currentFilter;
-                return matchesSearch && matchesRarity;
-            });
-
-            // Sort
-            filteredNfts.sort((a, b) => {
-                switch(currentSort) {
-                    case 'alpha-asc':
-                        return a.title.localeCompare(b.title);
-                    case 'alpha-desc':
-                        return b.title.localeCompare(a.title);
-                    case 'rarity-high':
-                        return rarityOrder[b.rarity] - rarityOrder[a.rarity];
-                    case 'rarity-low':
-                        return rarityOrder[a.rarity] - rarityOrder[b.rarity];
-                    case 'available':
-                        return (b.printifyUrl ? 1 : 0) - (a.printifyUrl ? 1 : 0);
-                    default:
-                        return 0;
-                }
-            });
-
-            renderGallery(filteredNfts);
-        }
-
-        function updateResultsInfo(count) {
-            const total = nfts.length;
-            if (count === total) {
-                resultsInfo.textContent = `Showing all ${total} items`;
-            } else {
-                resultsInfo.textContent = `Showing ${count} of ${total} items`;
-            }
-        }
 
         // Open Printify store in modal
         function openPrintifyStore(printifyUrl) {
@@ -865,9 +510,6 @@ h1 {
             modal.remove();
             document.body.style.overflow = '';
         }
-
-        // Initialize gallery
-        renderGallery(nfts);
     </script>
 </body>
-</html> 
+</html>

@@ -128,7 +128,7 @@ header > * {
 }
 
 h1 {
-    font-size: 4.5em;
+     font-size: clamp(1.5rem, 5vw, 4.5em);
     font-weight: 700;
     letter-spacing: -0.02em;
      padding: 15px 25px 25px 5px;
@@ -458,8 +458,10 @@ h1 {
         grid-template-columns: 1fr;
     }
 
-    h1 {
-        font-size: 2em;
+   
+    }
+     header {
+        padding: 20px 10px;  /* Reduce side padding on mobile */
     }
 
     .nft-image {

@@ -84,7 +84,7 @@ body.loaded::before {
 /* Header - Always visible, gets full treatment */
 header {
     text-align: center;
-    padding: 40px 20px;
+    padding: 30px 30px;
     margin-bottom: 40px;
     border-radius: 32px;
     overflow: hidden;
@@ -128,10 +128,11 @@ header > * {
 }
 
 h1 {
-    font-size: 3.5em;
+    font-size: 4.5em;
     font-weight: 700;
     letter-spacing: -0.02em;
-    margin-bottom: 10px;
+     padding: 15px 25px 25px 5px;
+    margin-bottom: 25px;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -139,13 +140,17 @@ h1 {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
-    animation: backgroundCycle 52s infinite ease-in-out;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    animation: backgroundCycle 42s infinite ease-in-out;
+     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+     -webkit-text-stroke: 0.05px rgba(255, 255, 255, 0.7);
+    text-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.2);
 }
 
 .subtitle {
-    font-size: 1.8em;
-    font-weight: 500;
+    font-size: 2.2em;
+    font-weight: 700;
     letter-spacing: -0.01em;
     background-size: cover;
     background-position: center;
@@ -154,8 +159,12 @@ h1 {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
-    animation: backgroundCycle 52s infinite ease-in-out;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    animation: backgroundCycle 42s infinite ease-in-out;
+     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+     -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.4);
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.4),
+        0 0 20px rgba(255, 255, 255, 0.3);
 }
 
 .gallery {
@@ -216,10 +225,6 @@ h1 {
     opacity: 1;
 }
 
-.nft-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-}
 
 .nft-card > * {
     position: relative;
@@ -233,7 +238,7 @@ h1 {
 }
 
 .nft-title {
-    font-size: 1.8em;
+    font-size: 2.2em;
     font-weight: 700;
     letter-spacing: -0.02em;
     margin-bottom: 8px;
@@ -249,20 +254,35 @@ h1 {
 }
 
 .nft-subtitle {
-    font-size: 1.2em;
-    font-weight: 400;
+    font-size: 1.5em;
+    font-weight: 600;
     font-style: italic;
     letter-spacing: -0.01em;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    
+    /* Static rainbow gradient */
+   background: linear-gradient(
+    135deg,  /* Diagonal angle */
+    #ff006e,
+    #ff4d00,
+    #ffb700,
+    #00f5d4,
+    #00bbf9,
+    #5e60ce,
+    #7209b7
+);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     color: transparent;
-    animation: backgroundCycle 52s infinite ease-in-out;
+    
+    /* Keep the shiny effects */
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.4);
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.2);
 }
+
 
 .nft-image {
     width: 100%;
@@ -487,8 +507,9 @@ h1 {
 
     <div class="container">
         <header id="main-header">
-            <h1>ORDINAL 🌈 RAINBOWS Vol. 1</h1>
-            <p class="subtitle">A PATENTED HARVESTING PROCESS YIELDS SOME AMAZING RESULTS!! ADORN YOUR ENVIRONMENT WITH RAINBOW MAGIC</p>
+            <h1>ORDINAL•RAINBOWS Vol. 1</h1>
+            <p class="subtitle">A PROPRIETARY HARVESTING PROCESS YIELDS SOME ASTOUNDING RESULTS!!</p>
+            <p class="subtitle">ADORN YOUR ENVIRONMENT WITH BEAUTIFUL RAINBOW MAGIC</p>
         </header>
 
         <div class="gallery" id="gallery"></div>

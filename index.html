@@ -61,24 +61,25 @@ body.loaded::before {
 }
 
 @keyframes backgroundCycle {
-    0% { background-image: url('images/AlchemyBow.JPG'); }
-    6% { background-image: url('images/AuroraBow%231.JPG'); }
-    12% { background-image: url('images/GhostyBow%233.JPG'); }
-    18% { background-image: url('images/HazeBow%233.JPG'); }
-    24% { background-image: url('images/MirrorBow%232.JPG'); }
-    30% { background-image: url('images/NebulaBow%234.JPG'); }
-    36% { background-image: url('images/SkyBow%231.JPG'); }
-    42% { background-image: url('images/TunnelBow%231.JPG'); }
-    48% { background-image: url('images/TunnelBow%232.JPG'); }
-    54% { background-image: url('images/ZippyBow.JPG'); }
-    60% { background-image: url('images/GhostyBow%234.JPG'); }
-    66% { background-image: url('images/TieDyeBow%232.JPG'); }
-    72% { background-image: url('images/CosmicBow%232.JPG'); }
-    78% { background-image: url('images/HummingBow%231.JPG'); }
-    84% { background-image: url('images/NebulaBow%231.JPG'); }
-    90% { background-image: url('images/FlowBow%233.JPG'); }
-    96% { background-image: url('images/HazeBow%231.JPG'); }
-    100% { background-image: url('images/Do-ItBow%231.JPG'); }
+    0% { background-image: url('images/AlchemyBow.JPG'); opacity: 1; }
+    6% { background-image: url('images/AuroraBow%231.JPG'); opacity: 1; }
+    12% { background-image: url('images/GhostyBow%233.JPG'); opacity: 1; }
+    18% { background-image: url('images/HazeBow%233.JPG'); opacity: 1; }
+    24% { background-image: url('images/MirrorBow%232.JPG'); opacity: 1; }
+    30% { background-image: url('images/NebulaBow%234.JPG'); opacity: 1; }
+    36% { background-image: url('images/SkyBow%231.JPG'); opacity: 1; }
+    42% { background-image: url('images/TunnelBow%231.JPG'); opacity: 1; }
+    48% { background-image: url('images/TunnelBow%232.JPG'); opacity: 1; }
+    54% { background-image: url('images/ZippyBow.JPG'); opacity: 1; }
+    60% { background-image: url('images/GhostyBow%234.JPG'); opacity: 1; }
+    66% { background-image: url('images/TieDyeBow%232.JPG'); opacity: 1; }
+    72% { background-image: url('images/CosmicBow%232.JPG'); opacity: 1; }
+    78% { background-image: url('images/HummingBow%231.JPG'); opacity: 1; }
+    84% { background-image: url('images/NebulaBow%231.JPG'); opacity: 1; }
+    90% { background-image: url('images/FlowBow%233.JPG'); opacity: 1; }
+    96% { background-image: url('images/HazeBow%231.JPG'); opacity: 1; }
+    99.7% { background-image: url('images/Do-ItBow%231.JPG'); opacity: 1; }
+    100% { background-image: url('images/AlchemyBow.JPG'); opacity: 0; }
 }
 
 /* WALLET CONNECTION */
@@ -170,6 +171,11 @@ body.loaded::before {
     z-index: -1;
     filter: brightness(0.5) saturate(1.2) blur(8px);
     animation: backgroundCycle 104s infinite ease-in-out;
+}
+
+.carousel-overlay.preloading {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .carousel-overlay.hidden {
@@ -1259,6 +1265,71 @@ let carouselTimer = setInterval(() => {
         // WALLET BUTTON PLACEHOLDER
         document.getElementById('connectWallet').addEventListener('click', () => {
             alert('Wallet integration coming soon.\n\nThis will connect your Yours/BSV wallet and unlock the card backs where you can see your MNEE rewards!');
+        });
+
+        // ========================
+        // IMAGE PRELOADING SYSTEM
+        // ========================
+        // Preload all background animation images to ensure smooth transitions
+        const backgroundImages = [
+            'images/AlchemyBow.JPG',
+            'images/AuroraBow%231.JPG',
+            'images/GhostyBow%233.JPG',
+            'images/HazeBow%233.JPG',
+            'images/MirrorBow%232.JPG',
+            'images/NebulaBow%234.JPG',
+            'images/SkyBow%231.JPG',
+            'images/TunnelBow%231.JPG',
+            'images/TunnelBow%232.JPG',
+            'images/ZippyBow.JPG',
+            'images/GhostyBow%234.JPG',
+            'images/TieDyeBow%232.JPG',
+            'images/CosmicBow%232.JPG',
+            'images/HummingBow%231.JPG',
+            'images/NebulaBow%231.JPG',
+            'images/FlowBow%233.JPG',
+            'images/HazeBow%231.JPG',
+            'images/Do-ItBow%231.JPG'
+        ];
+
+        let loadedCount = 0;
+        let preloadComplete = false;
+        const bgPreloaderOverlay = document.querySelector('.carousel-overlay');
+
+        // Function to show carousel once images are ready
+        function showCarouselAfterPreload() {
+            if (!preloadComplete) {
+                preloadComplete = true;
+                bgPreloaderOverlay.classList.remove('preloading');
+                document.body.classList.add('images-loaded');
+            }
+        }
+
+        // Start with carousel overlay hidden during preload
+        bgPreloaderOverlay.classList.add('preloading');
+
+        // Safety timeout: show carousel after 5 seconds even if images are still loading
+        setTimeout(() => {
+            showCarouselAfterPreload();
+        }, 5000);
+
+        backgroundImages.forEach(src => {
+            const img = new Image();
+            img.onload = () => {
+                loadedCount++;
+                if (loadedCount === backgroundImages.length) {
+                    // All images loaded - enable animated background
+                    showCarouselAfterPreload();
+                }
+            };
+            img.onerror = () => {
+                loadedCount++;
+                if (loadedCount === backgroundImages.length) {
+                    // Fallback if some images fail to load
+                    showCarouselAfterPreload();
+                }
+            };
+            img.src = src;
         });
     </script>
 </body>

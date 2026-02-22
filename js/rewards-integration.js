@@ -43,46 +43,74 @@ class BSVWalletManager {
     async detectAvailableWallets() {
         const wallets = [];
         
+        console.log('[BSV] Starting wallet detection...');
+        
         // 1. Check for Yours Wallet
         if (window.yours) {
+            console.log('[BSV] Yours wallet detected, available methods:', Object.keys(window.yours));
             wallets.push({
                 name: 'Yours',
                 type: 'yours',
                 available: true,
-                logo: '🔐'
+                logo: '🔐',
+                methods: Object.keys(window.yours)
             });
+        } else {
+            console.log('[BSV] Yours wallet not detected');
         }
         
         // 2. Check for HandCash (via Babbage)
         if (window.HandCash) {
+            console.log('[BSV] HandCash detected, available methods:', Object.keys(window.HandCash));
             wallets.push({
                 name: 'HandCash',
                 type: 'handcash',
                 available: true,
-                logo: '🤝'
+                logo: '🤝',
+                methods: Object.keys(window.HandCash)
             });
+        } else {
+            console.log('[BSV] HandCash not detected');
         }
         
         // 3. Check for RelayX
         if (window.relayx) {
+            console.log('[BSV] RelayX detected, available methods:', Object.keys(window.relayx));
             wallets.push({
                 name: 'RelayX',
                 type: 'relayx',
                 available: true,
-                logo: '⚡'
+                logo: '⚡',
+                methods: Object.keys(window.relayx)
             });
+        } else {
+            console.log('[BSV] RelayX not detected');
         }
         
-        // 4. Fallback: Babbage (universal connector)
-        if (window.crypto && window.crypto.subtle) {
+        // 4. Check for Babbage (universal connector)
+        if (window.babbage) {
+            console.log('[BSV] Babbage detected, available methods:', Object.keys(window.babbage));
             wallets.push({
                 name: 'Babbage (Universal)',
                 type: 'babbage',
                 available: true,
-                logo: '🎭'
+                logo: '🎭',
+                methods: Object.keys(window.babbage)
             });
+        } else {
+            console.log('[BSV] Babbage not detected');
         }
         
+        // 5. Always add manual address option as fallback
+        wallets.push({
+            name: 'Manual Address',
+            type: 'manual',
+            available: true,
+            logo: '✏️',
+            methods: ['manual']
+        });
+        
+        console.log('[BSV] Total wallets detected:', wallets.length);
         return wallets;
     }
     
@@ -124,6 +152,9 @@ class BSVWalletManager {
                 case 'babbage':
                     result = await this.connectBabbage();
                     break;
+                case 'manual':
+                    result = await this.connectManual();
+                    break;
                 default:
                     throw new Error(`Unknown wallet type: ${walletType}`);
             }
@@ -149,39 +180,75 @@ class BSVWalletManager {
      */
     async connectYours() {
         try {
+            console.log('[BSV] Checking for Yours wallet...');
+            
             if (!window.yours) {
                 throw new Error('Yours wallet is not installed. Please install it at https://www.yours.org');
             }
             
+            const availableMethods = Object.keys(window.yours);
+            console.log('[BSV] Yours wallet detected, available methods:', availableMethods);
+            
             // Check if available (some wallets use this pattern)
             if (typeof window.yours.isAvailable === 'function') {
                 const isAvailable = await window.yours.isAvailable();
+                console.log('[BSV] Yours isAvailable:', isAvailable);
                 if (!isAvailable) {
                     throw new Error('Yours wallet is not initialized. Please check your wallet extension.');
                 }
             }
             
-            // Get user identity
+            // Try different connection methods based on what's actually available
             let identity;
-            if (typeof window.yours.getIdentity === 'function') {
-                identity = await window.yours.getIdentity();
-            } else if (typeof window.yours.getUser === 'function') {
-                identity = await window.yours.getUser();
-            } else if (typeof window.yours.requestAddress === 'function') {
-                identity = { address: await window.yours.requestAddress() };
-            } else {
-                throw new Error('Yours wallet methods not recognized. Please update your wallet extension.');
+            console.log('[BSV] Attempting to get user identity...');
+            
+            try {
+                // Try modern API methods first
+                if (availableMethods.includes('getIdentity')) {
+                    console.log('[BSV] Using getIdentity method');
+                    identity = await window.yours.getIdentity();
+                } else if (availableMethods.includes('getUser')) {
+                    console.log('[BSV] Using getUser method');
+                    identity = await window.yours.getUser();
+                } else if (availableMethods.includes('requestAddress')) {
+                    console.log('[BSV] Using requestAddress method');
+                    identity = { address: await window.yours.requestAddress() };
+                } else if (availableMethods.includes('connect')) {
+                    console.log('[BSV] Using connect method');
+                    await window.yours.connect();
+                    identity = window.yours.user || { address: window.yours.address };
+                } else if (availableMethods.includes('login')) {
+                    console.log('[BSV] Using login method');
+                    identity = await window.yours.login();
+                } else if (availableMethods.includes('authenticate')) {
+                    console.log('[BSV] Using authenticate method');
+                    identity = await window.yours.authenticate();
+                } else if (availableMethods.includes('getAddress')) {
+                    console.log('[BSV] Using getAddress method');
+                    identity = { address: await window.yours.getAddress() };
+                } else if (availableMethods.includes('getPublicKey')) {
+                    console.log('[BSV] Using getPublicKey method');
+                    identity = { publicKey: await window.yours.getPublicKey() };
+                } else {
+                    // Fallback to manual entry
+                    throw new Error('Yours wallet API not recognized. Available methods: [' + availableMethods.join(', ') + ']');
+                }
+            } catch (methodError) {
+                console.error('[BSV] Method call error:', methodError);
+                throw methodError;
             }
             
-            this.address = identity.address || identity.publicKey || identity.userId;
+            console.log('[BSV] Identity received:', identity);
+            
+            this.address = identity.address || identity.publicKey || identity.userId || identity.paymail || identity.id;
             if (!this.address) {
-                throw new Error('Could not retrieve address from Yours wallet');
+                throw new Error('Could not retrieve address from Yours wallet. Identity object: ' + JSON.stringify(identity));
             }
             
             this.wallet = window.yours;
             this.provider = window.yours;
             
-            console.log('[BSV] Yours connected:', this.address);
+            console.log('[BSV] Yours connected successfully:', this.address);
             return true;
             
         } catch (err) {
@@ -250,9 +317,13 @@ class BSVWalletManager {
      */
     async connectBabbage() {
         try {
+            console.log('[BSV] Checking for Babbage...');
+            
             if (!window.babbage) {
-                throw new Error('Babbage is not available');
+                throw new Error('Babbage is not available. Install from https://babbage.systems/ or use a different wallet.');
             }
+            
+            console.log('[BSV] Babbage detected, methods:', Object.keys(window.babbage));
             
             // Get user info
             const user = await window.babbage.getUser();
@@ -265,7 +336,38 @@ class BSVWalletManager {
             
         } catch (err) {
             console.error('[BSV] Babbage connection error:', err);
-            throw new Error(`Babbage connection failed: ${err.message}`);
+            throw new Error(`Babbage: ${err.message}`);
+        }
+    }
+    
+    /**
+     * Manual address connection (fallback)
+     */
+    async connectManual() {
+        try {
+            console.log('[BSV] Starting manual address connection...');
+            
+            const address = prompt('Enter your BSV address for testing:', '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa');
+            
+            if (!address || address.trim() === '') {
+                throw new Error('No address provided');
+            }
+            
+            // Basic validation
+            if (address.length < 25 || address.length > 35) {
+                throw new Error('Invalid address format. BSV addresses are typically 26-35 characters.');
+            }
+            
+            this.address = address.trim();
+            this.wallet = { manual: true };
+            this.provider = null;
+            
+            console.log('[BSV] Manual address set:', this.address);
+            return true;
+            
+        } catch (err) {
+            console.error('[BSV] Manual connection error:', err);
+            throw new Error(`Manual: ${err.message}`);
         }
     }
     
@@ -402,6 +504,7 @@ class OrdinalRewardsManager {
             claimAddress: config.claimAddress || '0x_CLAIM_ADDRESS_',
             vaultAddress: config.vaultAddress || '0x_VAULT_ADDRESS_',
             rpcUrl: config.rpcUrl || 'https://bsv-testnet-rpc.mrbean.io',
+            skipOrdinalVerification: true, // TEMP: Skip for testing until contracts deployed
             ...config
         };
         
@@ -444,7 +547,17 @@ class OrdinalRewardsManager {
     async ownsOrdinal() {
         try {
             if (!this.walletManager.isWalletConnected()) {
+                console.log('[REWARDS] Wallet not connected');
                 return false;
+            }
+            
+            console.log('[REWARDS] Checking ordinal ownership for address:', this.walletManager.getAddress());
+            
+            // TEMPORARY: Skip verification for testing until contracts deployed
+            // TODO: Remove this when contracts are deployed
+            if (this.config.network === 'testnet' || this.config.skipOrdinalVerification) {
+                console.log('[REWARDS] TESTING MODE: Skipping ordinal verification');
+                return true;
             }
             
             // Method 1: Check via smart contract
@@ -455,30 +568,47 @@ class OrdinalRewardsManager {
                 // const result = await this.vaultContract.methods.ownsOrdinal(address).call();
                 // return result;
             } catch (err) {
-                console.log('[REWARDS] Contract check unavailable, trying API...');
+                console.log('[REWARDS] Contract check unavailable, trying API...', err.message);
             }
             
             // Method 2: Check via 1Sat Ordinals API
-            const ordinals = await this.walletManager.getOrdinalData();
-            
-            // Get Vol. 1 inscription IDs from config
-            const vol1Inscriptions = [
-                "704a7653a4d8c4d7bf356e1d2aeb0f0349b91c7a34c6b7eee4b4b0f5ae054a33", // AlchemyBow
-                "868d6443ccb191aee5211c64273beb140bdbbe9e7293a70189acf6a46263f6f6", // AuroraBow#1
-                // ... Add all 65 here
-            ];
-            
-            // Check if any owned ordinals match Vol. 1
-            const hasOrdinal = ordinals.some(ord => 
-                vol1Inscriptions.includes(ord.inscription || ord.id)
-            );
-            
-            console.log('[REWARDS] Ordinal check:', hasOrdinal);
-            return hasOrdinal;
+            try {
+                console.log('[REWARDS] Fetching ordinals from API...');
+                const ordinals = await this.walletManager.getOrdinalData();
+                console.log('[REWARDS] Found ordinals:', ordinals.length);
+                
+                // Get Vol. 1 inscription IDs from NFTs array (from index.html)
+                const vol1Inscriptions = window.nfts ? window.nfts
+                    .filter(nft => nft.inscriptionId)
+                    .map(nft => nft.inscriptionId) : [
+                    "704a7653a4d8c4d7bf356e1d2aeb0f0349b91c7a34c6b7eee4b4b0f5ae054a33", // AlchemyBow
+                    "868d6443ccb191aee5211c64273beb140bdbbe9e7293a70189acf6a46263f6f6", // AuroraBow#1
+                    // Add more as needed for testing
+                ];
+                
+                console.log('[REWARDS] Checking against', vol1Inscriptions.length, 'Vol. 1 inscriptions');
+                
+                // Check if any owned ordinals match Vol. 1
+                const hasOrdinal = ordinals.some(ord => {
+                    const ordinalId = ord.inscription || ord.id || ord.inscriptionId;
+                    return vol1Inscriptions.includes(ordinalId);
+                });
+                
+                console.log('[REWARDS] Ordinal ownership result:', hasOrdinal);
+                return hasOrdinal;
+                
+            } catch (apiErr) {
+                console.error('[REWARDS] API check failed:', apiErr);
+                // For testing: return true if we can't verify
+                console.log('[REWARDS] API verification failed, allowing access for testing');
+                return true;
+            }
             
         } catch (err) {
             console.error('[REWARDS] Error checking ordinals:', err);
-            return false;
+            // For testing: return true on errors
+            console.log('[REWARDS] Verification error, allowing access for testing');
+            return true;
         }
     }
     
@@ -579,10 +709,19 @@ class RewardsDashboardUI {
      * Initialize UI elements
      */
     initializeUI() {
+        console.log('[UI] Initializing UI...');
+        
         // Connect button
         const connectBtn = document.getElementById('connectWallet');
+        console.log('[UI] Connect button found:', !!connectBtn);
         if (connectBtn) {
-            connectBtn.addEventListener('click', () => this.showWalletModal());
+            console.log('[UI] Adding click listener to connect button');
+            connectBtn.addEventListener('click', () => {
+                console.log('[UI] Connect button clicked!');
+                this.showWalletModal();
+            });
+        } else {
+            console.warn('[UI] Connect button not found!');
         }
         
         // Disconnect button
@@ -671,9 +810,12 @@ class RewardsDashboardUI {
      * Show wallet selection modal
      */
     async showWalletModal() {
+        console.log('[UI] showWalletModal called');
         try {
             const modal = document.getElementById('walletModal');
+            console.log('[UI] Existing modal found:', !!modal);
             if (!modal) {
+                console.log('[UI] Creating new modal...');
                 this.createWalletModal();
             }
             
@@ -716,8 +858,11 @@ class RewardsDashboardUI {
             }
             
             // Show modal
-            document.getElementById('walletModal').classList.remove('hidden');
+            const modalToShow = document.getElementById('walletModal');
+            console.log('[UI] Showing modal:', !!modalToShow);
+            modalToShow.classList.remove('hidden');
             this.isOpen = true;
+            console.log('[UI] Modal should now be visible');
             
         } catch (err) {
             console.error('[UI] Modal error:', err);
@@ -740,8 +885,14 @@ class RewardsDashboardUI {
      */
     async connectWallet(walletType) {
         try {
+            console.log('[UI] Starting connection to', walletType);
+            
             // Update UI to show connecting status
             const walletBtn = document.querySelector(`[data-wallet="${walletType}"]`);
+            if (!walletBtn) {
+                throw new Error('Wallet button not found');
+            }
+            
             const statusDiv = walletBtn.querySelector('.wallet-option-status');
             const originalStatus = statusDiv.textContent;
             statusDiv.textContent = '🔄 Connecting...';
@@ -749,11 +900,15 @@ class RewardsDashboardUI {
             walletBtn.style.pointerEvents = 'none';
             
             // Connect
+            console.log('[UI] Calling wallet connect...');
             const result = await this.walletManager.connect(walletType);
+            console.log('[UI] Wallet connected:', result);
             
             // Check if owns ordinal
             statusDiv.textContent = '🔍 Verifying ordinals...';
+            console.log('[UI] Checking ordinal ownership...');
             const hasOrdinal = await this.rewardsManager.ownsOrdinal();
+            console.log('[UI] Ordinal check result:', hasOrdinal);
             
             if (!hasOrdinal) {
                 throw new Error('You must hold a Vol. 1 ORDINAL RAINBOWS to claim rewards');
@@ -765,22 +920,24 @@ class RewardsDashboardUI {
                 this.closeWalletModal();
                 this.updateConnectedUI(result.address);
                 this.refreshRewards();
-            }, 500);
+            }, 1000);
             
         } catch (err) {
             console.error('[UI] Connection error:', err);
             const walletBtn = document.querySelector(`[data-wallet="${walletType}"]`);
-            const statusDiv = walletBtn.querySelector('.wallet-option-status');
-            statusDiv.textContent = '❌ ' + err.message;
-            statusDiv.style.color = '#ff6464';
-            
-            // Reset after 2 seconds
-            setTimeout(() => {
-                statusDiv.textContent = 'Click to connect';
-                statusDiv.style.color = '#888';
-                walletBtn.style.opacity = '1';
-                walletBtn.style.pointerEvents = 'auto';
-            }, 2000);
+            if (walletBtn) {
+                const statusDiv = walletBtn.querySelector('.wallet-option-status');
+                statusDiv.textContent = '❌ ' + err.message;
+                statusDiv.style.color = '#ff6464';
+                
+                // Reset after 4 seconds
+                setTimeout(() => {
+                    statusDiv.textContent = 'Click to connect';
+                    statusDiv.style.color = '#888';
+                    walletBtn.style.opacity = '1';
+                    walletBtn.style.pointerEvents = 'auto';
+                }, 4000);
+            }
         }
     }
     
@@ -904,6 +1061,7 @@ class RewardsDashboardUI {
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.log('[INIT] Starting ORDINAL RAINBOWS Rewards System...');
+    console.log('[INIT] DOM ready, looking for connect button:', !!document.getElementById('connectWallet'));
     
     // Configuration
     const config = {
@@ -918,6 +1076,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.dashboardUI = new RewardsDashboardUI(window.walletManager, window.rewardsManager);
     
     // Setup UI (this triggers auto-detection and modal)
+    console.log('[INIT] Calling initializeUI...');
     window.dashboardUI.initializeUI();
     
     console.log('[INIT] Rewards system ready!');

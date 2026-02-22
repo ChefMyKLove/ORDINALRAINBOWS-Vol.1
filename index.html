@@ -856,6 +856,8 @@ h1 {
     display: none;
 }
     </style>
+    <!-- Rewards Dashboard Stylesheet -->
+    <link rel="stylesheet" href="css/rewards-dashboard.css">
 </head>
 <body>
     <!-- OPTIMIZED SVG Filter -->
@@ -1281,10 +1283,7 @@ let carouselTimer = setInterval(() => {
     }, carouselInterval);
 }
 
-        // WALLET BUTTON PLACEHOLDER
-        document.getElementById('connectWallet').addEventListener('click', () => {
-            alert('Wallet integration coming soon.\n\nThis will connect your Yours/BSV wallet and unlock the card backs where you can see your MNEE rewards!');
-        });
+        // Wallet integration is handled by rewards-integration.js
 
         // ========================
         // IMAGE PRELOADING SYSTEM
@@ -1351,5 +1350,64 @@ let carouselTimer = setInterval(() => {
             img.src = src;
         });
     </script>
+
+    <!-- Rewards Dashboard -->
+    <div id="rewardsDashboard" class="hidden">
+        <h2 class="dashboard-title">💰 Your Rewards</h2>
+        
+        <!-- Unclaimed Rewards -->
+        <div class="rewards-section">
+            <div class="section-label">📥 Unclaimed</div>
+            
+            <div class="reward-item">
+                <div class="reward-token">
+                    <span class="token-icon">🔵</span>
+                    <span class="token-name">MNEE</span>
+                </div>
+                <div class="reward-amount mnee" id="mneeUnclaimed">—</div>
+            </div>
+            
+            <div class="reward-item">
+                <div class="reward-token">
+                    <span class="token-icon">⚡</span>
+                    <span class="token-name">BSV</span>
+                </div>
+                <div class="reward-amount bsv" id="bsvUnclaimed">—</div>
+            </div>
+            
+            <div class="reward-item">
+                <div class="reward-token">
+                    <span class="token-icon">🌈</span>
+                    <span class="token-name">ORDINAL RAINBOWS BSV21</span>
+                </div>
+                <div class="reward-amount bsv21" id="bsv21Unclaimed">—</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-divider"></div>
+        
+        <!-- Total Unclaimed -->
+        <div class="rewards-total">
+            <div class="total-box">
+                <div class="total-label">Total Unclaimed</div>
+                <div class="total-amount" id="totalUnclaimed">—</div>
+            </div>
+            <div class="total-box">
+                <div class="total-label">Total Claimed</div>
+                <div class="total-amount" id="totalClaimed">—</div>
+            </div>
+        </div>
+        
+        <!-- Claim Button -->
+        <button id="claimAllBtn">
+            🎁 Claim All Rewards
+        </button>
+    </div>
+
+    <!-- External Web3 Libraries -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+
+    <!-- Rewards Integration Script -->
+    <script src="js/rewards-integration.js"></script>
 </body>
 </html>

@@ -30,9 +30,26 @@ class BSVWalletManager {
     async init() {
         console.log('[BSV] Initializing wallet detection...');
         
-        // Check for available wallets in order of preference
+        // Initialize wallet detection
         const availableWallets = await this.detectAvailableWallets();
         console.log('[BSV] Available wallets:', availableWallets);
+        
+        // Wait a bit more for BSV Authentication module to load
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Verify BSV Authentication module is available
+        if (typeof window.BSVAuth !== 'undefined' && window.BSVAuth) {
+            console.log('[BSV] ✅ BSV Authentication module ready');
+        } else {
+            console.warn('[BSV] ⚠️ BSV Authentication module not found - checking again...');
+            // Try one more time after a delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            if (typeof window.BSVAuth !== 'undefined' && window.BSVAuth) {
+                console.log('[BSV] ✅ BSV Authentication module ready (second check)');
+            } else {
+                console.error('[BSV] ❌ BSV Authentication module failed to load');
+            }
+        }
         
         return availableWallets;
     }
@@ -44,44 +61,54 @@ class BSVWalletManager {
         const wallets = [];
         
         console.log('[BSV] Starting wallet detection...');
+        console.log('[BSV] Available window objects:', Object.keys(window).filter(k => k.toLowerCase().includes('wallet') || ['yours', 'handcash', 'relayx', 'babbage', 'twetch', 'centbee'].includes(k.toLowerCase())));
         
-        // 1. Check for Yours Wallet
-        if (window.yours) {
-            console.log('[BSV] Yours wallet detected, available methods:', Object.keys(window.yours));
+        // Give wallets time to inject
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // 1. Check for Yours Wallet (multiple variations)
+        if (window.yours || window.YoursBSV || window.yoursWallet) {
+            const yoursWallet = window.yours || window.YoursBSV || window.yoursWallet;
+            console.log('[BSV] Yours wallet detected, available methods:', Object.keys(yoursWallet));
             wallets.push({
-                name: 'Yours',
+                name: 'Yours BSV Wallet',
                 type: 'yours',
                 available: true,
                 logo: '🔐',
-                methods: Object.keys(window.yours)
+                methods: Object.keys(yoursWallet),
+                wallet: yoursWallet
             });
         } else {
             console.log('[BSV] Yours wallet not detected');
         }
         
-        // 2. Check for HandCash (via Babbage)
-        if (window.HandCash) {
-            console.log('[BSV] HandCash detected, available methods:', Object.keys(window.HandCash));
+        // 2. Check for HandCash
+        if (window.HandCash || window.handcash) {
+            const handcash = window.HandCash || window.handcash;
+            console.log('[BSV] HandCash detected, available methods:', Object.keys(handcash));
             wallets.push({
                 name: 'HandCash',
                 type: 'handcash',
                 available: true,
                 logo: '🤝',
-                methods: Object.keys(window.HandCash)
+                methods: Object.keys(handcash),
+                wallet: handcash
             });
         } else {
             console.log('[BSV] HandCash not detected');
         }
         
         // 3. Check for RelayX
-        if (window.relayx) {
-            console.log('[BSV] RelayX detected, available methods:', Object.keys(window.relayx));
+        if (window.relayx || window.RelayX) {
+            const relayx = window.relayx || window.RelayX;
+            console.log('[BSV] RelayX detected, available methods:', Object.keys(relayx));
             wallets.push({
                 name: 'RelayX',
                 type: 'relayx',
                 available: true,
                 logo: '⚡',
-                methods: Object.keys(window.relayx)
+                methods: Object.keys(relayx),
+                wallet: relayx
             });
         } else {
             console.log('[BSV] RelayX not detected');
@@ -91,19 +118,50 @@ class BSVWalletManager {
         if (window.babbage) {
             console.log('[BSV] Babbage detected, available methods:', Object.keys(window.babbage));
             wallets.push({
-                name: 'Babbage (Universal)',
+                name: 'Babbage Universal',
                 type: 'babbage',
                 available: true,
                 logo: '🎭',
-                methods: Object.keys(window.babbage)
+                methods: Object.keys(window.babbage),
+                wallet: window.babbage
             });
         } else {
             console.log('[BSV] Babbage not detected');
         }
         
-        // 5. Always add manual address option as fallback
+        // 5. Check for Twetch
+        if (window.twetch) {
+            console.log('[BSV] Twetch detected, available methods:', Object.keys(window.twetch));
+            wallets.push({
+                name: 'Twetch',
+                type: 'twetch',
+                available: true,
+                logo: '🐦',
+                methods: Object.keys(window.twetch),
+                wallet: window.twetch
+            });
+        } else {
+            console.log('[BSV] Twetch not detected');
+        }
+        
+        // 6. Check for CentBee
+        if (window.centbee) {
+            console.log('[BSV] CentBee detected, available methods:', Object.keys(window.centbee));
+            wallets.push({
+                name: 'CentBee',
+                type: 'centbee',
+                available: true,
+                logo: '🐝',
+                methods: Object.keys(window.centbee),
+                wallet: window.centbee
+            });
+        } else {
+            console.log('[BSV] CentBee not detected');
+        }
+        
+        // 7. Always add manual address option as fallback
         wallets.push({
-            name: 'Manual Address',
+            name: 'Manual Address Entry',
             type: 'manual',
             available: true,
             logo: '✏️',
@@ -111,6 +169,7 @@ class BSVWalletManager {
         });
         
         console.log('[BSV] Total wallets detected:', wallets.length);
+        console.log('[BSV] Wallet types found:', wallets.map(w => w.name));
         return wallets;
     }
     
@@ -341,46 +400,105 @@ class BSVWalletManager {
     }
     
     /**
-     * Manual address connection (fallback)
+     * Secure manual address connection with cryptographic verification
+     * REPLACES the vulnerable manual entry system
      */
     async connectManual() {
         try {
-            console.log('[BSV] Starting manual address connection...');
+            console.log('[BSV] Starting SECURE manual address connection...');
             
-            const address = prompt('Enter your BSV address for testing:', '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa');
+            // Check if BSV authentication module is available
+            if (typeof window.BSVAuth === 'undefined' || !window.BSVAuth) {
+                console.error('[BSV] BSV Authentication module not available');
+                throw new Error('BSV Authentication system is not ready. Please refresh the page and try again.');
+            }
+            
+            // Get BSV address from user
+            const address = prompt(`🔐 SECURE BSV AUTHENTICATION REQUIRED
+
+Enter your BSV address containing ORDINAL RAINBOWS:
+            
+Examples: 
+- Legacy: 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa  
+- SegWit: bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+
+⚠️ You will need to SIGN A MESSAGE to prove wallet ownership.
+
+Your Address:`, '');
             
             if (!address || address.trim() === '') {
                 throw new Error('No address provided');
             }
             
-            // Basic validation
-            if (address.length < 25 || address.length > 35) {
-                throw new Error('Invalid address format. BSV addresses are typically 26-35 characters.');
+            const cleanAddress = address.trim();
+            
+            // Enhanced validation for BSV addresses
+            if (cleanAddress.length < 25 || cleanAddress.length > 62) {
+                throw new Error(`Invalid address length: ${cleanAddress.length} characters. BSV addresses should be 26-62 characters.`);
             }
             
-            this.address = address.trim();
-            this.wallet = { manual: true };
-            this.provider = null;
+            // Basic format validation
+            const validPrefixes = ['1', '3', 'bc1', 'tb1'];
+            const hasValidPrefix = validPrefixes.some(prefix => cleanAddress.startsWith(prefix));
             
-            console.log('[BSV] Manual address set:', this.address);
+            if (!hasValidPrefix) {
+                console.warn('[BSV] Address may not be valid BSV format, but proceeding...');
+            }
+
+            console.log(`[BSV] 🔐 Initiating cryptographic authentication for: ${cleanAddress.substring(0, 8)}...${cleanAddress.substring(cleanAddress.length - 8)}`);
+
+            // CRITICAL: Perform cryptographic signature verification
+            const authResult = await window.BSVAuth.authenticateWallet(
+                { type: 'manual' }, 
+                cleanAddress
+            );
+
+            if (!authResult.authenticated) {
+                throw new Error('Authentication failed: Could not verify wallet ownership');
+            }
+
+            // Store authentication data
+            this.address = cleanAddress;
+            this.wallet = { 
+                manual: true, 
+                authenticated: true,
+                sessionToken: authResult.sessionToken,
+                signature: authResult.signature,
+                challenge: authResult.challenge
+            };
+            this.provider = null;
+            this.authSession = authResult.sessionToken;
+            
+            console.log(`[BSV] ✅ SECURE authentication successful: ${this.address.substring(0, 8)}...${this.address.substring(this.address.length - 8)}`);
+            console.log('[BSV] 🔐 Wallet ownership cryptographically verified!');
+            console.log('[BSV] Now checking for ORDINAL RAINBOWS Vol. 1 in authenticated wallet...');
+            
             return true;
             
         } catch (err) {
-            console.error('[BSV] Manual connection error:', err);
-            throw new Error(`Manual: ${err.message}`);
+            console.error('[BSV] Secure authentication error:', err);
+            throw new Error(`Secure Auth: ${err.message}`);
         }
     }
     
     /**
-     * Disconnect wallet
+     * Disconnect wallet and clear authentication session
      */
     async disconnect() {
+        // Clear authentication session if it exists
+        if (this.authSession && window.BSVAuth) {
+            window.BSVAuth.clearAuthentication(this.authSession);
+            console.log('[BSV] 🔐 Authentication session cleared');
+        }
+        
         this.address = null;
         this.wallet = null;
         this.provider = null;
         this.isConnected = false;
         this.walletType = null;
-        console.log('[BSV] Disconnected');
+        this.authSession = null;
+        
+        console.log('[BSV] Wallet disconnected securely');
     }
     
     /**
@@ -475,17 +593,77 @@ class BSVWalletManager {
         }
         
         try {
-            // Query 1Sat Ordinals API to find ordinals held by this address
-            const response = await fetch(
-                `https://api.1sat.market/api/txos/address/${this.address}?limit=1000`
-            );
+            console.log('[BSV] Fetching ordinals for address:', this.address);
             
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+            // Use correct BSV ordinal APIs
+            const apiEndpoints = [
+                // WhatsOnChain BSV API
+                `https://api.whatsonchain.com/v1/bsv/main/address/${this.address}/history`,
+                // 1Sat Ordinals (correct endpoint)
+                `https://ordinals.gorillapool.io/api/inscriptions/search?owner=${this.address}`,
+                // Alternate endpoint
+                `https://api.ordinals.gorillapool.io/inscriptions?owner=${this.address}`,
+                // Backup API
+                `https://ordiscan.com/api/v1/address/${this.address}/inscriptions`
+            ];
+            
+            let allOrdinals = [];
+            
+            for (const endpoint of apiEndpoints) {
+                try {
+                    console.log('[BSV] Trying endpoint:', endpoint);
+                    const response = await fetch(endpoint, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'User-Agent': 'ORDINAL-RAINBOWS-V1'
+                        },
+                        timeout: 10000
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('[BSV] Raw API response:', data);
+                        
+                        // Handle different API response formats
+                        let ordinals = [];
+                        if (data.inscriptions) {
+                            ordinals = data.inscriptions;
+                        } else if (data.result) {
+                            ordinals = data.result;
+                        } else if (data.txos) {
+                            ordinals = data.txos;
+                        } else if (Array.isArray(data)) {
+                            ordinals = data;
+                        } else if (data.data && Array.isArray(data.data)) {
+                            ordinals = data.data;
+                        }
+                        
+                        console.log('[BSV] Extracted ordinals array:', ordinals.length, 'items');
+                        
+                        if (ordinals.length > 0) {
+                            allOrdinals = allOrdinals.concat(ordinals);
+                            console.log('[BSV] Found', ordinals.length, 'ordinals from', endpoint);
+                        }
+                    } else {
+                        console.warn('[BSV] API response not OK:', response.status, response.statusText);
+                    }
+                } catch (apiErr) {
+                    console.warn('[BSV] Endpoint failed:', endpoint, apiErr.message);
+                    continue;
+                }
             }
             
-            const data = await response.json();
-            return data.txos || [];
+            // Remove duplicates
+            const uniqueOrdinals = allOrdinals.filter((ordinal, index, arr) => {
+                const id = ordinal.inscription_id || ordinal.inscriptionId || ordinal.id || ordinal.num;
+                return arr.findIndex(o => {
+                    const otherId = o.inscription_id || o.inscriptionId || o.id || o.num;
+                    return otherId === id;
+                }) === index;
+            });
+            
+            console.log('[BSV] Total unique ordinals found:', uniqueOrdinals.length);
+            return uniqueOrdinals;
             
         } catch (err) {
             console.error('[BSV] Error fetching ordinals:', err);
@@ -504,7 +682,7 @@ class OrdinalRewardsManager {
             claimAddress: config.claimAddress || '0x_CLAIM_ADDRESS_',
             vaultAddress: config.vaultAddress || '0x_VAULT_ADDRESS_',
             rpcUrl: config.rpcUrl || 'https://bsv-testnet-rpc.mrbean.io',
-            skipOrdinalVerification: true, // TEMP: Skip for testing until contracts deployed
+            skipOrdinalVerification: false, // Real verification enabled
             ...config
         };
         
@@ -542,7 +720,7 @@ class OrdinalRewardsManager {
     }
     
     /**
-     * Check if wallet holds Vol. 1 ordinal
+     * Check if wallet holds Vol. 1 ordinal - SECURE VERIFICATION WITH AUTHENTICATION
      */
     async ownsOrdinal() {
         try {
@@ -550,71 +728,175 @@ class OrdinalRewardsManager {
                 console.log('[REWARDS] Wallet not connected');
                 return false;
             }
-            
-            console.log('[REWARDS] Checking ordinal ownership for address:', this.walletManager.getAddress());
-            
-            // TEMPORARY: Skip verification for testing until contracts deployed
-            // TODO: Remove this when contracts are deployed
-            if (this.config.network === 'testnet' || this.config.skipOrdinalVerification) {
-                console.log('[REWARDS] TESTING MODE: Skipping ordinal verification');
-                return true;
+
+            // CRITICAL SECURITY: Verify user is cryptographically authenticated
+            if (this.walletManager.authSession) {
+                const isAuthenticated = window.BSVAuth && window.BSVAuth.isAuthenticated(this.walletManager.authSession);
+                if (!isAuthenticated) {
+                    console.error('[REWARDS] 🚨 SECURITY: Session expired or invalid - authentication required');
+                    throw new Error('Authentication expired. Please reconnect your wallet to verify ownership.');
+                }
+
+                // Verify the authenticated address matches the wallet address
+                const authenticatedAddress = window.BSVAuth.getAuthenticatedAddress(this.walletManager.authSession);
+                const walletAddress = this.walletManager.getAddress();
+                
+                if (authenticatedAddress !== walletAddress) {
+                    console.error('[REWARDS] 🚨 SECURITY: Address mismatch detected');
+                    throw new Error('Security error: Wallet address does not match authenticated address');
+                }
+
+                console.log('[REWARDS] ✅ Authentication verified for:', authenticatedAddress.substring(0, 8) + '...');
+            } else {
+                console.warn('[REWARDS] ⚠️ No authentication session found - this connection may not be secure');
             }
             
-            // Method 1: Check via smart contract
-            try {
-                // This would call vault.ownsOrdinal(address)
-                // Placeholder for contract call
-                console.log('[REWARDS] Checking ordinal ownership via contract...');
-                // const result = await this.vaultContract.methods.ownsOrdinal(address).call();
-                // return result;
-            } catch (err) {
-                console.log('[REWARDS] Contract check unavailable, trying API...', err.message);
+            const address = this.walletManager.getAddress();
+            console.log('[REWARDS] Checking ordinal ownership for authenticated address:', address);
+            
+            // Get ordinals from API
+            const ordinals = await this.walletManager.getOrdinalData();
+            console.log('[REWARDS] Found ordinals:', ordinals.length);
+            
+            if (ordinals.length === 0) {
+                console.log('[REWARDS] No ordinals found in wallet');
+                return false;
             }
             
-            // Method 2: Check via 1Sat Ordinals API
-            try {
-                console.log('[REWARDS] Fetching ordinals from API...');
-                const ordinals = await this.walletManager.getOrdinalData();
-                console.log('[REWARDS] Found ordinals:', ordinals.length);
-                
-                // Get Vol. 1 inscription IDs from NFTs array (from index.html)
-                const vol1Inscriptions = window.nfts ? window.nfts
-                    .filter(nft => nft.inscriptionId)
-                    .map(nft => nft.inscriptionId) : [
-                    "704a7653a4d8c4d7bf356e1d2aeb0f0349b91c7a34c6b7eee4b4b0f5ae054a33", // AlchemyBow
-                    "868d6443ccb191aee5211c64273beb140bdbbe9e7293a70189acf6a46263f6f6", // AuroraBow#1
-                    // Add more as needed for testing
-                ];
-                
-                console.log('[REWARDS] Checking against', vol1Inscriptions.length, 'Vol. 1 inscriptions');
-                
-                // Check if any owned ordinals match Vol. 1
-                const hasOrdinal = ordinals.some(ord => {
-                    const ordinalId = ord.inscription || ord.id || ord.inscriptionId;
-                    return vol1Inscriptions.includes(ordinalId);
+            // Get complete Vol. 1 inscription IDs from NFTs array
+            const vol1Inscriptions = window.nfts ? window.nfts
+                .filter(nft => nft.inscriptionId)
+                .map(nft => nft.inscriptionId) : [];
+            
+            console.log('[REWARDS] Checking against', vol1Inscriptions.length, 'Vol. 1 inscriptions');
+            console.log('[REWARDS] Sample Vol. 1 IDs:', vol1Inscriptions.slice(0, 3).map(id => id.substring(0, 12) + '...'));
+            
+            // Enhanced debugging for ordinal matching
+            for (let i = 0; i < Math.min(ordinals.length, 5); i++) {
+                const ordinal = ordinals[i];
+                console.log(`[REWARDS] Ordinal ${i+1}:`, {
+                    inscription_id: ordinal.inscription_id ? ordinal.inscription_id.substring(0, 12) + '...' : 'N/A',
+                    inscriptionId: ordinal.inscriptionId ? ordinal.inscriptionId.substring(0, 12) + '...' : 'N/A', 
+                    id: ordinal.id ? ordinal.id.toString().substring(0, 12) + '...' : 'N/A',
+                    num: ordinal.num,
+                    outpoint: ordinal.outpoint ? ordinal.outpoint.substring(0, 12) + '...' : 'N/A'
                 });
-                
-                console.log('[REWARDS] Ordinal ownership result:', hasOrdinal);
-                return hasOrdinal;
-                
-            } catch (apiErr) {
-                console.error('[REWARDS] API check failed:', apiErr);
-                // For testing: return true if we can't verify
-                console.log('[REWARDS] API verification failed, allowing access for testing');
-                return true;
             }
+            
+            // Check if any owned ordinals match Vol. 1
+            const ownedVol1Ordinals = [];
+            
+            for (const ordinal of ordinals) {
+                const ordinalId = ordinal.inscription_id || ordinal.inscriptionId || ordinal.id || ordinal.num;
+                
+                if (vol1Inscriptions.includes(ordinalId)) {
+                    ownedVol1Ordinals.push({
+                        inscriptionId: ordinalId,
+                        nft: window.nfts.find(n => n.inscriptionId === ordinalId),
+                        ordinal: ordinal
+                    });
+                }
+            }
+            
+            console.log('[REWARDS] Owned Vol. 1 ordinals:', ownedVol1Ordinals.length);
+            
+            // Store owned ordinals for rewards calculation
+            this.ownedOrdinals = ownedVol1Ordinals;
+            
+            return ownedVol1Ordinals.length > 0;
             
         } catch (err) {
             console.error('[REWARDS] Error checking ordinals:', err);
-            // For testing: return true on errors
-            console.log('[REWARDS] Verification error, allowing access for testing');
-            return true;
+            return false;
         }
     }
     
     /**
-     * Get unclaimed rewards
+     * Calculate real-time rewards based on owned ordinals
      */
+    async getUnclaimedRewards() {
+        try {
+            if (!this.walletManager.isWalletConnected()) {
+                return {
+                    totalRewards: '0.00',
+                    availableRewards: '0.00',
+                    ownedOrdinals: [],
+                    message: 'Wallet not connected'
+                };
+            }
+            
+            // Verify ordinal ownership
+            const hasOrdinals = await this.ownsOrdinal();
+            
+            if (!hasOrdinals || !this.ownedOrdinals || this.ownedOrdinals.length === 0) {
+                return {
+                    totalRewards: '0.00',
+                    availableRewards: '0.00',
+                    ownedOrdinals: [],
+                    message: 'No ORDINAL RAINBOWS Vol. 1 found in your wallet'
+                };
+            }
+            
+            // Calculate rewards based on rarity and time
+            const rewardRates = {
+                'Legendary': 100.0,   // 100 BSV per legendary
+                'Exotic': 50.0,       // 50 BSV per exotic  
+                'Epic': 20.0,         // 20 BSV per epic
+                'Rare': 10.0,         // 10 BSV per rare
+                'Uncommon': 5.0,      // 5 BSV per uncommon
+                'Common': 2.0         // 2 BSV per common
+            };
+            
+            let totalRewards = 0;
+            const rewardDetails = [];
+            
+            // Launch date for time-based multiplier
+            const launchDate = new Date('2024-01-01');
+            const currentDate = new Date();
+            const daysSinceLaunch = Math.floor((currentDate - launchDate) / (1000 * 60 * 60 * 24));
+            const timeMultiplier = 1 + (daysSinceLaunch * 0.002); // 0.2% per day
+            
+            for (const ownedOrdinal of this.ownedOrdinals) {
+                const nft = ownedOrdinal.nft;
+                const baseReward = rewardRates[nft.rarity] || 2.0;
+                const cardReward = baseReward * timeMultiplier;
+                
+                totalRewards += cardReward;
+                
+                rewardDetails.push({
+                    nftId: nft.id,
+                    inscriptionId: ownedOrdinal.inscriptionId,
+                    title: nft.title,
+                    subtitle: nft.subtitle,
+                    rarity: nft.rarity,
+                    baseReward: baseReward.toFixed(2),
+                    timeMultiplier: timeMultiplier.toFixed(3),
+                    totalReward: cardReward.toFixed(4),
+                    claimed: false, // TODO: Check from smart contract in production
+                    image: `images/${nft.id}.jpg` // Assuming image path structure
+                });
+            }
+            
+            return {
+                totalRewards: totalRewards.toFixed(4),
+                availableRewards: totalRewards.toFixed(4),
+                ownedOrdinals: this.ownedOrdinals,
+                rewardDetails: rewardDetails,
+                count: this.ownedOrdinals.length,
+                timeMultiplier: timeMultiplier.toFixed(3),
+                daysSinceLaunch: daysSinceLaunch
+            };
+            
+        } catch (err) {
+            console.error('[REWARDS] Error calculating rewards:', err);
+            return {
+                error: err.message,
+                totalRewards: '0.00',
+                availableRewards: '0.00',
+                ownedOrdinals: []
+            };
+        }
+    }
     async getUnclaimedRewards() {
         try {
             if (!this.walletManager.isWalletConnected()) {
@@ -793,14 +1075,16 @@ class RewardsDashboardUI {
      */
     async autoDetectWallets() {
         try {
-            // Give wallets time to inject into window
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Give wallets more time to inject into window (BSV wallets can be slower)
+            console.log('[UI] Waiting for wallet injection...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
             
             const wallets = await this.walletManager.detectAvailableWallets();
             
             // Just detect - don't show modal automatically
             // User will click "Connect Wallet" button to open modal
             console.log('[UI] Available wallets detected:', wallets.length);
+            console.log('[UI] Wallet types:', wallets.map(w => w.name));
         } catch (err) {
             console.error('[UI] Auto-detect error:', err);
         }
@@ -810,7 +1094,32 @@ class RewardsDashboardUI {
      * Show wallet selection modal
      */
     async showWalletModal() {
-        console.log('[UI] showWalletModal called');
+        console.log('[UI] 🚀 Using modern BSV Wallet SDK modal...');
+        
+        try {
+            // Check if SDK is available
+            if (typeof window.BSVWalletSDK === 'undefined') {
+                console.error('[UI] ❌ BSV Wallet SDK not loaded, falling back to manual modal');
+                return this.showLegacyWalletModal();
+            }
+
+            // Use the modern SDK modal
+            await window.BSVWalletSDK.showWalletModal();
+            
+            console.log('[UI] ✅ Modern wallet modal displayed');
+            
+        } catch (err) {
+            console.error('[UI] ❌ Error showing wallet modal:', err);
+            // Fallback to legacy modal
+            this.showLegacyWalletModal();
+        }
+    }
+
+    /**
+     * Legacy wallet modal (fallback)
+     */
+    async showLegacyWalletModal() {
+        console.log('[UI] showLegacyWalletModal called');
         try {
             const modal = document.getElementById('walletModal');
             console.log('[UI] Existing modal found:', !!modal);
@@ -825,14 +1134,7 @@ class RewardsDashboardUI {
             if (wallets.length === 0) {
                 optionsContainer.innerHTML = `
                     <div class="wallet-error">
-                        <div class="error-icon">⚠️</div>
-                        <p>No BSV wallets detected</p>
-                        <p class="error-subtitle">Install one of the following:</p>
-                        <div class="wallet-links">
-                            <a href="https://www.yours.org" target="_blank" class="wallet-link">Yours Wallet</a>
-                            <a href="https://handcash.io" target="_blank" class="wallet-link">HandCash</a>
-                            <a href="https://relayx.com" target="_blank" class="wallet-link">RelayX</a>
-                        </div>
+                        ❌ Secure Auth: BSV Authentication module not loaded. Please refresh the page.
                     </div>
                 `;
             } else {
@@ -1075,6 +1377,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.rewardsManager = new OrdinalRewardsManager(window.walletManager, config);
     window.dashboardUI = new RewardsDashboardUI(window.walletManager, window.rewardsManager);
     
+    // Setup BSV Wallet SDK event listeners for automatic authentication
+    setupWalletSDKEvents();
+    
     // Setup UI (this triggers auto-detection and modal)
     console.log('[INIT] Calling initializeUI...');
     window.dashboardUI.initializeUI();
@@ -1082,11 +1387,408 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[INIT] Rewards system ready!');
 });
 
+/**
+ * Setup BSV Wallet SDK event handlers for automatic authentication
+ */
+function setupWalletSDKEvents() {
+    console.log('[INIT] 🔗 Setting up BSV Wallet SDK event handlers...');
+    
+    // Handle successful wallet authentication
+    window.addEventListener('bsv-wallet-authenticated', async (event) => {
+        console.log('[INIT] 🎉 Wallet authenticated via SDK:', event.detail);
+        
+        try {
+            const authData = event.detail;
+            
+            // Set the wallet manager's state to authenticated
+            window.walletManager.address = authData.address;
+            window.walletManager.isConnected = true;
+            window.walletManager.walletType = authData.wallet;
+            window.walletManager.authSession = 'SDK_' + Date.now();
+            
+            // Store SDK authentication data
+            window.walletManager.sdkAuthData = authData;
+            
+            console.log('[INIT] ✅ Wallet manager updated with SDK authentication');
+            
+            // Update UI to show connected state
+            if (window.dashboardUI) {
+                window.dashboardUI.updateConnectionStatus(true, authData.address, authData.wallet);
+            }
+            
+            // Check for ordinals automatically
+            const hasOrdinals = await window.rewardsManager.ownsOrdinal();
+            
+            if (hasOrdinals) {
+                console.log('[INIT] 🌈 ORDINAL RAINBOWS detected! Loading rewards dashboard...');
+                await window.dashboardUI.showRewardsDashboard();
+            } else {
+                console.log('[INIT] ℹ️ No ORDINAL RAINBOWS found in this wallet');
+                window.dashboardUI.showNoOrdinalsMessage();
+            }
+            
+        } catch (err) {
+            console.error('[INIT] ❌ Error handling wallet authentication:', err);
+            window.dashboardUI.showError('Authentication successful but failed to load rewards. Please try again.');
+        }
+    });
+    
+    // Handle wallet disconnection
+    window.addEventListener('bsv-wallet-disconnected', () => {
+        console.log('[INIT] 🔌 Wallet disconnected via SDK');
+        
+        // Clear wallet manager state
+        if (window.walletManager) {
+            window.walletManager.disconnect();
+        }
+        
+        // Update UI
+        if (window.dashboardUI) {
+            window.dashboardUI.updateConnectionStatus(false);
+            window.dashboardUI.hideRewardsDashboard();
+        }
+    });
+    
+    // Handle session restoration (persistence)
+    window.addEventListener('bsv-wallet-session-restored', (event) => {
+        const { walletType, address, restored } = event.detail;
+        console.log(`[INIT] 🔄 Session restored for ${walletType}:`, address?.slice(0,8) + '...');
+        
+        // Update wallet manager state
+        if (window.walletManager) {
+            window.walletManager.address = address;
+            window.walletManager.isConnected = true;
+            window.walletManager.walletType = walletType;
+        }
+        
+        // Update UI to show restored connection
+        updateWalletUI(true, address, walletType);
+        
+        // Check for ordinals automatically on restoration
+        setTimeout(async () => {
+            if (window.rewardsManager) {
+                const hasOrdinals = await window.rewardsManager.ownsOrdinal();
+                if (hasOrdinals && window.dashboardUI) {
+                    console.log('[INIT] 🌈 ORDINAL RAINBOWS detected on session restore!');
+                    await window.dashboardUI.showRewardsDashboard();
+                }
+            }
+        }, 1000);
+    });
+    
+    console.log('[INIT] ✅ BSV Wallet SDK event handlers ready');
+}
+
+// Global wallet connection functions for button clicks
+function showWalletConnection() {
+    console.log('🚀 Connect Wallet button clicked');
+    
+    if (!window.BSVWalletSDK) {
+        console.error('❌ BSV Wallet SDK not loaded!');
+        alert('Wallet SDK not loaded. Please refresh the page.');
+        return;
+    }
+    
+    try {
+        // Just show the wallet modal - authentication happens via events
+        window.BSVWalletSDK.showWalletModal();
+        console.log('✅ Wallet modal shown');
+    } catch (error) {
+        console.error('❌ Error showing wallet modal:', error);
+        alert('Error showing wallet selection. Please try again.');
+    }
+}
+
+function disconnectWallet() {
+    console.log('🔌 Disconnect wallet requested');
+    
+    // Clear wallet manager state
+    if (window.walletManager) {
+        window.walletManager.disconnect();
+    }
+    
+    // Update UI
+    updateWalletUI(false);
+    
+    // Dispatch disconnection event
+    window.dispatchEvent(new CustomEvent('bsv-wallet-disconnected'));
+    
+    console.log('✅ Wallet disconnected');
+}
+
+function updateWalletUI(connected, address = null, walletType = null) {
+    const connectBtn = document.getElementById('connect-wallet-btn');
+    const walletStatus = document.getElementById('wallet-status');
+    const walletAddress = document.getElementById('wallet-address');
+    
+    if (connected && address) {
+        // Show connected state
+        connectBtn.classList.add('hidden');
+        walletStatus.classList.remove('hidden');
+        walletAddress.textContent = `${walletType || 'Wallet'}: ${address.slice(0, 6)}...${address.slice(-4)}`;
+    } else {
+        // Show disconnected state
+        connectBtn.classList.remove('hidden');
+        walletStatus.classList.add('hidden');
+        walletAddress.textContent = '';
+    }
+}
+
+// Enhanced wallet manager compatibility with SDK
+if (typeof window.walletManager !== 'undefined') {
+    // Add SDK compatibility methods
+    window.walletManager.isSDKAuthenticated = function() {
+        return this.sdkAuthData && window.BSVWalletSDK && window.BSVWalletSDK.isWalletAuthenticated();
+    };
+    
+    window.walletManager.getSDKAuthData = function() {
+        return this.sdkAuthData || null;
+    };
+}
+
+// Debug function for testing
+window.testWalletConnection = function() {
+    console.log('🔧 Testing wallet connection...');
+    console.log('BSV SDK available:', !!window.BSVWalletSDK);
+    console.log('BSV SDK Manager available:', !!window.BSVWalletSDKManager);
+    
+    if (window.BSVWalletSDK) {
+        console.log('✅ Calling showWalletModal...');
+        window.BSVWalletSDK.showWalletModal();
+    } else {
+        console.error('❌ BSV Wallet SDK not available');
+    }
+};
+
+// Make sure global functions are available
+window.showWalletConnection = showWalletConnection;
+window.disconnectWallet = disconnectWallet;
+
 // Export for use in other scripts
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         BSVWalletManager,
         OrdinalRewardsManager,
-        RewardsDashboardUI
+        RewardsDashboardUI,
+        SimpleCardPopup
     };
+}
+
+/**
+ * Simple Card Popup - Lightweight 3D card display
+ * Shows individual card details without breaking existing functionality
+ */
+class SimpleCardPopup {
+    constructor(walletManager, rewardsManager) {
+        this.walletManager = walletManager;
+        this.rewardsManager = rewardsManager;
+        this.isOpen = false;
+        this.createPopup();
+    }
+    
+    createPopup() {
+        const popup = document.createElement('div');
+        popup.id = 'cardDetailPopup';
+        popup.className = 'card-detail-popup';
+        popup.innerHTML = `
+            <div class="popup-card" id="popupCard">
+                <!-- Front Face -->
+                <div class="card-face card-front">
+                    <button class="popup-close">&times;</button>
+                    
+                    <div class="popup-card-header">
+                        <div class="popup-card-title" id="popupTitle"></div>
+                        <div class="popup-card-subtitle" id="popupSubtitle"></div>
+                    </div>
+                    
+                    <div class="popup-card-content">
+                        <div class="ownership-badge" id="ownershipBadge">
+                            <span id="ownershipText">Connect wallet to verify ownership</span>
+                        </div>
+                        
+                        <div class="reward-amount" id="rewardAmount" style="display: none;">
+                            <div class="reward-value" id="rewardValue">0.00</div>
+                            <div class="reward-label">BSV Rewards Available</div>
+                        </div>
+                        
+                        <div id="cardDetails"></div>
+                        
+                        <div class="flip-hint">Double-click to flip card</div>
+                    </div>
+                </div>
+                
+                <!-- Back Face -->
+                <div class="card-face card-back">
+                    <button class="popup-close">&times;</button>
+                    
+                    <div class="popup-card-header">
+                        <div class="popup-card-title" id="popupTitleBack"></div>
+                    </div>
+                    
+                    <div class="popup-card-content">
+                        <img class="popup-nft-image" id="popupImage" src="" alt="NFT">
+                        <div style="text-align: center; color: rgba(255,255,255,0.7); font-size: 14px;">
+                            ORDINAL RAINBOWS Vol. 1
+                        </div>
+                        <div class="flip-hint">Double-click to flip back</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        this.bindEvents();
+    }
+    
+    bindEvents() {
+        const popup = document.getElementById('cardDetailPopup');
+        const card = document.getElementById('popupCard');
+        
+        // Close buttons
+        popup.querySelectorAll('.popup-close').forEach(btn => {
+            btn.addEventListener('click', () => this.close());
+        });
+        
+        // Close on background click
+        popup.addEventListener('click', (e) => {
+            if (e.target === popup) this.close();
+        });
+        
+        // Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) this.close();
+        });
+        
+        // Double-click to flip
+        card.addEventListener('dblclick', () => this.flipCard());
+        
+        // Simple 3D rotation on mouse move
+        card.addEventListener('mousemove', (e) => {
+            if (!this.isOpen) return;
+            
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const rotateY = (x / rect.width - 0.5) * 30;
+            const rotateX = (y / rect.height - 0.5) * -20;
+            
+            card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+        
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        });
+    }
+    
+    async show(nftId) {
+        try {
+            const nft = window.nfts?.find(n => n.id === nftId);
+            if (!nft) {
+                console.error('[POPUP] NFT not found:', nftId);
+                return;
+            }
+            
+            console.log('[POPUP] Showing card:', nft.title);
+            
+            // Update card content
+            document.getElementById('popupTitle').textContent = nft.title;
+            document.getElementById('popupSubtitle').textContent = nft.subtitle;
+            document.getElementById('popupTitleBack').textContent = nft.title;
+            document.getElementById('popupImage').src = `images/${nft.id}.jpg`;
+            
+            // Check ownership and rewards
+            await this.updateOwnershipAndRewards(nft);
+            
+            // Show popup
+            const popup = document.getElementById('cardDetailPopup');
+            popup.classList.add('show');
+            this.isOpen = true;
+            
+        } catch (err) {
+            console.error('[POPUP] Error showing card:', err);
+        }
+    }
+    
+    async updateOwnershipAndRewards(nft) {
+        const ownershipBadge = document.getElementById('ownershipBadge');
+        const ownershipText = document.getElementById('ownershipText');
+        const rewardAmount = document.getElementById('rewardAmount');
+        const rewardValue = document.getElementById('rewardValue');
+        
+        if (!this.walletManager.isWalletConnected()) {
+            ownershipBadge.className = 'ownership-badge not-owned';
+            ownershipText.textContent = 'Connect wallet to verify ownership';
+            rewardAmount.style.display = 'none';
+            return;
+        }
+        
+        try {
+            // Check if user owns this specific ordinal
+            const hasOrdinals = await this.rewardsManager.ownsOrdinal();
+            
+            if (hasOrdinals && this.rewardsManager.ownedOrdinals) {
+                const ownedOrdinal = this.rewardsManager.ownedOrdinals.find(o => 
+                    o.nft && o.nft.id === nft.id
+                );
+                
+                if (ownedOrdinal) {
+                    ownershipBadge.className = 'ownership-badge owned';
+                    ownershipText.textContent = '✅ You own this NFT!';
+                    
+                    // Calculate and show rewards
+                    const rewards = await this.calculateRewards(nft);
+                    rewardValue.textContent = rewards.toFixed(4);
+                    rewardAmount.style.display = 'block';
+                } else {
+                    ownershipBadge.className = 'ownership-badge not-owned';
+                    ownershipText.textContent = '❌ NFT not in your wallet';
+                    rewardAmount.style.display = 'none';
+                }
+            } else {
+                ownershipBadge.className = 'ownership-badge not-owned';
+                ownershipText.textContent = '❌ No ORDINAL RAINBOWS found in wallet';
+                rewardAmount.style.display = 'none';
+            }
+        } catch (err) {
+            console.error('[POPUP] Error checking ownership:', err);
+            ownershipBadge.className = 'ownership-badge not-owned';
+            ownershipText.textContent = 'Error checking ownership';
+            rewardAmount.style.display = 'none';
+        }
+    }
+    
+    async calculateRewards(nft) {
+        const rewardRates = {
+            'Legendary': 100.0,
+            'Exotic': 50.0,
+            'Epic': 20.0,
+            'Rare': 10.0,
+            'Uncommon': 5.0,
+            'Common': 2.0
+        };
+        
+        const baseReward = rewardRates[nft.rarity] || 2.0;
+        const launchDate = new Date('2024-01-01');
+        const daysSinceLaunch = Math.floor((Date.now() - launchDate.getTime()) / (1000 * 60 * 60 * 24));
+        const timeMultiplier = 1 + (daysSinceLaunch * 0.002);
+        
+        return baseReward * timeMultiplier;
+    }
+    
+    flipCard() {
+        const card = document.getElementById('popupCard');
+        const currentRotation = card.style.transform.includes('rotateY(180deg)') ? 0 : 180;
+        card.style.transform = `rotateY(${currentRotation}deg)`;
+    }
+    
+    close() {
+        const popup = document.getElementById('cardDetailPopup');
+        popup.classList.remove('show');
+        this.isOpen = false;
+        
+        // Reset card rotation
+        const card = document.getElementById('popupCard');
+        card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    }
 }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BSV SDK Test</title>
+</head>
+<body>
+    <h1>BSV SDK Loading Test</h1>
+    <button onclick="testSDK()">Test SDK</button>
+    <div id="output"></div>
+
+    <script src="js/bsv-wallet-sdk.js" onload="console.log('✅ BSV Wallet SDK loaded successfully')" onerror="console.error('❌ BSV Wallet SDK failed to load')"></script>
+    <script>
+        function testSDK() {
+            const output = document.getElementById('output');
+            
+            if (typeof BSVWalletSDKManager !== 'undefined') {
+                output.innerHTML = '✅ BSVWalletSDKManager class available<br>';
+                
+                if (window.BSVWalletSDK) {
+                    output.innerHTML += '✅ BSVWalletSDK instance available<br>';
+                    
+                    if (typeof window.BSVWalletSDK.showWalletModal === 'function') {
+                        output.innerHTML += '✅ showWalletModal method available<br>';
+                        output.innerHTML += '<strong>🎉 SDK is fully loaded and working!</strong>';
+                    } else {
+                        output.innerHTML += '❌ showWalletModal method missing';
+                    }
+                } else {
+                    output.innerHTML += '❌ BSVWalletSDK instance not found';
+                }
+            } else {
+                output.innerHTML = '❌ BSVWalletSDKManager class not found';
+            }
+        }
+        
+        // Auto-test when page loads
+        window.addEventListener('load', () => {
+            setTimeout(testSDK, 1000);
+        });
+    </script>
+</body>
+</html>

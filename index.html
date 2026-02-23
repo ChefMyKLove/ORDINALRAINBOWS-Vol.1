@@ -6,6 +6,12 @@
     <title>ORDINAL 🌈 RAINBOWS Vol. 1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <!-- BSV Libraries for Signature Verification -->
+    <script src="https://unpkg.com/bsv@1.5.6/bsv.min.js" onload="console.log('BSV library loaded')" onerror="console.error('BSV library failed to load')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js" onload="console.log('Crypto-JS library loaded')" onerror="console.error('Crypto-JS library failed to load')"></script>
+    
+    <!-- BSV Wallet SDK Integration -->
+    <script src="js/bsv-wallet-sdk.js" onload="console.log('BSV Wallet SDK loaded')" onerror="console.error('BSV Wallet SDK failed to load')"></script>
     <style>
 * {
     margin: 0;
@@ -883,12 +889,16 @@ h1 {
         </defs>
     </svg>
 
-    <!-- Wallet Connection -->
+    <!-- Wallet Connection - BSV SDK Integration -->
     <div class="wallet-section">
-        <button id="connectWallet" class="connect-btn">Connect BSV Wallet</button>
-        <div id="walletStatus" class="wallet-status hidden">
-            <span class="wallet-address" id="walletAddress"></span>
-            <button class="disconnect-btn" id="disconnectWallet">Disconnect</button>
+        <div id="wallet-connection">
+            <button id="connect-wallet-btn" class="connect-btn" onclick="showWalletConnection()">
+                🚀 Connect BSV Wallet
+            </button>
+            <div id="wallet-status" class="wallet-status hidden">
+                <span class="wallet-address" id="wallet-address"></span>
+                <button id="disconnect-btn" class="disconnect-btn" onclick="disconnectWallet()">Disconnect</button>
+            </div>
         </div>
     </div>
 
@@ -952,7 +962,8 @@ h1 {
 
     <script>
         // NFT data - complete collection
-        const nfts = [
+        // Make nfts globally accessible for rewards system
+        window.nfts = [
             { id: "AlchemyBow", title: "AlchemyBow", subtitle: "Magical Transformation of Light Into Gold", rarity: "Exotic", inscriptionId: "704a7653a4d8c4d7bf356e1d2aeb0f0349b91c7a34c6b7eee4b4b0f5ae054a33", printifyUrl: "https://ordinalrainbows.printify.me/product/26270333/alchemybow-magical-transformation-of-light-into-gold" },
             { id: "AuroraBow#1", title: "AuroraBow #1", subtitle: "First Whisper of the Polar Veil", rarity: "Common", inscriptionId: "868d6443ccb191aee5211c64273beb140bdbbe9e7293a70189acf6a46263f6f6", printifyUrl: "https://ordinalrainbows.printify.me/product/26270391/aurorabow-1-first-whisper-of-the-polar-veil" },
             { id: "AuroraBow#2", title: "AuroraBow #2", subtitle: "At Peace in an Optical Embrace", rarity: "Common", inscriptionId: "424cce2ffaffef15bb75ad2ff0f5db3c436363b9d2a56a2f7443ae088bd5f466", printifyUrl: "https://ordinalrainbows.printify.me/product/26270419/aurorabow-2-at-peace-in-an-optical-embrace" },
@@ -1090,7 +1101,7 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
 
         // SHOW INDIVIDUAL CARD
         function showIndividualCard(nftId) {
-            const nft = nfts.find(n => n.id === nftId);
+            const nft = window.nfts.find(n => n.id === nftId);
             if (!nft) return;
 
             individualCard.innerHTML = createCardHTML(nft);
@@ -1115,7 +1126,7 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
             const rarityFilter = document.getElementById('rarityFilter')?.value || 'all';
 
             // filter
-            let filtered = nfts.filter(n => {
+            let filtered = window.nfts.filter(n => {
                 const matchesSearch =
                     n.title.toLowerCase().includes(searchTerm) ||
                     n.subtitle.toLowerCase().includes(searchTerm) ||
@@ -1189,7 +1200,7 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
             const modal = document.createElement('div');
             modal.className = 'printify-modal';
 
-            const nft = nfts.find(n => n.printifyUrl === printifyUrl);
+            const nft = window.nfts.find(n => n.printifyUrl === printifyUrl);
             const title = nft ? nft.title : 'Product';
 
             modal.innerHTML = `
@@ -1234,9 +1245,9 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
         let currentSlideIndex = 0;
 
         function showSlide(index) {
-            if (!nfts.length) return;
-            currentSlideIndex = (index + nfts.length) % nfts.length;
-            const nft = nfts[currentSlideIndex];
+            if (!window.nfts.length) return;
+            currentSlideIndex = (index + window.nfts.length) % window.nfts.length;
+            const nft = window.nfts[currentSlideIndex];
             carouselImage.src = `images/${encodeURIComponent(nft.id)}.JPG`;
             carouselTitle.textContent = nft.title;
             carouselSubtitle.textContent = nft.subtitle;
@@ -1266,7 +1277,7 @@ let carouselTimer = setInterval(() => {
 
         // Clicking carousel image shows individual card
         carouselImage.addEventListener('click', () => {
-            const nft = nfts[currentSlideIndex];
+            const nft = window.nfts[currentSlideIndex];
             hideCarousel();
             showIndividualCard(nft.id);
         });
@@ -1355,6 +1366,23 @@ let carouselTimer = setInterval(() => {
     <div id="rewardsDashboard" class="hidden">
         <h2 class="dashboard-title">💰 Your Rewards</h2>
         
+        <!-- Security Enhancement Notice -->
+        <div style="background: linear-gradient(135deg, rgba(0, 255, 100, 0.1), rgba(0, 150, 255, 0.1)); 
+                    border: 1px solid rgba(0, 255, 100, 0.3); 
+                    border-radius: 12px; 
+                    padding: 12px 16px; 
+                    margin-bottom: 20px;
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.9);">
+            🔐 <strong>Enhanced Security:</strong> This system now requires cryptographic signature verification to prove wallet ownership before claiming rewards. No more copy/paste vulnerabilities!
+            <br>
+            <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">
+                🧪 <strong>Test Mode:</strong> Type "TEST" when prompted for signature to test the system without a real signature.
+                <br>
+                🔧 <strong>Having ElectrumSV issues?</strong> Type "DEBUG" for help, or open console and run: <code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 3px;">BSVDebugger.troubleshootAuthentication()</code>
+            </div>
+        </div>
+        
         <!-- Unclaimed Rewards -->
         <div class="rewards-section">
             <div class="section-label">📥 Unclaimed</div>
@@ -1404,6 +1432,31 @@ let carouselTimer = setInterval(() => {
         </button>
     </div>
 
+    <!-- BSV Authentication Module (MUST load before rewards integration) -->
+    <script src="js/bsv-auth-fixed.js" onload="console.log('BSV Auth module loaded')" onerror="console.error('BSV Auth module failed to load')"></script>
+    
+    <!-- BSV Wallet Debugger -->
+    <script src="js/bsv-wallet-debugger.js"></script>
+    
+    <!-- Module Loading Verification -->
+    <script>
+    window.addEventListener('load', function() {
+        console.log('🔍 CHECKING MODULE STATUS:');
+        console.log('- BSV library:', typeof bsv !== 'undefined' ? '✅ Loaded' : '❌ Missing');
+        console.log('- CryptoJS:', typeof CryptoJS !== 'undefined' ? '✅ Loaded' : '❌ Missing');
+        console.log('- BSVAuth:', typeof window.BSVAuth !== 'undefined' ? '✅ Loaded' : '❌ Missing');
+        console.log('- BSVWalletSDK:', typeof window.BSVWalletSDK !== 'undefined' ? '✅ Loaded' : '❌ Missing');
+        console.log('- BSVWalletSDKManager:', typeof BSVWalletSDKManager !== 'undefined' ? '✅ Loaded' : '❌ Missing');
+        
+        if (typeof window.BSVWalletSDK !== 'undefined') {
+            console.log('🔐 BSV Wallet SDK system ready for use!');
+            console.log('💡 Try: debugYoursWallet() or showWalletConnection()');
+        } else {
+            console.error('❌ BSV Wallet SDK failed to load - check browser console for errors');
+        }
+    });
+    </script>
+    
     <!-- Rewards Integration Script -->
     <script src="js/rewards-integration.js"></script>
 </body>

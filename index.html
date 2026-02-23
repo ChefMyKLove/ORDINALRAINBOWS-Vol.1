@@ -852,6 +852,320 @@ h1 {
     background: rgba(255, 255, 255, 0.05);
 }
 
+/* ====== CARD HOVER ANIMATIONS ====== */
+.nft-card:hover {
+    transform: scale(1.05) translateY(-8px);
+    box-shadow: 0 12px 48px rgba(0, 100, 255, 0.3), 0 0 30px rgba(100, 200, 255, 0.2);
+}
+
+.nft-card:hover::after {
+    opacity: 1;
+}
+
+/* ====== 3D CARD MODAL ====== */
+.card-3d-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.95));
+    backdrop-filter: blur(10px);
+    animation: modalFadeIn 0.4s ease;
+}
+
+.card-3d-modal.active {
+    display: flex;
+}
+
+.card-3d-container {
+    width: 100%;
+    max-width: 500px;
+    height: 600px;
+    position: relative;
+    perspective: 1000px;
+}
+
+.card-3d-flipper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.card-3d-flipper.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-3d-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.card-3d-face:first-of-type {
+    z-index: 2;
+}
+
+.card-3d-face:last-of-type {
+    transform: rotateY(180deg);
+    z-index: 1;
+}
+
+.card-3d-front {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.card-3d-front img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.card-3d-front-title {
+    font-size: 1.8em;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(135deg, #ff006e, #ff4d00, #ffb700, #00f5d4, #00bbf9, #5e60ce, #7209b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.card-3d-front-subtitle {
+    font-size: 1em;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.card-3d-back {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.card-3d-back-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.card-rewards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.card-reward-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.card-reward-token {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+}
+
+.card-reward-amount {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.card-3d-message {
+    font-size: 1.2em;
+    text-align: center;
+    color: rgba(255, 100, 100, 0.9);
+    font-weight: 600;
+    padding: 40px;
+}
+
+.card-3d-modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    position: absolute;
+    bottom: -70px;
+    left: 0;
+    right: 0;
+    width: 100%;
+}
+
+.card-3d-flip-btn, .card-3d-claim-btn, .card-3d-close-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1em;
+}
+
+.card-3d-flip-btn {
+    background: rgba(0, 150, 255, 0.8);
+    color: white;
+}
+
+.card-3d-flip-btn:hover {
+    background: rgba(0, 150, 255, 1);
+    transform: scale(1.05);
+}
+
+.card-3d-claim-btn {
+    background: rgba(0, 255, 100, 0.8);
+    color: white;
+}
+
+.card-3d-claim-btn:hover {
+    background: rgba(0, 255, 100, 1);
+    transform: scale(1.05);
+}
+
+.card-3d-close-btn {
+    background: rgba(255, 100, 100, 0.8);
+    color: white;
+}
+
+.card-3d-close-btn:hover {
+    background: rgba(255, 100, 100, 1);
+    transform: scale(1.05);
+}
+
+/* ====== WALLET BOX ====== */
+.wallet-box {
+    display: none;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+}
+
+.wallet-box.active {
+    display: block;
+    animation: slideInDown 0.4s ease;
+}
+
+.wallet-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.wallet-box-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.wallet-box-refresh {
+    background: rgba(0, 150, 255, 0.6);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.wallet-box-refresh:hover {
+    background: rgba(0, 150, 255, 0.9);
+    transform: scale(1.05);
+}
+
+.wallet-box-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+}
+
+.wallet-box-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.wallet-box-label {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+}
+
+.wallet-box-value {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.wallet-box-disconnect {
+    margin-top: 15px;
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 100, 100, 0.6);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.wallet-box-disconnect:hover {
+    background: rgba(255, 100, 100, 0.9);
+}
+
+/* ====== ANIMATIONS ====== */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* SVG Filter positioning */
 .svg-filter {
     position: absolute;
@@ -898,6 +1212,76 @@ h1 {
             <div id="wallet-status" class="wallet-status hidden">
                 <span class="wallet-address" id="wallet-address"></span>
                 <button id="disconnect-btn" class="disconnect-btn" onclick="disconnectWallet()">Disconnect</button>
+            </div>
+        </div>
+        
+        <!-- Wallet Box - Shows when authenticated -->
+        <div id="wallet-box" class="wallet-box">
+            <div class="wallet-box-header">
+                <div class="wallet-box-title">👛 Your Wallet</div>
+                <button class="wallet-box-refresh" onclick="refreshWalletBoxBalances()">🔄 Refresh</button>
+            </div>
+            <div class="wallet-box-content">
+                <div class="wallet-box-item">
+                    <div class="wallet-box-label">🌈 ORDINAL RAINBOWS BSV21</div>
+                    <div class="wallet-box-value" id="wallet-bsv21-balance">—</div>
+                </div>
+                <div class="wallet-box-item">
+                    <div class="wallet-box-label">💎 MNEE Claimable</div>
+                    <div class="wallet-box-value" id="wallet-mnee-balance">—</div>
+                </div>
+                <div class="wallet-box-item">
+                    <div class="wallet-box-label">⚡ BSV Claimable</div>
+                    <div class="wallet-box-value" id="wallet-bsv-balance">—</div>
+                </div>
+            </div>
+            <button class="wallet-box-disconnect" onclick="disconnectWallet()">🔌 Disconnect Wallet</button>
+        </div>
+    </div>
+    
+    <!-- 3D Card Modal -->
+    <div id="card-3d-modal" class="card-3d-modal">
+        <div class="card-3d-container">
+            <div class="card-3d-flipper" id="card-3d-flipper">
+                <!-- Front Face -->
+                <div class="card-3d-face">
+                    <div class="card-3d-front">
+                        <img id="card-3d-front-img" src="" alt="Card">
+                        <div class="card-3d-front-title" id="card-3d-front-title">Title</div>
+                        <div class="card-3d-front-subtitle" id="card-3d-front-subtitle">Subtitle</div>
+                    </div>
+                </div>
+                <!-- Back Face -->
+                <div class="card-3d-face">
+                    <div class="card-3d-back">
+                        <div>
+                            <div class="card-3d-back-title">Rewards</div>
+                            <div id="card-3d-back-content">
+                                <div class="card-rewards-grid">
+                                    <div class="card-reward-item">
+                                        <div class="card-reward-token">💎 MNEE</div>
+                                        <div class="card-reward-amount" id="card-reward-mnee">—</div>
+                                    </div>
+                                    <div class="card-reward-item">
+                                        <div class="card-reward-token">⚡ BSV</div>
+                                        <div class="card-reward-amount" id="card-reward-bsv">—</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="card-3d-button-area">
+                            <button class="card-3d-claim-btn" id="card-3d-claim-btn" onclick="claimOrdinalReward()">
+                                ✨ Claim Rewards
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Controls -->
+            <div class="card-3d-modal-buttons">
+                <button class="card-3d-flip-btn" id="card-3d-flip-btn" onclick="flipCard3D()">🔄 Flip</button>
+                <button class="card-3d-close-btn" id="card-3d-close-btn" onclick="closeCard3DModal()">✕ Close</button>
             </div>
         </div>
     </div>
@@ -1160,11 +1544,16 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
                 card.dataset.id = nft.id;
                 card.innerHTML = createCardHTML(nft);
 
-                // Add click handler to image
+                // Add click handler to open 3D modal (only if authenticated)
                 const img = card.querySelector('.nft-image');
                 img.addEventListener('click', (e) => {
                     e.preventDefault();
-                    showIndividualCard(nft.id);
+                    // Check if authenticated, if not show wallet connection
+                    if (isWalletAuthenticated && isWalletAuthenticated()) {
+                        openCard3DModal(nft.id);
+                    } else {
+                        showWalletConnection();
+                    }
                 });
 
                 gallery.appendChild(card);

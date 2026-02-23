@@ -854,7 +854,7 @@ h1 {
 
 /* ====== CARD HOVER ANIMATIONS ====== */
 .nft-card:hover {
-    transform: scale(1.05) translateY(-8px);
+    transform: scale(1.01) translateY(-2px);
     box-shadow: 0 12px 48px rgba(0, 100, 255, 0.3), 0 0 30px rgba(100, 200, 255, 0.2);
 }
 
@@ -1066,10 +1066,17 @@ h1 {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 16px;
     backdrop-filter: blur(20px);
+    position: relative;
+    z-index: 9999;
+    min-width: 350px;
+}
+
+.wallet-box.hidden {
+    display: none !important;
 }
 
 .wallet-box.active {
-    display: block;
+    display: block !important;
     animation: slideInDown 0.4s ease;
 }
 
@@ -1216,7 +1223,7 @@ h1 {
         </div>
         
         <!-- Wallet Box - Shows when authenticated -->
-        <div id="wallet-box" class="wallet-box">
+        <div id="wallet-box" class="wallet-box hidden">
             <div class="wallet-box-header">
                 <div class="wallet-box-title">👛 Your Wallet</div>
                 <button class="wallet-box-refresh" onclick="refreshWalletBoxBalances()">🔄 Refresh</button>

@@ -1482,20 +1482,29 @@ function setupWalletSDKEvents() {
 // Global wallet connection functions for button clicks
 function showWalletConnection() {
     console.log('🚀 Connect Wallet button clicked');
+    console.log('BSV SDK available:', !!window.BSVWalletSDK);
+    console.log('showWalletModal available:', !!window.BSVWalletSDK?.showWalletModal);
     
     if (!window.BSVWalletSDK) {
         console.error('❌ BSV Wallet SDK not loaded!');
-        alert('Wallet SDK not loaded. Please refresh the page.');
-        return;
+        alert('Wallet SDK not loaded. Checking...');
+        // Try initializing if not loaded
+        if (window.BSVWalletSDKManager) {
+            console.log('Creating BSVWalletSDKManager instance...');
+            window.BSVWalletSDK = new window.BSVWalletSDKManager();
+        } else {
+            alert('BSV Wallet SDK failed to load. Please refresh the page.');
+            return;
+        }
     }
     
     try {
-        // Just show the wallet modal - authentication happens via events
+        console.log('Calling showWalletModal...');
         window.BSVWalletSDK.showWalletModal();
         console.log('✅ Wallet modal shown');
     } catch (error) {
         console.error('❌ Error showing wallet modal:', error);
-        alert('Error showing wallet selection. Please try again.');
+        alert('Error: ' + error.message);
     }
 }
 
@@ -1517,6 +1526,8 @@ function disconnectWallet() {
 }
 
 function updateWalletUI(connected, address = null, walletType = null) {
+    console.log('[UI] Updating wallet UI - connected:', connected);
+    
     const connectBtn = document.getElementById('connect-wallet-btn');
     const walletStatus = document.getElementById('wallet-status');
     const walletAddress = document.getElementById('wallet-address');
@@ -1524,23 +1535,27 @@ function updateWalletUI(connected, address = null, walletType = null) {
     
     if (connected && address) {
         // Show connected state
+        console.log('[UI] Showing wallet box');
         connectBtn.classList.add('hidden');
         walletStatus.classList.add('hidden');
         walletAddress.textContent = `${walletType || 'Wallet'}: ${address.slice(0, 6)}...${address.slice(-4)}`;
         
         // Show wallet box instead
         if (walletBox) {
+            walletBox.classList.remove('hidden');
             walletBox.classList.add('active');
             refreshWalletBoxBalances();
         }
     } else {
         // Show disconnected state
+        console.log('[UI] Showing connect button');
         connectBtn.classList.remove('hidden');
-        walletStatus.classList.remove('hidden');
+        walletStatus.classList.add('hidden');
         walletAddress.textContent = '';
         
         // Hide wallet box
         if (walletBox) {
+            walletBox.classList.add('hidden');
             walletBox.classList.remove('active');
         }
     }
@@ -1566,8 +1581,9 @@ function openCard3DModal(nftId) {
             return;
         }
         
-        // Populate front face
-        document.getElementById('card-3d-front-img').src = `images/${nft.id}.jpg`;
+        // Populate front face with properly encoded image path
+        const encodedId = encodeURIComponent(nft.id);
+        document.getElementById('card-3d-front-img').src = `images/${encodedId}.JPG`;
         document.getElementById('card-3d-front-title').textContent = nft.title;
         document.getElementById('card-3d-front-subtitle').textContent = nft.subtitle || nft.rarity;
         
@@ -1610,45 +1626,48 @@ async function checkCardOwnershipAndRewards(nft) {
             return;
         }
         
-        // Check if user owns this specific ordinal
-        const hasMultipleOrdinals = window.ownedOrdinalsCount && window.ownedOrdinalsCount > 0;
+        console.log('[3D] Checking ownership for:', nft.title, 'ID:', nft.id);
         
-        if (hasMultipleOrdinals) {
-            // User owns at least one ordinal, show rewards
-            const rewardRates = {
-                'Legendary': 100.0,
-                'Exotic': 50.0,
-                'Epic': 20.0,
-                'Rare': 10.0,
-                'Uncommon': 5.0,
-                'Common': 2.0
-            };
+        // For now, check if we have ANY ordinals
+        const hasAnyOrdinals = window.ownedOrdinalsCount && window.ownedOrdinalsCount > 0;
+        
+        console.log('[3D] Owned ordinalsCount:', window.ownedOrdinalsCount, 'Has any:', hasAnyOrdinals);
+        
+        if (hasAnyOrdinals) {
+            // User owns at least one ordinal, show zero rewards (no made-up numbers)
+            // TODO: Fetch real reward amounts from API/blockchain
             
-            const baseReward = rewardRates[nft.rarity] || 2.0;
-            const launchDate = new Date('2024-01-01');
-            const daysSinceLaunch = Math.floor((Date.now() - launchDate.getTime()) / (1000 * 60 * 60 * 24));
-            const timeMultiplier = 1 + (daysSinceLaunch * 0.002);
-            const totalReward = baseReward * timeMultiplier;
+            console.log('[3D] Showing rewards interface');
             
-            // Show rewards grid
-            document.getElementById('card-reward-mnee').textContent = (totalReward * 0.6).toFixed(2) + ' MNEE';
-            document.getElementById('card-reward-bsv').textContent = (totalReward * 0.4).toFixed(4) + ' BSV';
+            backContent.innerHTML = `
+                <div class="card-3d-back-title">Available Rewards</div>
+                <div class="card-rewards-grid">
+                    <div class="card-reward-item">
+                        <div class="card-reward-token">💎 MNEE</div>
+                        <div class="card-reward-amount">0.00</div>
+                    </div>
+                    <div class="card-reward-item">
+                        <div class="card-reward-token">⚡ BSV</div>
+                        <div class="card-reward-amount">0.0000</div>
+                    </div>
+                </div>
+            `;
             
-            backContent.style.display = 'block';
             buttonArea.innerHTML = `
                 <button class="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.id}')">
                     ✨ Claim Rewards
                 </button>
             `;
         } else {
-            // User doesn't own this ordinal
+            // User doesn't own any ordinals
+            console.log('[3D] User does not own any ordinals');
             backContent.innerHTML = '<div class="card-3d-message">❌ You do not own this piece</div>';
             buttonArea.innerHTML = '';
         }
         
     } catch (err) {
         console.error('[3D] Error checking ownership:', err);
-        backContent.innerHTML = '<div class="card-3d-message">Error checking ownership</div>';
+        backContent.innerHTML = '<div class="card-3d-message">Unable to load rewards</div>';
         buttonArea.innerHTML = '';
     }
 }
@@ -1741,47 +1760,18 @@ async function refreshWalletBoxBalances() {
         const bsv21Balance = window.ownedOrdinalsCount || 0;
         document.getElementById('wallet-bsv21-balance').textContent = bsv21Balance;
         
-        // Calculate total MNEE and BSV claimable from all rewards
-        let totalMNEE = 0;
-        let totalBSV = 0;
+        // Show zero for rewards (no real data yet)
+        // TODO: Fetch real reward amounts from API
+        document.getElementById('wallet-mnee-balance').textContent = '0.00 MNEE';
+        document.getElementById('wallet-bsv-balance').textContent = '0.0000 BSV';
         
-        if (window.nfts && window.ownedOrdinalsCount > 0) {
-            // Calculate rewards for each NFT type
-            const rewardRates = {
-                'Legendary': 100.0,
-                'Exotic': 50.0,
-                'Epic': 20.0,
-                'Rare': 10.0,
-                'Uncommon': 5.0,
-                'Common': 2.0
-            };
-            
-            const launchDate = new Date('2024-01-01');
-            const daysSinceLaunch = Math.floor((Date.now() - launchDate.getTime()) / (1000 * 60 * 60 * 24));
-            const timeMultiplier = 1 + (daysSinceLaunch * 0.002);
-            
-            // Estimate based on rarity distribution
-            for (const rarity of Object.keys(rewardRates)) {
-                const baseReward = rewardRates[rarity] * timeMultiplier;
-                totalMNEE += baseReward * 0.6;
-                totalBSV += baseReward * 0.4;
-            }
-            
-            // Divide by total rarities to get average per owned ordinal
-            totalMNEE = (totalMNEE / Object.keys(rewardRates).length) * window.ownedOrdinalsCount;
-            totalBSV = (totalBSV / Object.keys(rewardRates).length) * window.ownedOrdinalsCount;
-        }
-        
-        document.getElementById('wallet-mnee-balance').textContent = totalMNEE.toFixed(2) + ' MNEE';
-        document.getElementById('wallet-bsv-balance').textContent = totalBSV.toFixed(4) + ' BSV';
-        
-        console.log('[WALLET-BOX] Balances updated');
+        console.log('[WALLET-BOX] Balances updated - ORDINAL RAINBOWS:', bsv21Balance);
         
     } catch (err) {
         console.error('[WALLET-BOX] Error refreshing balances:', err);
         document.getElementById('wallet-bsv21-balance').textContent = '?';
-        document.getElementById('wallet-mnee-balance').textContent = '?';
-        document.getElementById('wallet-bsv-balance').textContent = '?';
+        document.getElementById('wallet-mnee-balance').textContent = '? MNEE';
+        document.getElementById('wallet-bsv-balance').textContent = '? BSV';
     }
 }
 

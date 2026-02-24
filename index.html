@@ -863,6 +863,7 @@ h1 {
 }
 
 /* ====== 3D CARD MODAL ====== */
+/* ====== 3D CARD MODAL — DRAG ROTATION ====== */
 .card-3d-modal {
     position: fixed;
     top: 0;
@@ -873,51 +874,221 @@ h1 {
     justify-content: center;
     align-items: center;
     z-index: 10000;
-    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.95));
-    backdrop-filter: blur(10px);
-    animation: modalFadeIn 0.4s ease;
+    background: radial-gradient(circle at center, rgba(0,0,0,0.82), rgba(0,0,0,0.97));
+    backdrop-filter: blur(12px);
+    animation: modalFadeIn 0.3s ease;
 }
 
 .card-3d-modal.active {
     display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
-.card-3d-container {
-    width: 100%;
-    max-width: 500px;
+/* Perspective scene — drag rotates this */
+.card-3d-scene {
+    perspective: 1400px;
+}
+
+.card-3d-card {
+    width: 400px;
     height: 600px;
     position: relative;
-    perspective: 1000px;
-}
-
-.card-3d-flipper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s;
     transform-style: preserve-3d;
+    transition: transform 0.08s ease-out;
+    cursor: grab;
+    user-select: none;
 }
 
-.card-3d-flipper.flipped {
-    transform: rotateY(180deg);
-}
+.card-3d-card:active { cursor: grabbing; }
 
-.card-3d-face {
+/* ---- Rainbow thickness edges ---- */
+.card-edge {
+    position: absolute;
+    background: linear-gradient(180deg,
+        #ff0000 0%, #ff6600 16%, #ffee00 33%,
+        #00ee00 50%, #0066ff 66%, #8800ff 83%, #ff0080 100%);
+    z-index: 0;
+}
+.card-edge.edge-top    { width: 400px; height: 12px; top: 0;    left: 0; transform-origin: top center;    transform: rotateX(90deg);  border-radius: 20px 20px 0 0; }
+.card-edge.edge-bottom { width: 400px; height: 12px; bottom: 0; left: 0; transform-origin: bottom center; transform: rotateX(-90deg); border-radius: 0 0 20px 20px; }
+.card-edge.edge-left   { width: 12px; height: 600px; top: 0; left: 0;  transform-origin: left center;   transform: rotateY(-90deg); border-radius: 20px 0 0 20px; }
+.card-edge.edge-right  { width: 12px; height: 600px; top: 0; right: 0; transform-origin: right center;  transform: rotateY(90deg);  border-radius: 0 20px 20px 0; }
+
+/* ---- Card faces ---- */
+.card-face {
     position: absolute;
     width: 100%;
     height: 100%;
     backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.6);
+}
+
+.card-face.card-front {
+    background: linear-gradient(145deg, #1e1e30 0%, #13131f 100%);
+    border: 2px solid rgba(255,255,255,0.12);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-face.card-back {
+    background: linear-gradient(145deg, #2a1a3e 0%, #1a0f2e 100%);
+    border: 2px solid rgba(255,255,255,0.18);
+    transform: rotateY(180deg);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
     padding: 30px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
+
+/* ---- Front face layout ---- */
+.card-front-header {
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.35);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.card-front-title {
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #ff006e, #ff8c00, #ffe000, #00f5d4, #00bbf9, #7209b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.card-front-rarity {
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.45);
+    margin-top: 4px;
+    letter-spacing: 1px;
+}
+
+.card-front-image-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    padding: 12px;
+}
+
+.card-front-image-wrap img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    image-rendering: pixelated;
+}
+
+.card-front-footer {
+    padding: 12px 18px;
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    font-size: 0.8em;
+    color: rgba(255,255,255,0.55);
+    flex-shrink: 0;
+}
+
+/* ---- Back face ---- */
+.card-3d-back {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.card-3d-back-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.card-rewards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.card-reward-item {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.card-reward-token  { font-size: 0.9em; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
+.card-reward-amount { font-size: 1.4em; font-weight: 700; color: rgba(255,255,255,0.9); }
+
+.card-3d-message {
+    font-size: 1.1em;
+    text-align: center;
+    color: rgba(255,160,100,0.9);
+    font-weight: 600;
+    padding: 30px 20px;
+}
+
+/* ---- Modal bottom controls ---- */
+.card-3d-modal-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.card-3d-ctrl-btn {
+    padding: 10px 28px;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(6px);
+}
+.card-3d-ctrl-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.04); }
+.card-3d-ctrl-btn.close  { background: rgba(255,80,80,0.5); border-color: rgba(255,80,80,0.5); }
+.card-3d-ctrl-btn.close:hover { background: rgba(255,80,80,0.8); }
+
+/* drag hint */
+.card-3d-drag-hint {
+    position: absolute;
+    bottom: -52px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.3);
+    pointer-events: none;
+}
+
+/* keep claim btn style */
+.card-3d-claim-btn {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1em;
+    background: rgba(0,255,100,0.8);
+    color: white;
+}
+.card-3d-claim-btn:hover { background: rgba(0,255,100,1); transform: scale(1.04); }
 
 .card-3d-face:first-of-type {
     z-index: 2;
@@ -1085,6 +1256,38 @@ h1 {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.wallet-box-toggle {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 1.1em;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.wallet-box-toggle:hover {
+    color: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.08);
+}
+
+.wallet-box.collapsed .wallet-box-header {
+    margin-bottom: 0;
+}
+
+.wallet-box.collapsed .wallet-box-content,
+.wallet-box.collapsed .wallet-box-disconnect {
+    display: none;
+}
+
+.wallet-box.collapsed .wallet-box-toggle {
+    transform: rotate(-90deg);
 }
 
 .wallet-box-title {
@@ -1224,9 +1427,12 @@ h1 {
         
         <!-- Wallet Box - Shows when authenticated -->
         <div id="wallet-box" class="wallet-box hidden">
-            <div class="wallet-box-header">
-                <div class="wallet-box-title">👛 Your Wallet</div>
-                <button class="wallet-box-refresh" onclick="refreshWalletBoxBalances()">🔄 Refresh</button>
+            <div class="wallet-box-header" onclick="toggleWalletBox()">
+                <div class="wallet-box-title">🌈 Your Wallet</div>
+                <div style="display:flex;gap:6px;align-items:center">
+                    <button class="wallet-box-refresh" onclick="event.stopPropagation(); refreshWalletBoxBalances()">🔄</button>
+                    <button class="wallet-box-toggle" onclick="event.stopPropagation(); toggleWalletBox()">&#x25BE;</button>
+                </div>
             </div>
             <div class="wallet-box-content">
                 <div class="wallet-box-item">
@@ -1248,21 +1454,34 @@ h1 {
     
     <!-- 3D Card Modal -->
     <div id="card-3d-modal" class="card-3d-modal">
-        <div class="card-3d-container">
-            <div class="card-3d-flipper" id="card-3d-flipper">
-                <!-- Front Face -->
-                <div class="card-3d-face">
-                    <div class="card-3d-front">
-                        <img id="card-3d-front-img" src="" alt="Card">
-                        <div class="card-3d-front-title" id="card-3d-front-title">Title</div>
-                        <div class="card-3d-front-subtitle" id="card-3d-front-subtitle">Subtitle</div>
+        <!-- Backdrop click to close -->
+        <div style="position:absolute;inset:0;" onclick="closeCard3DModal()"></div>
+
+        <div class="card-3d-scene">
+            <div class="card-3d-card" id="card-3d-card">
+                <!-- Rainbow thickness edges -->
+                <div class="card-edge edge-top"></div>
+                <div class="card-edge edge-bottom"></div>
+                <div class="card-edge edge-left"></div>
+                <div class="card-edge edge-right"></div>
+
+                <!-- FRONT FACE -->
+                <div class="card-face card-front">
+                    <div class="card-front-header">
+                        <div class="card-front-title" id="card-3d-front-title">Title</div>
+                        <div class="card-front-rarity" id="card-3d-front-rarity">—</div>
                     </div>
+                    <div class="card-front-image-wrap">
+                        <img id="card-3d-front-img" src="" alt="Card">
+                    </div>
+                    <div class="card-front-footer" id="card-3d-front-subtitle">Subtitle</div>
                 </div>
-                <!-- Back Face -->
-                <div class="card-3d-face">
+
+                <!-- BACK FACE -->
+                <div class="card-face card-back">
                     <div class="card-3d-back">
                         <div>
-                            <div class="card-3d-back-title">Rewards</div>
+                            <div class="card-3d-back-title">✨ Rewards</div>
                             <div id="card-3d-back-content">
                                 <div class="card-rewards-grid">
                                     <div class="card-reward-item">
@@ -1283,13 +1502,16 @@ h1 {
                         </div>
                     </div>
                 </div>
+
+                <div class="card-3d-drag-hint">Drag to spin • Double-click to reset</div>
             </div>
-            
-            <!-- Modal Controls -->
-            <div class="card-3d-modal-buttons">
-                <button class="card-3d-flip-btn" id="card-3d-flip-btn" onclick="flipCard3D()">🔄 Flip</button>
-                <button class="card-3d-close-btn" id="card-3d-close-btn" onclick="closeCard3DModal()">✕ Close</button>
-            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="card-3d-modal-controls" onclick="event.stopPropagation()">
+            <button class="card-3d-ctrl-btn" onclick="flipCard3D()">🔄 Flip</button>
+            <button class="card-3d-ctrl-btn" onclick="resetCard3DRotation()">↺ Reset</button>
+            <button class="card-3d-ctrl-btn close" onclick="closeCard3DModal()">✕ Close</button>
         </div>
     </div>
 

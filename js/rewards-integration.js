@@ -1544,6 +1544,12 @@ function updateWalletUI(connected, address = null, walletType = null) {
             walletBox.style.display = 'block';
             walletBox.classList.remove('hidden');
             walletBox.classList.add('active');
+            // Restore collapsed preference
+            try {
+                if (localStorage.getItem('walletBoxCollapsed') === 'true') {
+                    walletBox.classList.add('collapsed');
+                }
+            } catch(e) {}
             console.log('[UI] Wallet box shown - classes:', walletBox.className);
             
             // Refresh balances
@@ -1599,22 +1605,27 @@ async function openCard3DModal(nftId) {
         document.getElementById('card-3d-front-title').textContent = nft.title;
         document.getElementById('card-3d-front-subtitle').textContent = nft.subtitle || nft.rarity;
         
-        // Reset flip
-        document.getElementById('card-3d-flipper').classList.remove('flipped');
-        
-        // Show modal first so user sees it immediately
+        // Reset rotation state
+        _card3DState.rotX = 0;
+        _card3DState.rotY = 0;
+        _card3DState.isDragging = false;
+        _applyCard3DTransform();
+
+        // Show modal
         const modal = document.getElementById('card-3d-modal');
         modal.classList.add('active');
-        
+
         // Store current NFT ID globally
         window.currentCard3DNFTID = nftId;
-        
-        // Add mouse tracking for 3D tilt
-        const container = document.querySelector('.card-3d-container');
-        container.addEventListener('mousemove', handle3DCardMouseMove);
+
+        // Attach drag listeners
+        const card = document.getElementById('card-3d-card');
+        card.addEventListener('mousedown', _onCard3DMouseDown);
+        card.addEventListener('dblclick', resetCard3DRotation);
+        card.addEventListener('touchstart', _onCard3DTouchStart, { passive: false });
         document.addEventListener('keydown', handle3DCardEscape);
-        
-        // Check ownership and populate back face (awaited so it always completes)
+
+        // Check ownership and populate back face
         await checkCardOwnershipAndRewards(nft);
         
     } catch (err) {
@@ -1705,54 +1716,128 @@ async function checkCardOwnershipAndRewards(nft) {
     }
 }
 
-/**
- * Handle 3D tilt effect based on mouse position
- */
-function handle3DCardMouseMove(event) {
-    const container = document.querySelector('.card-3d-container');
-    const rect = container.getBoundingClientRect();
-    
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    
-    const rotateY = ((x / rect.width) - 0.5) * 20; // -10 to 10 degrees
-    const rotateX = ((y / rect.height) - 0.5) * -20; // -10 to 10 degrees
-    
-    container.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+// ---- Drag rotation state ----
+const _card3DState = { rotX: 0, rotY: 0, isDragging: false, startX: 0, startY: 0, prevX: 0, prevY: 0 };
+
+function _applyCard3DTransform() {
+    const card = document.getElementById('card-3d-card');
+    if (card) card.style.transform = `rotateX(${_card3DState.rotX}deg) rotateY(${_card3DState.rotY}deg)`;
 }
 
-/**
- * Handle escape key to close modal
- */
-function handle3DCardEscape(event) {
-    if (event.key === 'Escape') {
-        closeCard3DModal();
+function _onCard3DMouseDown(e) {
+    if (e.button !== 0) return;
+    _card3DState.isDragging = true;
+    _card3DState.startX = e.clientX;
+    _card3DState.startY = e.clientY;
+    _card3DState.prevX = e.clientX;
+    _card3DState.prevY = e.clientY;
+    window.addEventListener('mousemove', _onCard3DMouseMove);
+    window.addEventListener('mouseup', _onCard3DMouseUp);
+    e.preventDefault();
+}
+
+function _onCard3DMouseMove(e) {
+    if (!_card3DState.isDragging) return;
+    const dx = e.clientX - _card3DState.prevX;
+    const dy = e.clientY - _card3DState.prevY;
+    _card3DState.rotY += dx * 0.55;
+    _card3DState.rotX -= dy * 0.55;
+    _card3DState.rotX = Math.max(-75, Math.min(75, _card3DState.rotX));
+    _card3DState.prevX = e.clientX;
+    _card3DState.prevY = e.clientY;
+    _applyCard3DTransform();
+}
+
+function _onCard3DMouseUp() {
+    _card3DState.isDragging = false;
+    window.removeEventListener('mousemove', _onCard3DMouseMove);
+    window.removeEventListener('mouseup', _onCard3DMouseUp);
+}
+
+function _onCard3DTouchStart(e) {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    _card3DState.isDragging = true;
+    _card3DState.prevX = t.clientX;
+    _card3DState.prevY = t.clientY;
+    window.addEventListener('touchmove', _onCard3DTouchMove, { passive: false });
+    window.addEventListener('touchend', _onCard3DTouchEnd);
+    e.preventDefault();
+}
+
+function _onCard3DTouchMove(e) {
+    if (!_card3DState.isDragging || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - _card3DState.prevX;
+    const dy = t.clientY - _card3DState.prevY;
+    _card3DState.rotY += dx * 0.55;
+    _card3DState.rotX -= dy * 0.55;
+    _card3DState.rotX = Math.max(-75, Math.min(75, _card3DState.rotX));
+    _card3DState.prevX = t.clientX;
+    _card3DState.prevY = t.clientY;
+    _applyCard3DTransform();
+    e.preventDefault();
+}
+
+function _onCard3DTouchEnd() {
+    _card3DState.isDragging = false;
+    window.removeEventListener('touchmove', _onCard3DTouchMove);
+    window.removeEventListener('touchend', _onCard3DTouchEnd);
+}
+
+/** Reset card to face-on position */
+/** Flip between front and back face */
+function flipCard3D() {
+    const card = document.getElementById('card-3d-card');
+    // Normalise current rotY into 0-360 range to decide which face is showing
+    const normalised = ((_card3DState.rotY % 360) + 360) % 360;
+    const showingFront = normalised < 90 || normalised >= 270;
+    _card3DState.rotY = showingFront ? (_card3DState.rotY + 180) : (_card3DState.rotY - 180);
+    _card3DState.rotX = 0;
+    if (card) {
+        card.style.transition = 'transform 0.55s ease-in-out';
+        _applyCard3DTransform();
+        setTimeout(() => { if (card) card.style.transition = 'transform 0.08s ease-out'; }, 600);
     }
 }
 
-/**
- * Flip the 3D card
- */
-function flipCard3D() {
-    const flipper = document.getElementById('card-3d-flipper');
-    flipper.classList.toggle('flipped');
+function resetCard3DRotation() {
+    _card3DState.rotX = 0;
+    _card3DState.rotY = 0;
+    const card = document.getElementById('card-3d-card');
+    if (card) {
+        card.style.transition = 'transform 0.45s ease-out';
+        _applyCard3DTransform();
+        setTimeout(() => { if (card) card.style.transition = 'transform 0.08s ease-out'; }, 500);
+    }
 }
 
-/**
- * Close the 3D card modal
- */
+/** Handle escape key */
+function handle3DCardEscape(event) {
+    if (event.key === 'Escape') closeCard3DModal();
+}
+
+/** Close the 3D card modal */
 function closeCard3DModal() {
     console.log('[3D] Closing card modal');
-    
+
     const modal = document.getElementById('card-3d-modal');
     modal.classList.remove('active');
-    
-    const container = document.querySelector('.card-3d-container');
-    container.style.transform = '';
-    container.removeEventListener('mousemove', handle3DCardMouseMove);
-    
+
+    // Clean up all drag listeners
+    const card = document.getElementById('card-3d-card');
+    if (card) {
+        card.removeEventListener('mousedown', _onCard3DMouseDown);
+        card.removeEventListener('dblclick', resetCard3DRotation);
+        card.removeEventListener('touchstart', _onCard3DTouchStart);
+    }
+    window.removeEventListener('mousemove', _onCard3DMouseMove);
+    window.removeEventListener('mouseup', _onCard3DMouseUp);
+    window.removeEventListener('touchmove', _onCard3DTouchMove);
+    window.removeEventListener('touchend', _onCard3DTouchEnd);
     document.removeEventListener('keydown', handle3DCardEscape);
-    
+
+    _card3DState.isDragging = false;
     window.currentCard3DNFTID = null;
 }
 
@@ -1843,6 +1928,18 @@ async function claimOrdinalReward(nftId = null) {
 }
 
 /**
+ * Toggle wallet box collapsed/expanded state
+ */
+function toggleWalletBox() {
+    const box = document.getElementById('wallet-box');
+    if (!box) return;
+    box.classList.toggle('collapsed');
+    // Persist preference
+    try { localStorage.setItem('walletBoxCollapsed', box.classList.contains('collapsed')); } catch(e) {}
+}
+window.toggleWalletBox = toggleWalletBox;
+
+/**
  * Refresh wallet box balances
  */
 async function refreshWalletBoxBalances() {
@@ -1910,6 +2007,7 @@ window.showWalletConnection = showWalletConnection;
 window.disconnectWallet = disconnectWallet;
 window.openCard3DModal = openCard3DModal;
 window.flipCard3D = flipCard3D;
+window.resetCard3DRotation = resetCard3DRotation;
 window.closeCard3DModal = closeCard3DModal;
 window.claimOrdinalReward = claimOrdinalReward;
 window.refreshWalletBoxBalances = refreshWalletBoxBalances;

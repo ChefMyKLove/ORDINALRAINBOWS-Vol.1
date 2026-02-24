@@ -413,8 +413,9 @@ class BSVWalletSDKManager {
             if (connectionResult.success) {
                 this.connectedWallet = walletKey;
                 this.userAddress = connectionResult.address;
+                this.ordAddress = connectionResult.ordAddress || null;
                 
-                console.log(`[BSV-SDK] ✅ Connected to ${wallet.name}:`, connectionResult.address);
+                console.log(`[BSV-SDK] ✅ Connected to ${wallet.name}:`, connectionResult.address, '| ordAddress:', this.ordAddress);
                 
                 // Now authenticate with signing
                 await this.authenticateWithWallet(walletKey, wallet);
@@ -456,12 +457,16 @@ class BSVWalletSDKManager {
                 this.authData = {
                     wallet: walletKey,
                     address: this.userAddress,
+                    ordAddress: this.ordAddress || null,
                     signature: signatureResult.signature,
                     challenge: challenge,
                     timestamp: timestamp
                 };
                 
-                this.showSuccess(`Successfully authenticated with ${wallet.name}!`);
+                // Clear all lingering notifications and close the selection modal
+                this.clearAllNotifications();
+                document.getElementById('bsv-wallet-modal')?.remove();
+                this.showSuccess(`✅ Authenticated with ${wallet.name}!`);
                 
                 // Emit custom event for the rest of the app
                 window.dispatchEvent(new CustomEvent('bsv-wallet-authenticated', {
@@ -497,16 +502,37 @@ class BSVWalletSDKManager {
         console.log('[BSV-SDK] ✅ Yours Wallet object found:', typeof yoursWallet);
         
         try {
-            // Try connection
-            const result = await yoursWallet.connect();
-            console.log('[BSV-SDK] 🔗 Yours connection result:', result);
+            // Step 1: Connect to get pubkey
+            const connectResult = await yoursWallet.connect();
+            console.log('[BSV-SDK] 🔗 Yours connection result:', connectResult);
+            
+            // Step 2: Get addresses from the connected wallet
+            let userAddress = null;
+            let ordAddress = null;
+            try {
+                const addresses = await yoursWallet.getAddresses();
+                console.log('[BSV-SDK] 📍 Yours Wallet addresses:', addresses);
+                // getAddresses() returns an object {bsvAddress, identityAddress, ordAddress}
+                if (addresses && typeof addresses === 'object' && !Array.isArray(addresses)) {
+                    userAddress = addresses.bsvAddress || addresses.ordAddress || addresses.identityAddress || null;
+                    ordAddress = addresses.ordAddress || null;
+                } else if (Array.isArray(addresses) && addresses.length > 0) {
+                    userAddress = addresses[0];
+                }
+                console.log('[BSV-SDK] 📍 Extracted userAddress:', userAddress, '| ordAddress:', ordAddress);
+            } catch (addrErr) {
+                console.warn('[BSV-SDK] Could not get addresses:', addrErr);
+            }
             
             const walletData = {
                 success: true,
-                address: result.address || result.identity || result.bsvAddress,
-                publicKey: result.pubkey || result.publicKey,
+                address: userAddress || connectResult.address || connectResult.identity || connectResult.bsvAddress,
+                ordAddress: ordAddress,
+                publicKey: connectResult.pubkey || connectResult.publicKey,
                 walletType: 'yours'
             };
+            
+            console.log('[BSV-SDK] ✅ Final wallet data:', walletData);
             
             // Save session for persistence
             if (walletData.address) {
@@ -734,10 +760,12 @@ class BSVWalletSDKManager {
     }
 
     hideLoadingState() {
-        const loadingNotification = document.querySelector('.bsv-notification-loading');
-        if (loadingNotification) {
-            loadingNotification.remove();
-        }
+        // Remove ALL loading notifications (multiple may have been appended)
+        document.querySelectorAll('.bsv-notification-loading').forEach(el => el.remove());
+    }
+
+    clearAllNotifications() {
+        document.querySelectorAll('.bsv-notification').forEach(el => el.remove());
     }
 
     showSuccess(message) {

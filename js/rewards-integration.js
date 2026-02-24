@@ -5,6 +5,18 @@
  * Purpose: Connect user wallet → Verify ordinal ownership → Access rewards
  */
 
+// Initialize global wallet state
+console.log('[INIT] Initializing global wallet state...');
+window.connectedWallet = null;
+window.currentWalletAddress = null;
+window.currentOrdAddress = null;  // ordinal-specific address (differs from bsvAddress)
+window.ownedOrdinalsCount = 0;
+window.ownedVol1Count = 0;
+window.userOwnedInscriptions = [];
+window.currentCard3DNFTID = null;
+window._ordinalFetchAttempted = false;
+console.log('[INIT] Global wallet state initialized');
+
 class BSVWalletManager {
     constructor(config = {}) {
         this.config = {
@@ -1394,58 +1406,37 @@ function setupWalletSDKEvents() {
     console.log('[INIT] 🔗 Setting up BSV Wallet SDK event handlers...');
     
     // Handle successful wallet authentication
+    // NOTE: The primary handler for this event is the standalone listener at the bottom of this file.
+    // This handler only updates walletManager state — it does NOT call dashboardUI (which does not exist).
     window.addEventListener('bsv-wallet-authenticated', async (event) => {
-        console.log('[INIT] 🎉 Wallet authenticated via SDK:', event.detail);
+        console.log('[INIT] 🎉 Wallet authenticated via SDK (setupWalletSDKEvents handler):', event.detail?.address);
         
         try {
             const authData = event.detail;
             
             // Set the wallet manager's state to authenticated
-            window.walletManager.address = authData.address;
-            window.walletManager.isConnected = true;
-            window.walletManager.walletType = authData.wallet;
-            window.walletManager.authSession = 'SDK_' + Date.now();
-            
-            // Store SDK authentication data
-            window.walletManager.sdkAuthData = authData;
-            
-            console.log('[INIT] ✅ Wallet manager updated with SDK authentication');
-            
-            // Update UI to show connected state
-            if (window.dashboardUI) {
-                window.dashboardUI.updateConnectionStatus(true, authData.address, authData.wallet);
-            }
-            
-            // Check for ordinals automatically
-            const hasOrdinals = await window.rewardsManager.ownsOrdinal();
-            
-            if (hasOrdinals) {
-                console.log('[INIT] 🌈 ORDINAL RAINBOWS detected! Loading rewards dashboard...');
-                await window.dashboardUI.showRewardsDashboard();
-            } else {
-                console.log('[INIT] ℹ️ No ORDINAL RAINBOWS found in this wallet');
-                window.dashboardUI.showNoOrdinalsMessage();
+            if (window.walletManager) {
+                window.walletManager.address = authData.address;
+                window.walletManager.isConnected = true;
+                window.walletManager.walletType = authData.wallet;
+                window.walletManager.authSession = 'SDK_' + Date.now();
+                window.walletManager.sdkAuthData = authData;
+                console.log('[INIT] ✅ Wallet manager updated with SDK authentication, address:', authData.address);
             }
             
         } catch (err) {
-            console.error('[INIT] ❌ Error handling wallet authentication:', err);
-            window.dashboardUI.showError('Authentication successful but failed to load rewards. Please try again.');
+            console.error('[INIT] ❌ Error updating wallet manager state:', err);
         }
     });
     
     // Handle wallet disconnection
+    // NOTE: The primary UI handler for this event is the standalone listener at the bottom of this file.
     window.addEventListener('bsv-wallet-disconnected', () => {
-        console.log('[INIT] 🔌 Wallet disconnected via SDK');
+        console.log('[INIT] 🔌 Wallet disconnected via SDK (setupWalletSDKEvents handler)');
         
         // Clear wallet manager state
         if (window.walletManager) {
             window.walletManager.disconnect();
-        }
-        
-        // Update UI
-        if (window.dashboardUI) {
-            window.dashboardUI.updateConnectionStatus(false);
-            window.dashboardUI.hideRewardsDashboard();
         }
     });
     
@@ -1526,35 +1517,56 @@ function disconnectWallet() {
 }
 
 function updateWalletUI(connected, address = null, walletType = null) {
-    console.log('[UI] Updating wallet UI - connected:', connected);
+    console.log('[UI] updateWalletUI called - connected:', connected, 'address:', address);
     
     const connectBtn = document.getElementById('connect-wallet-btn');
     const walletStatus = document.getElementById('wallet-status');
     const walletAddress = document.getElementById('wallet-address');
     const walletBox = document.getElementById('wallet-box');
     
+    console.log('[UI] Elements:', { connectBtn: !!connectBtn, walletStatus: !!walletStatus, walletBox: !!walletBox });
+    
     if (connected && address) {
-        // Show connected state
-        console.log('[UI] Showing wallet box');
-        connectBtn.classList.add('hidden');
-        walletStatus.classList.add('hidden');
-        walletAddress.textContent = `${walletType || 'Wallet'}: ${address.slice(0, 6)}...${address.slice(-4)}`;
+        // Show wallet box - hide connect button
+        console.log('[UI] Showing wallet box, hiding connect button');
         
-        // Show wallet box instead
+        if (connectBtn) {
+            connectBtn.style.display = 'none';
+            connectBtn.classList.add('hidden');
+        }
+        if (walletStatus) {
+            walletStatus.style.display = 'none';
+            walletStatus.classList.add('hidden');
+        }
+        
+        // Show wallet box
         if (walletBox) {
+            walletBox.style.display = 'block';
             walletBox.classList.remove('hidden');
             walletBox.classList.add('active');
+            console.log('[UI] Wallet box shown - classes:', walletBox.className);
+            
+            // Refresh balances
             refreshWalletBoxBalances();
+        } else {
+            console.error('[UI] Wallet box element not found!');
         }
     } else {
-        // Show disconnected state
-        console.log('[UI] Showing connect button');
-        connectBtn.classList.remove('hidden');
-        walletStatus.classList.add('hidden');
-        walletAddress.textContent = '';
+        // Show connect button - hide wallet box
+        console.log('[UI] Showing connect button, hiding wallet box');
+        
+        if (connectBtn) {
+            connectBtn.style.display = 'block';
+            connectBtn.classList.remove('hidden');
+        }
+        if (walletStatus) {
+            walletStatus.style.display = 'none';
+            walletStatus.classList.add('hidden');
+        }
         
         // Hide wallet box
         if (walletBox) {
+            walletBox.style.display = 'none';
             walletBox.classList.add('hidden');
             walletBox.classList.remove('active');
         }
@@ -1566,7 +1578,7 @@ function updateWalletUI(connected, address = null, walletType = null) {
 /**
  * Open a card in 3D modal when authenticated
  */
-function openCard3DModal(nftId) {
+async function openCard3DModal(nftId) {
     console.log('[3D] Opening card modal for NFT:', nftId);
     
     if (!isWalletAuthenticated()) {
@@ -1590,10 +1602,7 @@ function openCard3DModal(nftId) {
         // Reset flip
         document.getElementById('card-3d-flipper').classList.remove('flipped');
         
-        // Check ownership and populate back face
-        checkCardOwnershipAndRewards(nft);
-        
-        // Show modal
+        // Show modal first so user sees it immediately
         const modal = document.getElementById('card-3d-modal');
         modal.classList.add('active');
         
@@ -1603,8 +1612,10 @@ function openCard3DModal(nftId) {
         // Add mouse tracking for 3D tilt
         const container = document.querySelector('.card-3d-container');
         container.addEventListener('mousemove', handle3DCardMouseMove);
-        
         document.addEventListener('keydown', handle3DCardEscape);
+        
+        // Check ownership and populate back face (awaited so it always completes)
+        await checkCardOwnershipAndRewards(nft);
         
     } catch (err) {
         console.error('[3D] Error opening modal:', err);
@@ -1626,18 +1637,30 @@ async function checkCardOwnershipAndRewards(nft) {
             return;
         }
         
-        console.log('[3D] Checking ownership for:', nft.title, 'ID:', nft.id);
+        console.log('[3D] Checking ownership for:', nft.title, '| inscriptionId:', nft.inscriptionId?.substring(0,12) + '...');
         
-        // For now, check if we have ANY ordinals
-        const hasAnyOrdinals = window.ownedOrdinalsCount && window.ownedOrdinalsCount > 0;
+        // If ordinals haven't been fetched yet, do it now (awaited, so the result is ready below)
+        // Always query ordAddress (inscriptions are locked there), falling back to bsvAddress
+        if (!window._ordinalFetchAttempted && (window.currentOrdAddress || window.currentWalletAddress)) {
+            backContent.innerHTML = '<div class="card-3d-message">🔄 Loading your ordinals...</div>';
+            buttonArea.innerHTML = '';
+            await fetchUserOrdinals(window.currentOrdAddress || window.currentWalletAddress);
+        }
         
-        console.log('[3D] Owned ordinalsCount:', window.ownedOrdinalsCount, 'Has any:', hasAnyOrdinals);
+        // Check if user specifically owns THIS card by inscriptionId
+        let ownsThisCard = false;
+        if (nft.inscriptionId && window.userOwnedInscriptions && window.userOwnedInscriptions.length > 0) {
+            ownsThisCard = window.userOwnedInscriptions.some(insc =>
+                insc.inscriptionId?.toLowerCase() === nft.inscriptionId.toLowerCase()
+            );
+        }
         
-        if (hasAnyOrdinals) {
-            // User owns at least one ordinal, show zero rewards (no made-up numbers)
-            // TODO: Fetch real reward amounts from API/blockchain
-            
-            console.log('[3D] Showing rewards interface');
+        console.log('[3D] userOwnedInscriptions count:', window.userOwnedInscriptions?.length,
+            '| ownedOrdinalsCount:', window.ownedOrdinalsCount,
+            '| owns this card:', ownsThisCard);
+        
+        if (ownsThisCard) {
+            console.log('[3D] ✅ Ownership verified — showing rewards interface');
             
             backContent.innerHTML = `
                 <div class="card-3d-back-title">Available Rewards</div>
@@ -1658,10 +1681,20 @@ async function checkCardOwnershipAndRewards(nft) {
                     ✨ Claim Rewards
                 </button>
             `;
+        } else if (!nft.inscriptionId) {
+            console.warn('[3D] NFT has no inscriptionId set, cannot verify ownership');
+            backContent.innerHTML = '<div class="card-3d-message">⚠️ Ownership verification unavailable for this piece</div>';
+            buttonArea.innerHTML = '';
+        } else if (!window._ordinalFetchAttempted || (window.ownedOrdinalsCount === 0 && window.userOwnedInscriptions?.length === 0)) {
+            // Fetch hasn't run, or it ran but got nothing (API may have failed) — offer retry
+
+            console.log('[3D] Ordinals not loaded or fetch failed — showing retry');
+            backContent.innerHTML = '<div class="card-3d-message">⚠️ Could not load ordinal data</div>';
+            buttonArea.innerHTML = `<button class="card-3d-claim-btn" onclick="retryOwnershipCheck('${nft.id}')">↻ Retry</button>`;
         } else {
-            // User doesn't own any ordinals
-            console.log('[3D] User does not own any ordinals');
-            backContent.innerHTML = '<div class="card-3d-message">❌ You do not own this piece</div>';
+            // Ordinals loaded but this card not found in wallet
+            console.log('[3D] ❌ User does not own this specific card');
+            backContent.innerHTML = `<div class="card-3d-message">❌ You do not own <strong>${nft.title}</strong><br><small>You hold ${window.ownedOrdinalsCount || 0} ordinal${window.ownedOrdinalsCount !== 1 ? 's' : ''} total${window.ownedVol1Count ? ', ' + window.ownedVol1Count + ' from Vol.1' : ''}</small></div>`;
             buttonArea.innerHTML = '';
         }
         
@@ -1724,6 +1757,58 @@ function closeCard3DModal() {
 }
 
 /**
+ * Check if user owns a specific ordinal/NFT
+ */
+async function checkOrdinalOwnership(nftId) {
+    console.log('[OWNERSHIP] Checking ownership for NFT:', nftId);
+    console.log('[OWNERSHIP] User address:', window.currentWalletAddress);
+    console.log('[OWNERSHIP] ownedOrdinalsCount:', window.ownedOrdinalsCount, '| ownedVol1Count:', window.ownedVol1Count);
+    console.log('[OWNERSHIP] userOwnedInscriptions:', window.userOwnedInscriptions);
+    
+    if (!window.currentWalletAddress) {
+        console.log('[OWNERSHIP] No wallet connected');
+        return false;
+    }
+    
+    // Find the NFT definition to get its inscriptionId
+    const nft = window.nfts?.find(n => n.id === nftId);
+    if (!nft) {
+        console.warn('[OWNERSHIP] NFT not found in collection:', nftId);
+        return false;
+    }
+    
+    if (!nft.inscriptionId) {
+        console.warn('[OWNERSHIP] NFT has no inscriptionId configured:', nftId);
+        return false;
+    }
+    
+    // Check the userOwnedInscriptions list (populated by fetchUserOrdinals)
+    if (window.userOwnedInscriptions && window.userOwnedInscriptions.length > 0) {
+        const owns = window.userOwnedInscriptions.some(insc =>
+            insc.inscriptionId?.toLowerCase() === nft.inscriptionId.toLowerCase()
+        );
+        console.log('[OWNERSHIP] Specific inscriptionId check result:', owns);
+        return owns;
+    }
+    
+    console.log('[OWNERSHIP] No verified inscription data available — denying claim');
+    return false;
+}
+
+/**
+ * Retry ownership check — resets the fetch flag and re-runs the full fetch + card check
+ */
+async function retryOwnershipCheck(nftId) {
+    console.log('[RETRY] Re-fetching ordinals for:', nftId);
+    window._ordinalFetchAttempted = false;
+    const nft = window.nfts?.find(n => n.id === nftId);
+    if (nft) {
+        await checkCardOwnershipAndRewards(nft);
+    }
+}
+window.retryOwnershipCheck = retryOwnershipCheck;
+
+/**
  * Claim rewards for an ordinal
  */
 async function claimOrdinalReward(nftId = null) {
@@ -1733,18 +1818,26 @@ async function claimOrdinalReward(nftId = null) {
         return;
     }
     
-    console.log('[3D] Claiming reward for NFT:', id);
+    console.log('[CLAIM] Attempting claim for NFT:', id);
     
     try {
-        // This would call the actual reward claiming logic
-        // For now, show a claiming in progress message
-        alert('Reward claim initiated! Check your wallet for the transaction.');
+        // First check if user owns this ordinal
+        const owns = await checkOrdinalOwnership(id);
+        
+        if (!owns) {
+            console.log('[CLAIM] User does not own this ordinal');
+            alert('❌ Sorry, that\'s not your rainbow. You do not own this NFT.');
+            return;
+        }
+        
+        console.log('[CLAIM] Ownership verified, initiating claim...');
+        alert('✅ Claim initiated! Check your wallet for the transaction.');
         
         // Close modal after claiming
         closeCard3DModal();
         
     } catch (err) {
-        console.error('[3D] Error claiming reward:', err);
+        console.error('[CLAIM] Error claiming reward:', err);
         alert('Error claiming reward: ' + err.message);
     }
 }
@@ -1756,16 +1849,20 @@ async function refreshWalletBoxBalances() {
     console.log('[WALLET-BOX] Refreshing balances...');
     
     try {
-        // Update ORDINAL RAINBOWS BSV21 token balance
-        const bsv21Balance = window.ownedOrdinalsCount || 0;
-        document.getElementById('wallet-bsv21-balance').textContent = bsv21Balance;
+        // Show Vol.1 specific count in the wallet box
+        const vol1Count = window.ownedVol1Count || 0;
+        const collectionSize = window.nfts ? window.nfts.filter(n => n.inscriptionId).length : 0;
+        const display = window._ordinalFetchAttempted
+            ? `${vol1Count} <span style="opacity:0.5;font-size:0.8em">of ${collectionSize} Vol.1</span>`
+            : '—';
+        document.getElementById('wallet-bsv21-balance').innerHTML = display;
         
         // Show zero for rewards (no real data yet)
         // TODO: Fetch real reward amounts from API
         document.getElementById('wallet-mnee-balance').textContent = '0.00 MNEE';
         document.getElementById('wallet-bsv-balance').textContent = '0.0000 BSV';
         
-        console.log('[WALLET-BOX] Balances updated - ORDINAL RAINBOWS:', bsv21Balance);
+        console.log('[WALLET-BOX] Balances updated — Vol.1 owned:', vol1Count, 'of', collectionSize);
         
     } catch (err) {
         console.error('[WALLET-BOX] Error refreshing balances:', err);
@@ -1819,16 +1916,24 @@ window.refreshWalletBoxBalances = refreshWalletBoxBalances;
 window.isWalletAuthenticated = isWalletAuthenticated;
 
 // ====== EVENT LISTENERS FOR WALLET AUTHENTICATION ======
-window.addEventListener('bsv-wallet-authenticated', function(e) {
-    console.log('[AUTH] Wallet authenticated:', e.detail);
+window.addEventListener('bsv-wallet-authenticated', async function(e) {
+    console.log('[AUTH] Wallet authenticated event fired!', e.detail);
     
     // Store authentication data
     window.connectedWallet = e.detail.wallet;
     window.currentWalletAddress = e.detail.address;
-    window.ownedOrdinalsCount = 1; // Default to 1, should be fetched from API
+    window.currentOrdAddress = e.detail.ordAddress || null;
     
-    // Update UI to show wallet box
+    console.log('[AUTH] Stored - BSV Address:', window.currentWalletAddress, '| Ord Address:', window.currentOrdAddress, '| Wallet:', window.connectedWallet);
+    
+    // Show wallet box immediately
     updateWalletUI(true, e.detail.address, e.detail.wallet);
+    
+    // Fetch ordinals using the ordAddress if available (that's where inscriptions live)
+    await fetchUserOrdinals(window.currentOrdAddress || window.currentWalletAddress);
+    
+    // Refresh balances now that ordinals are loaded
+    refreshWalletBoxBalances();
     
     // Close wallet modal if open
     const modal = document.getElementById('card-3d-modal');
@@ -1838,12 +1943,16 @@ window.addEventListener('bsv-wallet-authenticated', function(e) {
 });
 
 window.addEventListener('bsv-wallet-disconnected', function() {
-    console.log('[AUTH] Wallet disconnected');
+    console.log('[AUTH] Wallet disconnected event fired');
     
     // Clear auth data
     window.connectedWallet = null;
     window.currentWalletAddress = null;
+    window.currentOrdAddress = null;
     window.ownedOrdinalsCount = 0;
+    window.ownedVol1Count = 0;
+    window.userOwnedInscriptions = [];
+    window._ordinalFetchAttempted = false;
     
     // Update UI
     updateWalletUI(false);
@@ -1856,17 +1965,91 @@ window.addEventListener('bsv-wallet-disconnected', function() {
 });
 
 window.addEventListener('bsv-wallet-session-restored', function(e) {
-    console.log('[AUTH] Session restored:', e.detail);
+    console.log('[AUTH] Session restored event fired:', e.detail);
     
     // Restore authentication from session
     if (e.detail && e.detail.address) {
         window.connectedWallet = e.detail.wallet;
         window.currentWalletAddress = e.detail.address;
-        window.ownedOrdinalsCount = 1;
+        window.currentOrdAddress = e.detail.ordAddress || null;
         
-        updateWalletUI(true, e.detail.address, e.detail.wallet);
+        // Fetch user's ordinals using ordAddress (where inscriptions are locked)
+        fetchUserOrdinals(window.currentOrdAddress || e.detail.address);
+        
+        setTimeout(() => {
+            updateWalletUI(true, e.detail.address, e.detail.wallet);
+        }, 100);
     }
 });
+
+/**
+ * Fetch user's actual ordinals from their wallet and match against Vol.1 collection.
+ *
+ * Strategy: query each Vol.1 inscription directly at /api/inscriptions/{txid}_0
+ * and check if item.owner === ordAddress. This is accurate regardless of wallet size
+ * (no pagination needed even for 14K+ inscription wallets).
+ */
+async function fetchUserOrdinals(address) {
+    console.log('[ORDINALS] Checking Vol.1 ownership for address:', address);
+
+    if (!address) {
+        console.warn('[ORDINALS] No address provided');
+        window.ownedOrdinalsCount = 0;
+        window.userOwnedInscriptions = [];
+        return;
+    }
+
+    const nftsWithId = window.nfts ? window.nfts.filter(n => n.inscriptionId) : [];
+    console.log('[ORDINALS] Checking', nftsWithId.length, 'Vol.1 inscriptions for ownership by', address);
+
+    if (nftsWithId.length === 0) {
+        console.warn('[ORDINALS] No inscriptionIds found in window.nfts');
+        window._ordinalFetchAttempted = true;
+        return;
+    }
+
+    const addressLower = address.toLowerCase();
+
+    // Query each inscription in parallel batches of 8
+    const BATCH = 8;
+    const owned = [];
+
+    for (let i = 0; i < nftsWithId.length; i += BATCH) {
+        const batch = nftsWithId.slice(i, i + BATCH);
+        const results = await Promise.allSettled(
+            batch.map(async nft => {
+                const url = `https://ordinals.gorillapool.io/api/inscriptions/${nft.inscriptionId}_0`;
+                const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${nft.inscriptionId}`);
+                const data = await resp.json();
+                return { nft, owner: data.owner, name: data.origin?.data?.map?.name };
+            })
+        );
+
+        for (const r of results) {
+            if (r.status === 'fulfilled') {
+                const { nft, owner, name } = r.value;
+                if (owner && owner.toLowerCase() === addressLower) {
+                    console.log(`[ORDINALS] ✅ OWNS: ${name || nft.title} | owner: ${owner}`);
+                    owned.push(nft);
+                }
+            } else {
+                console.warn('[ORDINALS] Lookup failed for one item:', r.reason?.message);
+            }
+        }
+    }
+
+    window.userOwnedInscriptions = owned.map(nft => ({ id: nft.id, inscriptionId: nft.inscriptionId, nftId: nft.id }));
+    window.ownedOrdinalsCount = owned.length;
+    window.ownedVol1Count = owned.length;
+    window._ordinalFetchAttempted = true;
+
+    console.log('[ORDINALS] ✅ RESULTS: owns', owned.length, 'of', nftsWithId.length, 'Vol.1 pieces');
+    console.log('[ORDINALS] Owned titles:', owned.map(n => n.title));
+
+    // Refresh wallet box balances with fresh data
+    refreshWalletBoxBalances();
+}
 
 // Export for use in other scripts
 if (typeof module !== 'undefined' && module.exports) {

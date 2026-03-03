@@ -1675,23 +1675,39 @@ async function checkCardOwnershipAndRewards(nft) {
             
             backContent.innerHTML = `
                 <div class="card-3d-back-title">Available Rewards</div>
-                <div class="card-rewards-grid">
+                <div id="card-3d-claimable" class="card-rewards-grid">
                     <div class="card-reward-item">
                         <div class="card-reward-token">💎 MNEE</div>
-                        <div class="card-reward-amount">0.00</div>
+                        <div class="card-reward-amount" id="claimable-mnee">Loading...</div>
                     </div>
                     <div class="card-reward-item">
                         <div class="card-reward-token">⚡ BSV</div>
-                        <div class="card-reward-amount">0.0000</div>
+                        <div class="card-reward-amount" id="claimable-bsv">0.0000</div>
                     </div>
                 </div>
             `;
-            
+
             buttonArea.innerHTML = `
-                <button class="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.id}')">
-                    ✨ Claim Rewards
-                </button>
+                <button class="card-3d-claim-btn" id="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.inscriptionId}','${nft.id}')">✨ Claim Rewards</button>
             `;
+
+            // Fetch claimable MNEE from server
+            (async function(){
+                try{
+                    const resp = await fetch(`/api/rewards?inscriptionId=${encodeURIComponent(nft.inscriptionId)}`);
+                    const j = await resp.json();
+                    if (j && j.allocation) {
+                        const amt = Number(j.allocation.mnee_claimable || 0).toFixed(6);
+                        document.getElementById('claimable-mnee').textContent = amt;
+                        document.getElementById('card-3d-claim-btn').disabled = Number(amt) <= 0;
+                    } else {
+                        document.getElementById('claimable-mnee').textContent = '0.000000';
+                    }
+                }catch(e){
+                    console.warn('Failed to load claimable', e);
+                    try{ document.getElementById('claimable-mnee').textContent = '0.000000'; }catch(_){}
+                }
+            })();
         } else if (!nft.inscriptionId) {
             console.warn('[3D] NFT has no inscriptionId set, cannot verify ownership');
             backContent.innerHTML = '<div class="card-3d-message">⚠️ Ownership verification unavailable for this piece</div>';
@@ -1879,6 +1895,41 @@ async function checkOrdinalOwnership(nftId) {
     console.log('[OWNERSHIP] No verified inscription data available — denying claim');
     return false;
 }
+
+/**
+ * Called from the card back claim button.
+ * Sends POST to /api/claim which registers a pending claim (server verifies owner).
+ * Actual MNEE payout is processed offline by admin running `scripts/process-claims.js`.
+ */
+async function claimOrdinalReward(inscriptionId, nftId) {
+    try {
+        if (!inscriptionId) {
+            alert('This piece cannot be claimed (no inscriptionId)');
+            return;
+        }
+        if (!window.currentOrdAddress) {
+            alert('Please connect your wallet to claim');
+            return;
+        }
+
+        const body = { inscriptionId, ordAddress: window.currentOrdAddress, epoch: 'default' };
+        const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const j = await resp.json();
+        if (!resp.ok) {
+            alert('Claim failed: ' + (j?.error || JSON.stringify(j)));
+            return;
+        }
+
+        alert('Claim registered — awaiting payout. Admin will process pending claims soon.');
+        // disable button
+        const btn = document.getElementById('card-3d-claim-btn'); if (btn) btn.disabled = true;
+    } catch (err) {
+        console.error('claim error', err);
+        alert('Claim failed: ' + err.message);
+    }
+}
+
+window.claimOrdinalReward = claimOrdinalReward;
 
 /**
  * Retry ownership check — resets the fetch flag and re-runs the full fetch + card check

@@ -1,0 +1,13 @@
+{
+  "name": "ordinalrainbows-rewards",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node api/claim.js"
+  },
+  "dependencies": {
+    "@bsv/sdk": "^1.4.11",
+    "@supabase/supabase-js": "^2.0.0",
+    "node-fetch": "^2.6.7"
+  }
+}

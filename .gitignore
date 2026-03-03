@@ -1,0 +1,27 @@
+## Node
+node_modules/
+
+# dotenv files (local secrets)
+.env
+.env.*.local
+.env.local
+
+# Vercel
+.vercel/
+
+# Supabase local
+.supabase/
+
+# Editor
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# Secrets
+private-keys.json
+secrets.json
+*.key
+*.pem

@@ -1,6 +1,6 @@
 # ORDINAL 🌈 RAINBOWS Sales and Tracking
 
-Welcome to the official sales and tracking page for the ORDINAL RAINBOWS Vol. 1 NFT collection!
+Welcome to the  ORDINAL RAINBOWS Vol. 1 NFT collection!
 
 ## Project Overview
 This project showcases a visually stunning NFT gallery featuring the ORDINAL RAINBOWS Vol. 1 collection. Each NFT card displays unique artwork, rarity, and details, with a glassmorphism-inspired design and animated rainbow background. The site also includes a modal for ordering physical prints via Printify.

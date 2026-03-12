@@ -1691,17 +1691,21 @@ async function checkCardOwnershipAndRewards(nft) {
                 <button class="card-3d-claim-btn" id="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.inscriptionId}','${nft.id}')">✨ Claim Rewards</button>
             `;
 
-            // Fetch claimable MNEE from server
+            // Fetch claimable MNEE + BSV from server
             (async function(){
                 try{
                     const resp = await fetch(`/api/rewards?inscriptionId=${encodeURIComponent(nft.inscriptionId)}`);
                     const j = await resp.json();
                     if (j && j.allocation) {
-                        const amt = Number(j.allocation.mnee_claimable || 0).toFixed(6);
-                        document.getElementById('claimable-mnee').textContent = amt;
-                        document.getElementById('card-3d-claim-btn').disabled = Number(amt) <= 0;
+                        const mnee = Number(j.allocation.mnee_claimable || 0).toFixed(6);
+                        const bsv  = Number(j.allocation.bsv_claimable  || 0);
+                        const bsvDisplay = (bsv / 100000000).toFixed(8);
+                        document.getElementById('claimable-mnee').textContent = mnee;
+                        try{ document.getElementById('claimable-bsv').textContent = bsvDisplay; }catch(_){}
+                        document.getElementById('card-3d-claim-btn').disabled = (Number(mnee) <= 0 && bsv <= 0);
                     } else {
                         document.getElementById('claimable-mnee').textContent = '0.000000';
+                        try{ document.getElementById('claimable-bsv').textContent = '0.00000000'; }catch(_){}
                     }
                 }catch(e){
                     console.warn('Failed to load claimable', e);
@@ -2005,11 +2009,35 @@ async function refreshWalletBoxBalances() {
             : '—';
         document.getElementById('wallet-bsv21-balance').innerHTML = display;
         
-        // Show zero for rewards (no real data yet)
-        // TODO: Fetch real reward amounts from API
-        document.getElementById('wallet-mnee-balance').textContent = '0.00 MNEE';
-        document.getElementById('wallet-bsv-balance').textContent = '0.0000 BSV';
-        
+        // Fetch and sum claimables across all owned inscriptions
+        try {
+            const inscriptions = window.userOwnedInscriptions || [];
+            let totalMnee = 0;
+            let totalBsvSats = 0;
+            if (inscriptions.length > 0) {
+                const results = await Promise.all(
+                    inscriptions.map(i => {
+                        const id = i?.inscriptionId || i;
+                        return fetch(`/api/rewards?inscriptionId=${encodeURIComponent(id)}`)
+                            .then(r => r.ok ? r.json() : null)
+                            .catch(() => null);
+                    })
+                );
+                for (const j of results) {
+                    if (j && j.allocation) {
+                        totalMnee    += Number(j.allocation.mnee_claimable || 0);
+                        totalBsvSats += Number(j.allocation.bsv_claimable  || 0);
+                    }
+                }
+            }
+            document.getElementById('wallet-mnee-balance').textContent = totalMnee.toFixed(6) + ' MNEE';
+            document.getElementById('wallet-bsv-balance').textContent  = (totalBsvSats / 100000000).toFixed(8) + ' BSV';
+        } catch (fetchErr) {
+            console.warn('[WALLET-BOX] Failed to fetch claimables', fetchErr);
+            document.getElementById('wallet-mnee-balance').textContent = '0.000000 MNEE';
+            document.getElementById('wallet-bsv-balance').textContent  = '0.00000000 BSV';
+        }
+
         console.log('[WALLET-BOX] Balances updated — Vol.1 owned:', vol1Count, 'of', collectionSize);
         
     } catch (err) {

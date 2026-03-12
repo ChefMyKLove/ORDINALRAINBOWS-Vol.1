@@ -1709,8 +1709,7 @@ async function checkCardOwnershipAndRewards(nft) {
                     }
                 }catch(e){
                     console.warn('Failed to load claimable', e);
-                    try{ document.getElementById('claimable-mnee').textContent = '0.000000'; }catch(_){}}
-            })();
+                    try{ document.getElementById('claimable-mnee').textContent = '0.000000'; }catch(_){} }
             })();
         } else if (!nft.inscriptionId) {
             console.warn('[3D] NFT has no inscriptionId set, cannot verify ownership');

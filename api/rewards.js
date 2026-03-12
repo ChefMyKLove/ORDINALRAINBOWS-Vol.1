@@ -9,7 +9,7 @@ module.exports = async function (req, res) {
 
     const { data, error } = await supabase
       .from('reward_allocations')
-      .select('inscription_id, nft_id, title, rarity, rarity_multiplier, mnee_claimable, total_earned')
+      .select('inscription_id, nft_id, title, rarity, rarity_multiplier, mnee_claimable, bsv_claimable, bsv_total_earned, total_earned')
       .eq('inscription_id', inscriptionId)
       .limit(1)
       .maybeSingle();

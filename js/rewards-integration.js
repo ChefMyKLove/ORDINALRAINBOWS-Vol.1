@@ -1691,22 +1691,26 @@ async function checkCardOwnershipAndRewards(nft) {
                 <button class="card-3d-claim-btn" id="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.inscriptionId}','${nft.id}')">✨ Claim Rewards</button>
             `;
 
-            // Fetch claimable MNEE from server
+            // Fetch claimable amounts (MNEE + BSV) from server
             (async function(){
                 try{
                     const resp = await fetch(`/api/rewards?inscriptionId=${encodeURIComponent(nft.inscriptionId)}`);
                     const j = await resp.json();
                     if (j && j.allocation) {
-                        const amt = Number(j.allocation.mnee_claimable || 0).toFixed(6);
-                        document.getElementById('claimable-mnee').textContent = amt;
-                        document.getElementById('card-3d-claim-btn').disabled = Number(amt) <= 0;
+                        const mnee = Number(j.allocation.mnee_claimable || 0).toFixed(6);
+                        const bsv  = Number(j.allocation.bsv_claimable  || 0);
+                        const bsvDisplay = (bsv / 100000000).toFixed(8);
+                        document.getElementById('claimable-mnee').textContent = mnee;
+                        try{ document.getElementById('claimable-bsv').textContent = bsvDisplay; }catch(_){/* element may not exist */}
+                        document.getElementById('card-3d-claim-btn').disabled = (Number(mnee) <= 0 && bsv <= 0);
                     } else {
                         document.getElementById('claimable-mnee').textContent = '0.000000';
+                        try{ document.getElementById('claimable-bsv').textContent = '0.00000000'; }catch(_){/* element may not exist */}
                     }
                 }catch(e){
                     console.warn('Failed to load claimable', e);
-                    try{ document.getElementById('claimable-mnee').textContent = '0.000000'; }catch(_){}
-                }
+                    try{ document.getElementById('claimable-mnee').textContent = '0.000000'; }catch(_){}}
+            })();
             })();
         } else if (!nft.inscriptionId) {
             console.warn('[3D] NFT has no inscriptionId set, cannot verify ownership');

@@ -1,61 +1,95 @@
 /*
-  Server-side MNEE payout endpoint
-  - Requires: SUPABASE_SERVICE_KEY, TREASURY_MNEMONIC (set in Vercel env)
-  - Payout is done by WalletClient from @bsv/sdk using the provided mnemonic
-  - POST body: { claimId } or { inscriptionId }
+  api/payout.js
+  Sends BSV directly from the treasury wallet to the claimant.
+  Requires env vars:
+    TREASURY_PAY_PK   — WIF private key for address 1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb
+    ARC_API_KEY       — (optional) Taal ARC API key
 */
 
 const supabase = require('./_db');
-const fetch = require('node-fetch');
+const fetch    = require('node-fetch');
 
-async function sendMNEEUsingWalletClient(toAddress, amount) {
-  // Lazy import to avoid startup cost
-  const { WalletClient } = require('@bsv/sdk');
+const TREASURY_ADDRESS = '1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb';
 
-  const mnemonic = process.env.TREASURY_MNEMONIC;
-  if (!mnemonic) throw new Error('TREASURY_MNEMONIC not set in env');
+async function sendBSVToAddress(toAddress, satoshis) {
+  const { PrivateKey, P2PKH, Transaction, ARC } = require('@bsv/sdk');
 
-  const network = (process.env.BSV_NETWORK || 'mainnet');
-  const client = new WalletClient({ mnemonic, network });
+  const wif = process.env.TREASURY_PAY_PK;
+  if (!wif) throw new Error('TREASURY_PAY_PK not set in env');
 
-  if (typeof client.sendMNEE === 'function') {
-    const result = await client.sendMNEE({ to: toAddress, amount });
-    // result shape varies; try common fields
-    return result?.txid || result?.txidHex || result;
-  }
+  const privKey = PrivateKey.fromWIF(wif);
 
-  // fallback: try a generic send if available
-  if (typeof client.createAction === 'function') {
-    // Attempt to create an action that sends MNEE token; implementation depends on your SDK version
-    const action = await client.createAction({
-      description: `Payout ${amount} MNEE to ${toAddress}`
-      // Note: further implementation required for token transfer on some SDK versions
+  // Fetch UTXOs from WhatsOnChain
+  const utxoResp = await fetch(
+    `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent`
+  );
+  if (!utxoResp.ok) throw new Error(`WoC UTXO fetch failed: ${utxoResp.status}`);
+  const utxos = await utxoResp.json();
+  if (!utxos || utxos.length === 0) throw new Error('No UTXOs available in treasury');
+
+  const tx = new Transaction();
+
+  // Add inputs
+  for (const utxo of utxos) {
+    tx.addInput({
+      sourceTXID: utxo.tx_hash,
+      sourceOutputIndex: utxo.tx_pos,
+      unlockingScriptTemplate: new P2PKH().unlock(privKey),
+      sourceOutput: {
+        satoshis: utxo.value,
+        lockingScript: new P2PKH().lock(TREASURY_ADDRESS),
+      },
     });
-    return action?.txid || null;
   }
 
-  throw new Error('WalletClient does not support sendMNEE in this environment');
+  // Payment output
+  tx.addOutput({
+    lockingScript: new P2PKH().lock(toAddress),
+    satoshis,
+  });
+
+  // Change back to treasury
+  tx.addOutput({
+    lockingScript: new P2PKH().lock(TREASURY_ADDRESS),
+    change: true,
+  });
+
+  await tx.fee();
+  await tx.sign();
+
+  const arcUrl  = 'https://arc.taal.com';
+  const arcOpts = process.env.ARC_API_KEY ? { apiKey: process.env.ARC_API_KEY } : {};
+  const result  = await tx.broadcast(new ARC(arcUrl, arcOpts));
+
+  const txid = result?.txid || result?.txidHex || result;
+  if (!txid) throw new Error('Broadcast succeeded but no txid returned');
+  return String(txid);
 }
+
 async function processClaimPayout(claimId) {
   if (!claimId) throw new Error('claimId required');
-  const { data: claim } = await supabase.from('claims').select('*').eq('id', claimId).maybeSingle();
-  if (!claim) throw new Error('claim not found');
-  if (claim.status !== 'pending') throw new Error('claim not pending');
-  if (!claim.recipient_address) throw new Error('no recipient');
 
-  const amount = Number(claim.amount || 0);
-  if (amount <= 0) throw new Error('invalid amount');
+  const { data: claim } = await supabase
+    .from('claims').select('*').eq('id', claimId).maybeSingle();
+  if (!claim)                        throw new Error('claim not found');
+  if (claim.status !== 'pending')    throw new Error('claim not pending');
+  if (!claim.recipient_address)      throw new Error('no recipient address');
 
-  const txid = await sendMNEEUsingWalletClient(claim.recipient_address, amount);
+  const satoshis = Number(claim.amount || 0);
+  if (satoshis <= 0) throw new Error('invalid claim amount (must be satoshis > 0)');
 
-  await supabase.from('claims').update({ status: 'sent', txid, claimed_at: new Date().toISOString() }).eq('id', claim.id);
+  const txid = await sendBSVToAddress(claim.recipient_address, satoshis);
 
+  // Mark claim sent
+  await supabase.from('claims')
+    .update({ status: 'sent', txid, claimed_at: new Date().toISOString() })
+    .eq('id', claim.id);
+
+  // Zero out bsv_claimable for this inscription
   if (claim.inscription_id) {
-    const { data: alloc } = await supabase.from('reward_allocations').select('*').eq('inscription_id', claim.inscription_id).maybeSingle();
-    if (alloc) {
-      const remaining = Math.max(0, Number(alloc.mnee_claimable || 0) - amount);
-      await supabase.from('reward_allocations').update({ mnee_claimable: remaining }).eq('inscription_id', claim.inscription_id);
-    }
+    await supabase.from('reward_allocations')
+      .update({ bsv_claimable: 0 })
+      .eq('inscription_id', claim.inscription_id);
   }
 
   return txid;
@@ -66,14 +100,16 @@ module.exports = async function (req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
     const { claimId, inscriptionId } = req.body || {};
-    if (!claimId && !inscriptionId) return res.status(400).json({ error: 'claimId or inscriptionId required' });
+    if (!claimId && !inscriptionId)
+      return res.status(400).json({ error: 'claimId or inscriptionId required' });
 
     let claim;
     if (claimId) {
       const { data } = await supabase.from('claims').select('*').eq('id', claimId).maybeSingle();
       claim = data;
     } else {
-      const { data } = await supabase.from('claims').select('*').eq('inscription_id', inscriptionId).eq('status', 'pending').limit(1).maybeSingle();
+      const { data } = await supabase.from('claims').select('*')
+        .eq('inscription_id', inscriptionId).eq('status', 'pending').limit(1).maybeSingle();
       claim = data;
     }
 

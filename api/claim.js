@@ -31,27 +31,27 @@ module.exports = async function (req, res) {
 
     // Prefer MNEE; fall back to BSV claimable amount
     const claimAmount = mneeAmount > 0 ? alloc.mnee_claimable : alloc.bsv_claimable;
-    // Insert pending claim — actual payout should be processed locally by the project owner
+    // Insert pending claim
     const insert = await supabase.from('claims').insert([{ inscription_id: inscriptionId, recipient_address: ordAddress, amount: claimAmount, epoch: epoch || 'default', status: 'pending' }]);
     if (insert.error) return res.status(500).json({ error: insert.error.message });
-    const inserted = insert.data && insert.data[0];
 
-    // If AUTO_PAYOUT is enabled, attempt server-side payout immediately
-    if (process.env.AUTO_PAYOUT === 'true') {
-      try {
-        const payout = require('./payout');
-        const claimId = inserted?.id;
-        if (claimId) {
-          const txid = await payout.processClaimPayout(claimId);
-          return res.json({ success: true, message: 'paid', txid });
-        }
-      } catch (e) {
-        console.error('[api/claim] auto-payout failed', e);
-        // fallthrough to registered
+    // Fetch the newly inserted claim by inscription + epoch to get its id
+    const { data: newClaim } = await supabase.from('claims').select('id')
+      .eq('inscription_id', inscriptionId).eq('epoch', epoch || 'default').eq('status', 'pending')
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+    // Always attempt immediate BSV payout
+    try {
+      const { processClaimPayout } = require('./payout');
+      if (newClaim?.id) {
+        const txid = await processClaimPayout(newClaim.id);
+        return res.json({ success: true, message: 'paid', txid });
       }
+    } catch (e) {
+      console.error('[api/claim] payout failed, claim is registered:', e.message);
     }
 
-    return res.json({ success: true, message: 'claim registered. awaiting payout by admin' });
+    return res.json({ success: true, message: 'claim registered. payout pending.' });
   } catch (err) {
     console.error('[api/claim] error', err);
     res.status(500).json({ error: 'internal' });

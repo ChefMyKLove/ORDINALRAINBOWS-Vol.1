@@ -2009,10 +2009,38 @@ async function refreshWalletBoxBalances() {
             : '—';
         document.getElementById('wallet-bsv21-balance').innerHTML = display;
         
-        // Show zero for rewards (no real data yet)
-        // TODO: Fetch real reward amounts from API
-        document.getElementById('wallet-mnee-balance').textContent = '0.00 MNEE';
-        document.getElementById('wallet-bsv-balance').textContent = '0.0000 BSV';
+        // Fetch and sum reward claimables across owned inscriptions
+        try {
+            const inscriptions = window.userOwnedInscriptions || [];
+            let totalMnee = 0;
+            let totalBsvSats = 0;
+
+            if (inscriptions.length > 0) {
+                const promises = inscriptions.map(i => {
+                    const id = i?.inscriptionId || i;
+                    return fetch(`/api/rewards?inscriptionId=${encodeURIComponent(id)}`)
+                        .then(r => r.ok ? r.json() : null)
+                        .catch(() => null);
+                });
+
+                const results = await Promise.all(promises);
+                for (const j of results) {
+                    if (j && j.allocation) {
+                        totalMnee += Number(j.allocation.mnee_claimable || 0);
+                        totalBsvSats += Number(j.allocation.bsv_claimable || 0);
+                    }
+                }
+            }
+
+            const mneeDisplay = totalMnee.toFixed(6) + ' MNEE';
+            const bsvDisplay = (totalBsvSats / 100000000).toFixed(8) + ' BSV';
+            document.getElementById('wallet-mnee-balance').textContent = mneeDisplay;
+            document.getElementById('wallet-bsv-balance').textContent = bsvDisplay;
+        } catch (e) {
+            console.warn('[WALLET-BOX] Failed to fetch claimables', e);
+            document.getElementById('wallet-mnee-balance').textContent = '0.00 MNEE';
+            document.getElementById('wallet-bsv-balance').textContent = '0.0000 BSV';
+        }
         
         console.log('[WALLET-BOX] Balances updated — Vol.1 owned:', vol1Count, 'of', collectionSize);
         

@@ -1916,6 +1916,13 @@ async function claimOrdinalReward(inscriptionId, nftId) {
             return;
         }
 
+        // Client-side ownership check before hitting the API
+        const owned = window.userOwnedInscriptions && window.userOwnedInscriptions.some(n => n.inscriptionId === inscriptionId);
+        if (!owned) {
+            alert('❌ Sorry, that\'s not your rainbow. You do not own this NFT.');
+            return;
+        }
+
         const body = { inscriptionId, ordAddress: window.currentOrdAddress, epoch: 'default' };
         const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const j = await resp.json();
@@ -1947,40 +1954,6 @@ async function retryOwnershipCheck(nftId) {
     }
 }
 window.retryOwnershipCheck = retryOwnershipCheck;
-
-/**
- * Claim rewards for an ordinal
- */
-async function claimOrdinalReward(nftId = null) {
-    const id = nftId || window.currentCard3DNFTID;
-    if (!id) {
-        alert('No card selected');
-        return;
-    }
-    
-    console.log('[CLAIM] Attempting claim for NFT:', id);
-    
-    try {
-        // First check if user owns this ordinal
-        const owns = await checkOrdinalOwnership(id);
-        
-        if (!owns) {
-            console.log('[CLAIM] User does not own this ordinal');
-            alert('❌ Sorry, that\'s not your rainbow. You do not own this NFT.');
-            return;
-        }
-        
-        console.log('[CLAIM] Ownership verified, initiating claim...');
-        alert('✅ Claim initiated! Check your wallet for the transaction.');
-        
-        // Close modal after claiming
-        closeCard3DModal();
-        
-    } catch (err) {
-        console.error('[CLAIM] Error claiming reward:', err);
-        alert('Error claiming reward: ' + err.message);
-    }
-}
 
 /**
  * Toggle wallet box collapsed/expanded state

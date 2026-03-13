@@ -1923,19 +1923,25 @@ async function claimOrdinalReward(inscriptionId, nftId) {
             return;
         }
 
+        const btn = document.getElementById('card-3d-claim-btn');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ Claiming...'; }
+
         const body = { inscriptionId, ordAddress: window.currentOrdAddress, epoch: 'default' };
         const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const j = await resp.json();
         if (!resp.ok) {
+            if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
             alert('Claim failed: ' + (j?.error || JSON.stringify(j)));
             return;
         }
 
         alert('Claim registered — awaiting payout. Admin will process pending claims soon.');
-        // disable button
-        const btn = document.getElementById('card-3d-claim-btn'); if (btn) btn.disabled = true;
+        // keep button disabled on success — claim is registered
+        if (btn) btn.disabled = true;
     } catch (err) {
         console.error('claim error', err);
+        const btn = document.getElementById('card-3d-claim-btn');
+        if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
         alert('Claim failed: ' + err.message);
     }
 }

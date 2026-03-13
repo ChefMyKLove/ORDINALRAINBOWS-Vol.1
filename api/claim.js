@@ -25,9 +25,24 @@ module.exports = async function (req, res) {
     const bsvAmount  = Number(alloc.bsv_claimable  || 0);
     if (mneeAmount <= 0 && bsvAmount <= 0) return res.status(409).json({ error: 'nothing to claim' });
 
-    // Prevent duplicate claim for same epoch
-    const { data: existing } = await supabase.from('claims').select('*').eq('inscription_id', inscriptionId).eq('epoch', epoch || 'default').maybeSingle();
-    if (existing) return res.status(409).json({ error: 'already claimed for epoch' });
+    // Duplicate claim logic: look up the most recent claim for this inscription
+    const { data: existing } = await supabase
+      .from('claims').select('id, status')
+      .eq('inscription_id', inscriptionId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      if (existing.status === 'pending') {
+        return res.status(409).json({ error: 'already claimed, payout pending' });
+      }
+      if (existing.status === 'sent') {
+        // Only block if no new rewards have accumulated since the last payout
+        if (bsvAmount <= 0) return res.status(409).json({ error: 'nothing to claim' });
+        // bsvAmount > 0 means new rewards seeded since last payout — allow a fresh claim
+      }
+    }
 
     // Prefer MNEE; fall back to BSV claimable amount
     const claimAmount = mneeAmount > 0 ? alloc.mnee_claimable : alloc.bsv_claimable;

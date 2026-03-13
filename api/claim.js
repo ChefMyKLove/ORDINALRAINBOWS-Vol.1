@@ -60,10 +60,12 @@ module.exports = async function (req, res) {
       const { processClaimPayout } = require('./payout');
       if (newClaim?.id) {
         const txid = await processClaimPayout(newClaim.id);
+        console.log('[api/claim] payout success — claimId:', newClaim.id, 'txid:', txid);
         return res.json({ success: true, message: 'paid', txid });
       }
     } catch (e) {
-      console.error('[api/claim] payout failed, claim is registered:', e.message);
+      console.error('[api/claim] payout failed — claimId:', newClaim?.id, 'error:', e.message, e.stack);
+      return res.json({ success: true, message: 'payout failed', error: e.message });
     }
 
     return res.json({ success: true, message: 'claim registered. payout pending.' });

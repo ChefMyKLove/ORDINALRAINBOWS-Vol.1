@@ -15,9 +15,10 @@ async function sendBSVToAddress(toAddress, satoshis) {
   const { PrivateKey, P2PKH, Transaction, ARC } = require('@bsv/sdk');
 
   const wif = process.env.TREASURY_PAY_PK;
+  console.log('[payout] TREASURY_PAY_PK present:', !!wif);
   if (!wif) throw new Error('TREASURY_PAY_PK not set in env');
 
-  const privKey = PrivateKey.fromWIF(wif);
+  const privKey = PrivateKey.fromWif(wif);
 
   // Fetch UTXOs from WhatsOnChain
   const utxoResp = await fetch(
@@ -29,16 +30,20 @@ async function sendBSVToAddress(toAddress, satoshis) {
 
   const tx = new Transaction();
 
-  // Add inputs
+  // Add inputs — @bsv/sdk requires the full source transaction for fee/signing
   for (const utxo of utxos) {
+    const hexResp = await fetch(
+      `https://api.whatsonchain.com/v1/bsv/main/tx/${utxo.tx_hash}/hex`
+    );
+    if (!hexResp.ok) throw new Error(`WoC raw-tx fetch failed for ${utxo.tx_hash}: ${hexResp.status}`);
+    const rawHex = (await hexResp.text()).trim();
+    const sourceTx = Transaction.fromHex(rawHex);
+
     tx.addInput({
       sourceTXID: utxo.tx_hash,
       sourceOutputIndex: utxo.tx_pos,
+      sourceTransaction: sourceTx,
       unlockingScriptTemplate: new P2PKH().unlock(privKey),
-      sourceOutput: {
-        satoshis: utxo.value,
-        lockingScript: new P2PKH().lock(TREASURY_ADDRESS),
-      },
     });
   }
 

@@ -62,9 +62,7 @@ async function sendBSVToAddress(toAddress, satoshis) {
   await tx.fee();
   await tx.sign();
 
-  const arcUrl  = 'https://arc.taal.com';
-  const arcOpts = process.env.ARC_API_KEY ? { apiKey: process.env.ARC_API_KEY } : {};
-  const result  = await tx.broadcast(new ARC(arcUrl, arcOpts));
+  const result  = await tx.broadcast(new ARC('https://arc.taal.com', process.env.TAAL_API_KEY));
 
   // Log first — before any extraction logic — so we can see the raw shape on failure
   console.log('[payout] broadcast result:', JSON.stringify(result));

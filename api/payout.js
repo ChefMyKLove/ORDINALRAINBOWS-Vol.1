@@ -65,11 +65,19 @@ async function sendBSVToAddress(toAddress, satoshis) {
   const arcUrl  = 'https://arc.taal.com';
   const arcOpts = process.env.ARC_API_KEY ? { apiKey: process.env.ARC_API_KEY } : {};
   const result  = await tx.broadcast(new ARC(arcUrl, arcOpts));
+
+  // Log first — before any extraction logic — so we can see the raw shape on failure
   console.log('[payout] broadcast result:', JSON.stringify(result));
 
-  const txid = result?.txid || result?.id || result?.data?.txid || JSON.stringify(result);
-  if (!txid) throw new Error('Broadcast succeeded but no txid returned');
-  return String(txid);
+  // Extract txid — must be a non-empty string; never fall back to JSON.stringify
+  const txid = (typeof result === 'string' && result.length === 64) ? result
+    : (typeof result?.txid === 'string' && result.txid.length > 0) ? result.txid
+    : (typeof result?.id   === 'string' && result.id.length   > 0) ? result.id
+    : (typeof result?.data?.txid === 'string' && result.data.txid.length > 0) ? result.data.txid
+    : null;
+
+  if (!txid) throw new Error(`Broadcast returned no valid txid. Raw result: ${JSON.stringify(result)}`);
+  return txid;
 }
 
 async function processClaimPayout(claimId) {

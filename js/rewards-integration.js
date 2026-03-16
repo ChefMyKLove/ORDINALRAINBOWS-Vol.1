@@ -1929,13 +1929,11 @@ async function claimOrdinalReward(inscriptionId, nftId) {
         const body = { inscriptionId, ordAddress: window.currentOrdAddress, epoch: 'default' };
         const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const j = await resp.json();
-        if (!resp.ok) {
+        alert(JSON.stringify(j));
+        if (!resp.ok || j.success === false) {
             if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
-            alert('Claim failed: ' + (j?.error || JSON.stringify(j)));
             return;
         }
-
-        alert('Claim registered — awaiting payout. Admin will process pending claims soon.');
         // keep button disabled on success — claim is registered
         if (btn) btn.disabled = true;
     } catch (err) {

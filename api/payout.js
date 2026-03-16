@@ -65,8 +65,9 @@ async function sendBSVToAddress(toAddress, satoshis) {
   const arcUrl  = 'https://arc.taal.com';
   const arcOpts = process.env.ARC_API_KEY ? { apiKey: process.env.ARC_API_KEY } : {};
   const result  = await tx.broadcast(new ARC(arcUrl, arcOpts));
+  console.log('[payout] broadcast result:', JSON.stringify(result));
 
-  const txid = result?.txid || result?.txidHex || result;
+  const txid = result?.txid || result?.id || result?.data?.txid || JSON.stringify(result);
   if (!txid) throw new Error('Broadcast succeeded but no txid returned');
   return String(txid);
 }

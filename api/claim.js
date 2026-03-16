@@ -61,11 +61,11 @@ module.exports = async function (req, res) {
       if (newClaim?.id) {
         const txid = await processClaimPayout(newClaim.id);
         console.log('[api/claim] payout success — claimId:', newClaim.id, 'txid:', txid);
-        return res.json({ success: true, message: 'paid', txid });
+        return res.status(200).json({ success: true, txid: txid, message: 'BSV sent!' });
       }
     } catch (e) {
       console.error('[api/claim] payout failed — claimId:', newClaim?.id, 'error:', e.message, e.stack);
-      return res.json({ success: true, message: 'payout failed', error: e.message });
+      return res.status(200).json({ success: false, message: e.message, stack: e.stack });
     }
 
     return res.json({ success: true, message: 'claim registered. payout pending.' });

@@ -5,8 +5,9 @@ module.exports = async function (req, res) {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-    const { inscriptionId, ordAddress, epoch } = req.body || {};
+    const { inscriptionId, ordAddress, bsvAddress, epoch } = req.body || {};
     if (!inscriptionId || !ordAddress) return res.status(400).json({ error: 'inscriptionId and ordAddress required' });
+    if (!bsvAddress) return res.status(400).json({ error: 'bsvAddress (BSV payment address) required' });
 
     // Re-verify ownership via GorillaPool
     const apiUrl = `https://ordinals.gorillapool.io/api/inscriptions/${inscriptionId}_0`;
@@ -47,7 +48,7 @@ module.exports = async function (req, res) {
     // Prefer MNEE; fall back to BSV claimable amount
     const claimAmount = mneeAmount > 0 ? alloc.mnee_claimable : alloc.bsv_claimable;
     // Insert pending claim
-    const insert = await supabase.from('claims').insert([{ inscription_id: inscriptionId, recipient_address: ordAddress, amount: claimAmount, epoch: epoch || 'default', status: 'pending' }]);
+    const insert = await supabase.from('claims').insert([{ inscription_id: inscriptionId, recipient_address: bsvAddress, amount: claimAmount, epoch: epoch || 'default', status: 'pending' }]);
     if (insert.error) return res.status(500).json({ error: insert.error.message });
 
     // Fetch the newly inserted claim by inscription + epoch to get its id

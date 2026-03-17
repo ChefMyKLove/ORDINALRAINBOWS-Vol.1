@@ -1926,7 +1926,7 @@ async function claimOrdinalReward(inscriptionId, nftId) {
         const btn = document.getElementById('card-3d-claim-btn');
         if (btn) { btn.disabled = true; btn.textContent = '⏳ Claiming...'; }
 
-        const body = { inscriptionId, ordAddress: window.currentOrdAddress, epoch: 'default' };
+        const body = { inscriptionId, nftId, ordAddress: window.currentOrdAddress, bsvAddress: window.currentWalletAddress, epoch: 'default' };
         const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const j = await resp.json();
         alert(JSON.stringify(j));

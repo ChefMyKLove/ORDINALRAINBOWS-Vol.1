@@ -21,7 +21,7 @@ async function sendBSVToAddress(toAddress, satoshis) {
   const privKey = PrivateKey.fromWif(wif);
 
   // Fetch UTXOs from WhatsOnChain
-  const utxoUrl = `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent`;
+  const utxoUrl = `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent/all`;
   console.log('[payout] fetching UTXOs from:', utxoUrl);
   const utxoResp = await fetch(utxoUrl, {
     headers: { 'Authorization': process.env.WOC_API_KEY || '' },
@@ -29,18 +29,16 @@ async function sendBSVToAddress(toAddress, satoshis) {
   if (!utxoResp.ok) throw new Error(`WoC UTXO fetch failed: ${utxoResp.status} ${await utxoResp.text()}`);
   const utxoData = await utxoResp.json();
   console.log('[payout] UTXO response:', utxoResp.status, JSON.stringify(utxoData));
-  const utxos = Array.isArray(utxoData) ? utxoData : (utxoData.result || []);
+  const utxos = utxoData.result || [];
   if (utxos.length === 0) throw new Error('No UTXOs found for treasury wallet');
 
   const tx = new Transaction();
 
   // Add inputs — @bsv/sdk requires the full source transaction for fee/signing
   for (const utxo of utxos) {
-    const hexResp = await fetch(
-      `https://api.whatsonchain.com/v1/bsv/main/tx/${utxo.tx_hash}/hex`
-    );
+    const hexResp = await fetch(`https://api.whatsonchain.com/v1/bsv/main/tx/${utxo.tx_hash}/hex`);
     if (!hexResp.ok) throw new Error(`WoC raw-tx fetch failed for ${utxo.tx_hash}: ${hexResp.status}`);
-    const rawHex = (await hexResp.text()).trim();
+    const rawHex = await hexResp.text();
     const sourceTx = Transaction.fromHex(rawHex);
 
     tx.addInput({

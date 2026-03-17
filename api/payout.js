@@ -24,9 +24,10 @@ async function sendBSVToAddress(toAddress, satoshis) {
   const utxoResp = await fetch(
     `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent`
   );
-  if (!utxoResp.ok) throw new Error(`WoC UTXO fetch failed: ${utxoResp.status}`);
+  if (!utxoResp.ok) throw new Error(`WoC UTXO fetch failed: ${utxoResp.status} ${await utxoResp.text()}`);
   const utxos = await utxoResp.json();
-  if (!utxos || utxos.length === 0) throw new Error('No UTXOs available in treasury');
+  console.log('[payout] UTXO response:', utxoResp.status, JSON.stringify(utxos));
+  if (!Array.isArray(utxos) || utxos.length === 0) throw new Error('No UTXOs found for treasury wallet');
 
   const tx = new Transaction();
 

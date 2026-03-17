@@ -1936,6 +1936,8 @@ async function claimOrdinalReward(inscriptionId, nftId) {
         }
         // keep button disabled on success — claim is registered
         if (btn) btn.disabled = true;
+        // Refresh wallet header totals immediately
+        if (typeof refreshWalletBoxBalances === 'function') refreshWalletBoxBalances();
     } catch (err) {
         console.error('claim error', err);
         const btn = document.getElementById('card-3d-claim-btn');

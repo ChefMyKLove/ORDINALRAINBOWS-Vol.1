@@ -23,11 +23,14 @@ async function sendBSVToAddress(toAddress, satoshis) {
   // Fetch UTXOs from WhatsOnChain
   const utxoUrl = `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent`;
   console.log('[payout] fetching UTXOs from:', utxoUrl);
-  const utxoResp = await fetch(utxoUrl);
+  const utxoResp = await fetch(utxoUrl, {
+    headers: { 'Authorization': process.env.WOC_API_KEY || '' },
+  });
   if (!utxoResp.ok) throw new Error(`WoC UTXO fetch failed: ${utxoResp.status} ${await utxoResp.text()}`);
-  const utxos = await utxoResp.json();
-  console.log('[payout] UTXO response:', utxoResp.status, JSON.stringify(utxos));
-  if (!Array.isArray(utxos) || utxos.length === 0) throw new Error('No UTXOs found for treasury wallet');
+  const utxoData = await utxoResp.json();
+  console.log('[payout] UTXO response:', utxoResp.status, JSON.stringify(utxoData));
+  const utxos = Array.isArray(utxoData) ? utxoData : (utxoData.result || []);
+  if (utxos.length === 0) throw new Error('No UTXOs found for treasury wallet');
 
   const tx = new Transaction();
 

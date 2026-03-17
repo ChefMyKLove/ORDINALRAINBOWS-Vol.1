@@ -21,9 +21,9 @@ async function sendBSVToAddress(toAddress, satoshis) {
   const privKey = PrivateKey.fromWif(wif);
 
   // Fetch UTXOs from WhatsOnChain
-  const utxoResp = await fetch(
-    `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent`
-  );
+  const utxoUrl = `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent`;
+  console.log('[payout] fetching UTXOs from:', utxoUrl);
+  const utxoResp = await fetch(utxoUrl);
   if (!utxoResp.ok) throw new Error(`WoC UTXO fetch failed: ${utxoResp.status} ${await utxoResp.text()}`);
   const utxos = await utxoResp.json();
   console.log('[payout] UTXO response:', utxoResp.status, JSON.stringify(utxos));

@@ -6,16 +6,15 @@
     ARC_API_KEY       — (optional) Taal ARC API key
 */
 
+const { PrivateKey, Transaction, P2PKH, ARC } = require('@bsv/sdk');
 const supabase = require('./_db');
 const fetch    = require('node-fetch');
 
 const TREASURY_ADDRESS = '1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb';
 
 async function sendBSVToAddress(toAddress, satoshis) {
-  const { PrivateKey, P2PKH, Transaction, ARC } = require('@bsv/sdk');
-
   const wif = process.env.TREASURY_PAY_PK;
-  console.log('[payout] TREASURY_PAY_PK present:', !!wif);
+  console.log('[payout] sendBSVToAddress called — TREASURY_PAY_PK:', wif ? `set (length ${wif.length})` : 'UNDEFINED');
   if (!wif) throw new Error('TREASURY_PAY_PK not set in env');
 
   const privKey = PrivateKey.fromWif(wif);

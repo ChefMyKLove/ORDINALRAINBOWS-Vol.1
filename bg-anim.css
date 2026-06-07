@@ -1,0 +1,24 @@
+/* ============================================
+   DISPLACEMENT FILTERS — background layers only
+   ============================================ */
+
+#bgLayerA {
+    filter: url(#cloud-warp);
+}
+
+#bgLayerB {
+    filter: url(#cloud-warp-b);
+    opacity: 0;
+}
+
+/* Suppress the old cloud-wrap overlay */
+.cloud-wrap {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #bgLayerA,
+    #bgLayerB {
+        filter: none;
+    }
+}

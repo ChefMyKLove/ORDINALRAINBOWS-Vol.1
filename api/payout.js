@@ -112,6 +112,11 @@ module.exports = async function (req, res) {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
+    const adminSecret = req.headers['x-admin-secret'];
+    if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
+      return res.status(401).json({ error: 'unauthorized' });
+    }
+
     const { claimId, inscriptionId } = req.body || {};
     if (!claimId && !inscriptionId)
       return res.status(400).json({ error: 'claimId or inscriptionId required' });

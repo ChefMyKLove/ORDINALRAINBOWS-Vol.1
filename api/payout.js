@@ -11,6 +11,13 @@ const supabase = require('./_db');
 const fetch    = require('node-fetch');
 
 const TREASURY_ADDRESS = '1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb';
+const FETCH_TIMEOUT_MS = 8000;
+
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
 
 async function sendBSVToAddress(toAddress, satoshis) {
   const wif = process.env.TREASURY_PAY_PK;
@@ -19,10 +26,9 @@ async function sendBSVToAddress(toAddress, satoshis) {
 
   const privKey = PrivateKey.fromWif(wif);
 
-  // Fetch UTXOs from WhatsOnChain
   const utxoUrl = `https://api.whatsonchain.com/v1/bsv/main/address/${TREASURY_ADDRESS}/unspent/all`;
   console.log('[payout] fetching UTXOs from:', utxoUrl);
-  const utxoResp = await fetch(utxoUrl, {
+  const utxoResp = await fetchWithTimeout(utxoUrl, {
     headers: { 'Authorization': process.env.WOC_API_KEY || '' },
   });
   if (!utxoResp.ok) throw new Error(`WoC UTXO fetch failed: ${utxoResp.status} ${await utxoResp.text()}`);
@@ -33,9 +39,8 @@ async function sendBSVToAddress(toAddress, satoshis) {
 
   const tx = new Transaction();
 
-  // Add inputs — @bsv/sdk requires the full source transaction for fee/signing
   for (const utxo of utxos) {
-    const hexResp = await fetch(`https://api.whatsonchain.com/v1/bsv/main/tx/${utxo.tx_hash}/hex`);
+    const hexResp = await fetchWithTimeout(`https://api.whatsonchain.com/v1/bsv/main/tx/${utxo.tx_hash}/hex`);
     if (!hexResp.ok) throw new Error(`WoC raw-tx fetch failed for ${utxo.tx_hash}: ${hexResp.status}`);
     const rawHex = await hexResp.text();
     const sourceTx = Transaction.fromHex(rawHex);
@@ -48,13 +53,11 @@ async function sendBSVToAddress(toAddress, satoshis) {
     });
   }
 
-  // Payment output
   tx.addOutput({
     lockingScript: new P2PKH().lock(toAddress),
     satoshis,
   });
 
-  // Change back to treasury
   tx.addOutput({
     lockingScript: new P2PKH().lock(TREASURY_ADDRESS),
     change: true,
@@ -63,12 +66,10 @@ async function sendBSVToAddress(toAddress, satoshis) {
   await tx.fee();
   await tx.sign();
 
-  const result  = await tx.broadcast(new ARC('https://arc.taal.com', process.env.TAAL_API_KEY));
+  const result = await tx.broadcast(new ARC('https://arc.taal.com', process.env.TAAL_API_KEY));
 
-  // Log first — before any extraction logic — so we can see the raw shape on failure
   console.log('[payout] broadcast result:', JSON.stringify(result));
 
-  // Extract txid — must be a non-empty string; never fall back to JSON.stringify
   const txid = (typeof result === 'string' && result.length === 64) ? result
     : (typeof result?.txid === 'string' && result.txid.length > 0) ? result.txid
     : (typeof result?.id   === 'string' && result.id.length   > 0) ? result.id
@@ -82,23 +83,42 @@ async function sendBSVToAddress(toAddress, satoshis) {
 async function processClaimPayout(claimId) {
   if (!claimId) throw new Error('claimId required');
 
-  const { data: claim } = await supabase
-    .from('claims').select('*').eq('id', claimId).maybeSingle();
-  if (!claim)                        throw new Error('claim not found');
-  if (claim.status !== 'pending')    throw new Error('claim not pending');
-  if (!claim.recipient_address)      throw new Error('no recipient address');
+  // Atomically claim the row: only succeeds if it's still 'pending'. This closes the
+  // double-payout race — two concurrent callers can never both win this update, because
+  // the second one's WHERE clause matches zero rows once the first has flipped the status.
+  const { data: lockedRows, error: lockErr } = await supabase
+    .from('claims')
+    .update({ status: 'broadcasting' })
+    .eq('id', claimId)
+    .eq('status', 'pending')
+    .select();
+  if (lockErr) throw new Error(`failed to lock claim: ${lockErr.message}`);
+  if (!lockedRows || lockedRows.length === 0) {
+    throw new Error('claim not pending (already processed or does not exist)');
+  }
+  const claim = lockedRows[0];
+  if (!claim.recipient_address) throw new Error('no recipient address');
 
   const satoshis = Number(claim.amount || 0);
   if (satoshis <= 0) throw new Error('invalid claim amount (must be satoshis > 0)');
 
-  const txid = await sendBSVToAddress(claim.recipient_address, satoshis);
+  let txid;
+  try {
+    txid = await sendBSVToAddress(claim.recipient_address, satoshis);
+  } catch (broadcastErr) {
+    await supabase.from('claims').update({ status: 'failed' }).eq('id', claim.id).eq('status', 'broadcasting');
+    throw broadcastErr;
+  }
 
-  // Mark claim sent
-  await supabase.from('claims')
+  const { error: sentErr } = await supabase
+    .from('claims')
     .update({ status: 'sent', txid, claimed_at: new Date().toISOString() })
     .eq('id', claim.id);
+  if (sentErr) {
+    console.error('[payout] CRITICAL: broadcast succeeded but DB update failed. claimId:', claim.id, 'txid:', txid, 'error:', sentErr.message);
+    throw new Error(`payout sent (txid ${txid}) but failed to record — manual reconciliation needed: ${sentErr.message}`);
+  }
 
-  // Zero out bsv_claimable for this inscription
   if (claim.inscription_id) {
     await supabase.from('reward_allocations')
       .update({ bsv_claimable: 0 })

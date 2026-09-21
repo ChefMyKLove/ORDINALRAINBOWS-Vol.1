@@ -97,13 +97,17 @@ async function processClaimPayout(claimId) {
     throw new Error('claim not pending (already processed or does not exist)');
   }
   const claim = lockedRows[0];
-  if (!claim.recipient_address) throw new Error('no recipient address');
 
-  const satoshis = Number(claim.amount || 0);
-  if (satoshis <= 0) throw new Error('invalid claim amount (must be satoshis > 0)');
-
+  // Everything from here through the broadcast call is inside the try/catch so that any
+  // failure — including validation failures on the locked claim's own data — flips the
+  // claim to 'failed' instead of leaving it stuck in 'broadcasting' forever.
   let txid;
   try {
+    if (!claim.recipient_address) throw new Error('no recipient address');
+
+    const satoshis = Number(claim.amount || 0);
+    if (satoshis <= 0) throw new Error('invalid claim amount (must be satoshis > 0)');
+
     txid = await sendBSVToAddress(claim.recipient_address, satoshis);
   } catch (broadcastErr) {
     await supabase.from('claims').update({ status: 'failed' }).eq('id', claim.id).eq('status', 'broadcasting');

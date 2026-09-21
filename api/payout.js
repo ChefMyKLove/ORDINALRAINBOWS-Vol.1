@@ -106,7 +106,7 @@ async function processClaimPayout(claimId) {
     if (!claim.recipient_address) throw new Error('no recipient address');
 
     const satoshis = Number(claim.amount || 0);
-    if (satoshis <= 0) throw new Error('invalid claim amount (must be satoshis > 0)');
+    if (!Number.isInteger(satoshis) || satoshis <= 0) throw new Error('invalid claim amount (must be a positive integer number of satoshis)');
 
     txid = await sendBSVToAddress(claim.recipient_address, satoshis);
   } catch (broadcastErr) {
@@ -159,8 +159,8 @@ module.exports = async function (req, res) {
     const txid = await processClaimPayout(claim.id);
     return res.json({ success: true, txid });
   } catch (err) {
-    console.error('[api/payout] error', err);
-    res.status(500).json({ error: err.message });
+    console.error('[api/payout] error', err.message, err.stack);
+    res.status(500).json({ error: 'internal error' });
   }
 };
 

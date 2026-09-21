@@ -49,7 +49,8 @@ module.exports = async function (req, res) {
       if (insertErr.code === '23505') {
         return res.status(409).json({ error: 'already claimed, payout pending' });
       }
-      return res.status(500).json({ error: insertErr.message });
+      console.error('[api/claim] insert failed —', insertErr.message);
+      return res.status(500).json({ error: 'internal error' });
     }
     const newClaim = insertedRows && insertedRows[0];
 
@@ -64,7 +65,7 @@ module.exports = async function (req, res) {
       return res.status(200).json({ success: true, txid: txid, message: 'BSV sent!' });
     } catch (e) {
       console.error('[api/claim] payout failed — claimId:', newClaim.id, 'error:', e.message, e.stack);
-      return res.status(200).json({ success: false, message: e.message });
+      return res.status(200).json({ success: false, message: 'payout failed, see server logs' });
     }
   } catch (err) {
     console.error('[api/claim] error', err);

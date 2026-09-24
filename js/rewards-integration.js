@@ -1926,7 +1926,25 @@ async function claimOrdinalReward(inscriptionId, nftId) {
         const btn = document.getElementById('card-3d-claim-btn');
         if (btn) { btn.disabled = true; btn.textContent = '⏳ Claiming...'; }
 
-        const body = { inscriptionId, nftId, ordAddress: window.currentOrdAddress, bsvAddress: window.currentWalletAddress, epoch: 'default' };
+        const timestamp = Math.floor(Date.now() / 1000);
+        const message = `ordinalrainbows-claim:${inscriptionId}:${window.currentWalletAddress}:${timestamp}`;
+        let signature;
+        try {
+            const rawSig = await window.walletManager.signMessage(message);
+            console.log('[CLAIM] raw signMessage() result:', rawSig);
+            // Different wallet providers may return a raw base64 string, or an object
+            // like { signature } / { sig }. This normalizes the common shapes — verify
+            // against your actual connected wallet in Task 7's manual test and adjust
+            // this line if the server rejects a real signature as invalid.
+            signature = (typeof rawSig === 'string') ? rawSig : (rawSig?.signature || rawSig?.sig);
+        } catch (sigErr) {
+            console.error('[CLAIM] signature failed', sigErr);
+            alert('Wallet signature required to verify ownership: ' + sigErr.message);
+            if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
+            return;
+        }
+
+        const body = { inscriptionId, nftId, ordAddress: window.currentOrdAddress, bsvAddress: window.currentWalletAddress, epoch: 'default', signature, timestamp };
         const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const j = await resp.json();
         alert(JSON.stringify(j));

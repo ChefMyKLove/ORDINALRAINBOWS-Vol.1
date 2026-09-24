@@ -29,6 +29,14 @@ create table claims (
 );
 ```
 
+Run this migration once, after creating the tables above, to prevent double-payouts:
+
+```sql
+create unique index if not exists claims_inscription_active_idx
+  on claims (inscription_id)
+  where status in ('pending', 'broadcasting');
+```
+
 2) Set environment variables (locally create `.env` from `.env.example`):
 
 ```bash

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "node api/claim.js"
+    "start": "node api/claim.js",
+    "test": "node --test \"tests/**/*.test.js\""
   },
   "dependencies": {
     "@bsv/sdk": "^1.4.11",

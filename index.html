@@ -126,6 +126,7 @@ body {
 }
 
 /* CAROUSEL */
+/* Background-only layer — opaque dark, hides gallery */
 .carousel-overlay {
     position: fixed;
     top: 0;
@@ -133,38 +134,41 @@ body {
     width: 100%;
     height: 100%;
     z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    background: rgba(5, 5, 15, 0.97);
+}
+
+.carousel-overlay.preloading,
+.carousel-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* On splash page, cloud layers rise above the background (z:9999) but below content (z:10001) */
+body.body-splash .cloud-layer {
+    z-index: 10000;
+}
+
+/* Carousel UI — above cloud layers, fully opaque */
+#carouselContent {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10001;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     opacity: 1;
     transition: opacity 0.5s ease;
+    pointer-events: auto;
 }
 
-/* Animated blurred backdrop for carousel */
-.carousel-overlay::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    z-index: -1;
-    filter: brightness(0.5) saturate(1.2) blur(8px);
-    animation: backgroundCycle 104s infinite ease-in-out;
-    will-change: background-image;
-    transform: translate3d(0, 0, 0);
-}
-
-.carousel-overlay.preloading {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.carousel-overlay.hidden {
+#carouselContent.preloading,
+#carouselContent.hidden {
     opacity: 0;
     pointer-events: none;
 }
@@ -1366,17 +1370,17 @@ h1 {
     <link rel="stylesheet" href="css/rewards-dashboard.css">
     <link rel="stylesheet" href="css/bg-anim.css">
 </head>
-<body>
+<body class="body-splash">
     <!-- SVG filter definitions for cloud displacement -->
-    <svg id="svg-filters" style="position:absolute;width:0;height:0;" aria-hidden="true">
+    <svg id="svg-filters" style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
         <defs>
-            <filter id="cloud-warp" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+            <filter id="cloud-warp" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
                 <feTurbulence id="cloud-turb" type="fractalNoise" baseFrequency="0.009 0.011" numOctaves="4" seed="7" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="55" xChannelSelector="R" yChannelSelector="G"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="124" xChannelSelector="R" yChannelSelector="G"/>
             </filter>
-            <filter id="cloud-warp-b" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+            <filter id="cloud-warp-b" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
                 <feTurbulence id="cloud-turb-b" type="fractalNoise" baseFrequency="0.010 0.009" numOctaves="4" seed="13" result="noise"/>
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="55" xChannelSelector="G" yChannelSelector="R"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="124" xChannelSelector="R" yChannelSelector="G"/>
             </filter>
         </defs>
     </svg>
@@ -1520,7 +1524,10 @@ h1 {
     </div>
 
     <!-- Image Carousel Overlay -->
-    <div id="carouselOverlay" class="carousel-overlay">
+    <!-- Background-only overlay at z:9999 — hides gallery, cloud layers show above it -->
+    <div id="carouselOverlay" class="carousel-overlay"></div>
+    <!-- Carousel UI at z:10001 — above cloud layers, fully opaque -->
+    <div id="carouselContent">
         <div class="carousel-container">
             <button class="carousel-nav prev" id="carouselPrev">‹</button>
             <img id="carouselImage" class="carousel-image" src="" alt="NFT Preview">
@@ -1901,7 +1908,9 @@ let carouselTimer = setInterval(() => {
 
         function hideCarousel() {
             carouselOverlay.classList.add('hidden');
+            carouselContent.classList.add('hidden');
             clearInterval(carouselTimer);
+            setTimeout(() => document.body.classList.remove('body-splash'), 500);
         }
 
         function resetCarouselTimer() {
@@ -1941,18 +1950,21 @@ let carouselTimer = setInterval(() => {
         let loadedCount = 0;
         let preloadComplete = false;
         const bgPreloaderOverlay = document.querySelector('.carousel-overlay');
+        const carouselContent = document.getElementById('carouselContent');
 
         // Function to show carousel once images are ready
         function showCarouselAfterPreload() {
             if (!preloadComplete) {
                 preloadComplete = true;
                 bgPreloaderOverlay.classList.remove('preloading');
+                carouselContent.classList.remove('preloading');
                 document.body.classList.add('images-loaded');
             }
         }
 
-        // Start with carousel overlay hidden during preload
+        // Start with carousel hidden during preload
         bgPreloaderOverlay.classList.add('preloading');
+        carouselContent.classList.add('preloading');
 
         // Safety timeout: show carousel after 5 seconds even if images are still loading
         setTimeout(() => {

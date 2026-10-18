@@ -72,6 +72,11 @@
     68%      { opacity: 0.96; }
 }
 
+/* Phones: only pages that opt in (index.html) show the animation; others keep their own still-image fallback */
+@media (max-width: 768px) {
+    html:not(.bg-phone-anim) .cloud-layer { display: none; }
+}
+
 /* Crossfade fallback: reduced motion or a struggling device (set by js/bg-anim.js) */
 .bg-fade .cloud-layer {
     filter: none !important;

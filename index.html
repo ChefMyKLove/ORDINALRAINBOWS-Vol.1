@@ -214,28 +214,26 @@
     </div>
 
     <div class="container" id="mainContainer">
-        <header id="main-header">
-            <h1>ORDINAL•RAINBOWS Vol. 1</h1>
-            <p class="subtitle">A PROPRIETARY HARVESTING PROCESS YIELDS SOME ASTOUNDING RESULTS!!</p>
-            <p class="subtitle">ADORN YOUR ENVIRONMENT WITH BEAUTIFUL RAINBOW MAGIC</p>
-        </header>
-
-        <!-- Search & Filter Controls -->
-        <div class="controls-section">
-            <div class="controls-grid">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    class="search-input" 
-                    placeholder="Search by title, subtitle, or rarity..."
-                >
-                <select id="sortSelect" class="filter-select" title="Sort NFTs">
-                    <option value="alpha">Sort: Alphabetical</option>
-                    <option value="rarity-high">Sort: Rarity (High to Low)</option>
-                    <option value="rarity-low">Sort: Rarity (Low to High)</option>
+        <header class="site-header" id="main-header">
+            <div class="header-pills">
+                <button type="button" class="pill-btn" data-action="screensaver" aria-label="Show screensaver">✦ Screensaver</button>
+                <button type="button" class="pill-btn pastel" data-action="wallet">🔗 Connect</button>
+            </div>
+            <div class="bubble wordmark-bubble">
+                <h1 class="wordmark">ORDINAL•RAINBOWS<span class="vol-pill">VOL. 1</span></h1>
+            </div>
+            <p class="tagline">A PROPRIETARY HARVESTING PROCESS YIELDS SOME ASTOUNDING RESULTS!!</p>
+            <p class="tagline">ADORN YOUR ENVIRONMENT WITH BEAUTIFUL RAINBOW MAGIC</p>
+            <div class="filter-row" role="search">
+                <input type="search" id="searchInput" class="pill-search" data-filter="search" placeholder="Search pieces…" aria-label="Search pieces">
+                <select id="sortSelect" class="pill-select" data-filter="sort" aria-label="Sort pieces">
+                    <option value="alpha">Sort: A–Z</option>
+                    <option value="rarity-high">Sort: Rarity (high → low)</option>
+                    <option value="rarity-low">Sort: Rarity (low → high)</option>
+                    <option value="rewards">Sort: Rewards waiting</option>
                 </select>
-                <select id="rarityFilter" class="filter-select" title="Filter by rarity">
-                    <option value="all">All Rarities</option>
+                <select id="rarityFilter" class="pill-select" data-filter="rarity" aria-label="Filter by rarity">
+                    <option value="all">All rarities</option>
                     <option value="Legendary">Legendary</option>
                     <option value="Exotic">Exotic</option>
                     <option value="Epic">Epic</option>
@@ -243,7 +241,25 @@
                     <option value="Uncommon">Uncommon</option>
                     <option value="Common">Common</option>
                 </select>
+                <button type="button" class="pill-btn" data-action="only-mine" aria-pressed="false">⭐ Only mine</button>
             </div>
+        </header>
+
+        <div class="sticky-bar bubble" id="sticky-bar" inert>
+            <span class="wordmark-small">ORDINAL•RAINBOWS</span>
+            <input type="search" class="pill-search" data-filter="search" placeholder="Search…" aria-label="Search pieces">
+            <select class="pill-select" data-filter="rarity" aria-label="Filter by rarity">
+                <option value="all">All rarities</option>
+                <option value="Legendary">Legendary</option>
+                <option value="Exotic">Exotic</option>
+                <option value="Epic">Epic</option>
+                <option value="Rare">Rare</option>
+                <option value="Uncommon">Uncommon</option>
+                <option value="Common">Common</option>
+            </select>
+            <button type="button" class="pill-btn" data-action="only-mine" data-compact="1" aria-pressed="false">⭐ Mine</button>
+            <button type="button" class="pill-btn" data-action="screensaver" aria-label="Show screensaver">✦</button>
+            <button type="button" class="pill-btn pastel" data-action="wallet">🔗 Connect</button>
         </div>
 
         <div class="gallery" id="gallery"></div>

@@ -6,7 +6,8 @@
     { "source": "/tests/:path*", "destination": "/not-found", "permanent": false },
     { "source": "/docs/:path*", "destination": "/not-found", "permanent": false },
     { "source": "/(.*)\\.md", "destination": "/not-found", "permanent": false },
-    { "source": "/repopack-output.txt", "destination": "/not-found", "permanent": false }
+    { "source": "/repopack-output.txt", "destination": "/not-found", "permanent": false },
+    { "source": "/\\.(.*)", "destination": "/not-found", "permanent": false }
   ],
   "rewrites": [
     {

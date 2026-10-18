@@ -1,0 +1,1395 @@
+/* ===== Design tokens (redesign) ===== */
+:root {
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Nunito', -apple-system, 'Segoe UI', sans-serif;
+    --pastel-rainbow: linear-gradient(90deg, #f7c6c7, #f9e2b8, #cdeccd, #c3dff2, #d9c8ef);
+    --pastel-rainbow-diag: linear-gradient(135deg, #f7c6c7, #f9e2b8, #cdeccd, #c3dff2, #d9c8ef);
+    --ink-on-pastel: #2a2238;
+    --smoky-glass: rgba(14, 12, 28, 0.82);
+    --frost-glass: rgba(255, 255, 255, 0.12);
+    --gold: #ffd75a;
+    --gold-glow: rgba(255, 215, 90, 0.6);
+    --reward-green: rgba(0, 190, 90, 0.92);
+    --radius-pill: 999px;
+    --radius-card: 28px;
+    --radius-image: 18px;
+    --shadow-soft: 0 6px 18px rgba(0, 0, 0, 0.3);
+    --shadow-float: 0 18px 40px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
+    --shadow-lift: 0 28px 56px rgba(0, 0, 0, 0.55), 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Apple Liquid Glass CSS Variables */
+:root {
+    --glass-bg-light: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.20);
+    --blur-primary: 20px;
+    --refraction-scale: 40;
+    --edge-glow-size: 140px;
+    --edge-glow-opacity: 0.75;
+}
+
+body {
+    font-family: var(--font-body);
+    background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 50%, #16213e 100%);
+    color: #fff;
+    padding: 20px;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 3;
+}
+
+
+@keyframes backgroundCycle {
+    0% { background-image: url('images/AlchemyBow.JPG'); }
+    6% { background-image: url('images/AuroraBow%231.JPG'); }
+    12% { background-image: url('images/GhostyBow%233.JPG'); }
+    18% { background-image: url('images/HazeBow%233.JPG'); }
+    24% { background-image: url('images/MirrorBow%232.JPG'); }
+    30% { background-image: url('images/NebulaBow%234.JPG'); }
+    36% { background-image: url('images/SkyBow%231.JPG'); }
+    42% { background-image: url('images/TunnelBow%231.JPG'); }
+    48% { background-image: url('images/TunnelBow%232.JPG'); }
+    54% { background-image: url('images/ZippyBow.JPG'); }
+    60% { background-image: url('images/GhostyBow%234.JPG'); }
+    66% { background-image: url('images/TieDyeBow%232.JPG'); }
+    72% { background-image: url('images/CosmicBow%232.JPG'); }
+    78% { background-image: url('images/HummingBow%231.JPG'); }
+    84% { background-image: url('images/NebulaBow%231.JPG'); }
+    90% { background-image: url('images/FlowBow%233.JPG'); }
+    96% { background-image: url('images/HazeBow%231.JPG'); }
+    100% { background-image: url('images/AlchemyBow.JPG'); }
+}
+
+/* WALLET CONNECTION */
+.wallet-section {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.connect-btn, .wallet-status {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+.connect-btn:hover {
+    transform: scale(1.05);
+}
+
+.wallet-status {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #000;
+}
+
+.wallet-address {
+    font-family: monospace;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.disconnect-btn {
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    color: #000;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.disconnect-btn:hover {
+    background: rgba(0,0,0,0.3);
+    transform: scale(1.05);
+}
+
+/* CAROUSEL */
+/* Background-only layer — opaque dark, hides gallery */
+.carousel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    background: rgba(5, 5, 15, 0.97);
+}
+
+.carousel-overlay.preloading,
+.carousel-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* On splash page, cloud layers rise above the background (z:9999) but below content (z:10001) */
+body.body-splash .cloud-layer {
+    z-index: 10000;
+}
+
+/* Carousel UI — above cloud layers, fully opaque */
+#carouselContent {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    pointer-events: auto;
+}
+
+#carouselContent.preloading,
+#carouselContent.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.carousel-container {
+    position: relative;
+    width: 90%;
+    max-width: 800px;
+    max-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px;
+}
+
+.carousel-image {
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.carousel-image:hover {
+    transform: scale(1.02);
+}
+
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 2em;
+    padding: 20px 30px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.carousel-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-nav.prev { left: -80px; }
+.carousel-nav.next { right: -80px; }
+
+.carousel-info {
+    margin-top: 30px;
+    text-align: center;
+    padding: 0 50px;
+}
+
+.carousel-title {
+    font-size: 2.5em;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff006e, #ff4d00, #ffb700, #00f5d4, #00bbf9, #5e60ce, #7209b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.carousel-subtitle {
+    font-size: 1.3em;
+    color: #fff;
+    margin-bottom: 25px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.carousel-skip {
+    padding: 12px 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.carousel-skip:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+/* INDIVIDUAL CARD VIEW */
+.individual-card-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9998;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.individual-card-view.active {
+    display: flex;
+    opacity: 1;
+}
+
+/* Static blurred backdrop for individual card */
+.individual-card-view::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('images/AlchemyBow.JPG');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -1;
+    filter: brightness(0.5) saturate(1.2) blur(8px);
+}
+
+.individual-card-container {
+    max-width: 600px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.back-to-gallery {
+    display: block;
+    margin-top: 20px;
+    padding: 14px 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.back-to-gallery:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    color: white;
+}
+
+/* CONTROLS */
+.controls-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background: var(--glass-bg-light);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 15px;
+}
+
+.search-input, .filter-select {
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus, .filter-select:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-select option {
+    background: #1a1a2e;
+    color: white;
+}
+
+/* Header - Always visible */
+header {
+    text-align: center;
+    padding: 30px 30px;
+    margin-bottom: 40px;
+    border-radius: 32px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: var(--glass-bg-light);
+}
+
+/* LIQUID GLASS for header */
+header.glass-active {
+    -webkit-backdrop-filter: blur(var(--blur-primary)) saturate(180%);
+    backdrop-filter: blur(var(--blur-primary)) saturate(180%);
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 2px;
+    background:
+        radial-gradient(circle var(--edge-glow-size) at 0% 0%,
+            rgba(255, 255, 255, var(--edge-glow-opacity)) 0%,
+            transparent 70%),
+        radial-gradient(circle var(--edge-glow-size) at 100% 100%,
+            rgba(255, 255, 255, calc(var(--edge-glow-opacity) * 0.7)) 0%,
+            transparent 70%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 5;
+}
+
+header > * {
+    position: relative;
+    z-index: 6;
+}
+
+h1 {
+    font-size: clamp(1.5rem, 5vw, 4.5em);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    padding: 15px 25px 25px 5px;
+    margin-bottom: 25px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: backgroundCycle 42s infinite ease-in-out;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    -webkit-text-stroke: 0.05px rgba(255, 255, 255, 0.7);
+    text-shadow:
+        0 0 5px rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.subtitle {
+    font-size: 2.2em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: backgroundCycle 42s infinite ease-in-out;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.4);
+    text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.4),
+        0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 40px;
+    margin-top: 40px;
+    position: relative;
+    z-index: 2;
+}
+
+/* NFT Card */
+.nft-card {
+    position: relative;
+    border-radius: 32px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: var(--glass-bg-light);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.nft-card.glass-active {
+    -webkit-backdrop-filter: blur(var(--blur-primary)) saturate(180%);
+    backdrop-filter: blur(var(--blur-primary)) saturate(180%);
+}
+
+.nft-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 2px;
+    background:
+        radial-gradient(circle var(--edge-glow-size) at 0% 0%,
+            rgba(255, 255, 255, var(--edge-glow-opacity)) 0%,
+            transparent 70%),
+        radial-gradient(circle var(--edge-glow-size) at 100% 100%,
+            rgba(255, 255, 255, calc(var(--edge-glow-opacity) * 0.7)) 0%,
+            transparent 70%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.nft-card.glass-active::after {
+    opacity: 1;
+}
+
+.nft-card > * {
+    position: relative;
+    z-index: 3;
+}
+
+.nft-header {
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nft-title {
+    font-size: 2.2em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: backgroundCycle 52s infinite ease-in-out;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+}
+
+.nft-subtitle {
+    font-size: 1.5em;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #ff006e, #ff4d00, #ffb700, #00f5d4, #00bbf9, #5e60ce, #7209b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.4);
+    text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.nft-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.nft-image:hover {
+    transform: scale(1.02);
+}
+
+.nft-info {
+    padding: 25px;
+    background: rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-row:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #b8b8b8;
+}
+
+.info-value {
+    color: #fff;
+    font-weight: 500;
+}
+
+.rarity {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.rarity.legendary {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    box-shadow: 0 4px 20px rgba(240, 147, 251, 0.5);
+}
+
+.rarity.exotic {
+    background: linear-gradient(135deg, #fa709a, #fee140);
+    box-shadow: 0 4px 20px rgba(250, 112, 154, 0.5);
+}
+
+.rarity.epic {
+    background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+    box-shadow: 0 4px 20px rgba(161, 140, 209, 0.5);
+}
+
+.rarity.rare {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    box-shadow: 0 4px 20px rgba(79, 172, 254, 0.5);
+}
+
+.rarity.uncommon {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    box-shadow: 0 4px 20px rgba(67, 233, 123, 0.5);
+}
+
+.rarity.common {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+}
+
+.sale-link {
+    display: block;
+    margin-top: 15px;
+    padding: 14px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+    animation: backgroundCycle 65s infinite ease-in-out;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.sale-link:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.sale-link.unavailable {
+    background: rgba(100, 100, 100, 0.3);
+    cursor: not-allowed;
+    opacity: 0.5;
+    animation: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    /* Disable resource-intensive animations */
+    .carousel-overlay::before,
+    .individual-card-view::before {
+        animation: none !important;
+        background-image: url('images/AlchemyBow.JPG') !important;
+        filter: brightness(0.6) saturate(1.2);
+    }
+    /* Static rainbow gradient for text instead of animated backgrounds */
+    h1,
+    .subtitle,
+    .nft-title,
+    .sale-link:not(.unavailable) {
+        animation: none !important;
+        background: linear-gradient(135deg, #ff006e, #ff4d00, #ffb700, #00f5d4, #00bbf9, #5e60ce, #7209b7) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
+
+    /* Reduce blur intensity */
+    :root {
+        --blur-primary: 8px;
+        --refraction-scale: 20;
+        --edge-glow-size: 80px;
+        --edge-glow-opacity: 0.5;
+    }
+
+    /* Simplify glass effects */
+    header.glass-active,
+    .nft-card.glass-active {
+        -webkit-backdrop-filter: blur(8px) saturate(150%);
+        backdrop-filter: blur(8px) saturate(150%);
+    }
+
+    /* Reduce shadow complexity */
+    .nft-card,
+    header {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .carousel-image {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Layout adjustments */
+    .gallery {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    header {
+        padding: 20px 10px;
+    }
+
+    .nft-image {
+        height: 300px;
+    }
+
+    .controls-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .carousel-nav {
+        padding: 15px 20px;
+        font-size: 1.5em;
+    }
+
+    .carousel-nav.prev { left: 10px; }
+    .carousel-nav.next { right: 10px; }
+
+    .carousel-container {
+        padding: 20px;
+    }
+
+    .carousel-info {
+        padding: 0 20px;
+    }
+
+    /* Reduce text stroke effects */
+    h1 {
+        -webkit-text-stroke: 0px;
+        text-shadow: 0 0 3px rgba(255, 255, 255, 0.2);
+    }
+
+    .subtitle {
+        -webkit-text-stroke: 0px;
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Loading skeleton for unactivated cards */
+.nft-card:not(.glass-active) {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* ====== CARD HOVER ANIMATIONS ====== */
+.nft-card:hover {
+    transform: scale(1.01) translateY(-2px);
+    box-shadow: 0 12px 48px rgba(0, 100, 255, 0.3), 0 0 30px rgba(100, 200, 255, 0.2);
+}
+
+.nft-card:hover::after {
+    opacity: 1;
+}
+
+/* ====== 3D CARD MODAL ====== */
+/* ====== 3D CARD MODAL — DRAG ROTATION ====== */
+.card-3d-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    background: radial-gradient(circle at center, rgba(0,0,0,0.82), rgba(0,0,0,0.97));
+    backdrop-filter: blur(12px);
+    animation: modalFadeIn 0.3s ease;
+}
+
+.card-3d-modal.active {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Perspective scene — drag rotates this */
+.card-3d-scene {
+    perspective: 1400px;
+}
+
+.card-3d-card {
+    width: 400px;
+    height: 600px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.08s ease-out;
+    cursor: grab;
+    user-select: none;
+}
+
+.card-3d-card:active { cursor: grabbing; }
+
+/* ---- Rainbow thickness edges ---- */
+.card-edge {
+    position: absolute;
+    background: linear-gradient(180deg,
+        #ff0000 0%, #ff6600 16%, #ffee00 33%,
+        #00ee00 50%, #0066ff 66%, #8800ff 83%, #ff0080 100%);
+    z-index: 0;
+}
+.card-edge.edge-top    { width: 400px; height: 12px; top: 0;    left: 0; transform-origin: top center;    transform: rotateX(90deg);  border-radius: 20px 20px 0 0; }
+.card-edge.edge-bottom { width: 400px; height: 12px; bottom: 0; left: 0; transform-origin: bottom center; transform: rotateX(-90deg); border-radius: 0 0 20px 20px; }
+.card-edge.edge-left   { width: 12px; height: 600px; top: 0; left: 0;  transform-origin: left center;   transform: rotateY(-90deg); border-radius: 20px 0 0 20px; }
+.card-edge.edge-right  { width: 12px; height: 600px; top: 0; right: 0; transform-origin: right center;  transform: rotateY(90deg);  border-radius: 0 20px 20px 0; }
+
+/* ---- Card faces ---- */
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.6);
+}
+
+.card-face.card-front {
+    background: linear-gradient(145deg, #1e1e30 0%, #13131f 100%);
+    border: 2px solid rgba(255,255,255,0.12);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-face.card-back {
+    background: linear-gradient(145deg, #2a1a3e 0%, #1a0f2e 100%);
+    border: 2px solid rgba(255,255,255,0.18);
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+}
+
+/* ---- Front face layout ---- */
+.card-front-header {
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.35);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.card-front-title {
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #ff006e, #ff8c00, #ffe000, #00f5d4, #00bbf9, #7209b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.card-front-rarity {
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.45);
+    margin-top: 4px;
+    letter-spacing: 1px;
+}
+
+.card-front-image-wrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    padding: 12px;
+}
+
+.card-front-image-wrap img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    image-rendering: pixelated;
+}
+
+.card-front-footer {
+    padding: 12px 18px;
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+    font-size: 0.8em;
+    color: rgba(255,255,255,0.55);
+    flex-shrink: 0;
+}
+
+/* ---- Back face ---- */
+.card-3d-back {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.card-3d-back-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: rgba(255,255,255,0.9);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.card-rewards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.card-reward-item {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.card-reward-token  { font-size: 0.9em; color: rgba(255,255,255,0.7); margin-bottom: 8px; }
+.card-reward-amount { font-size: 1.4em; font-weight: 700; color: rgba(255,255,255,0.9); }
+
+.card-3d-message {
+    font-size: 1.1em;
+    text-align: center;
+    color: rgba(255,160,100,0.9);
+    font-weight: 600;
+    padding: 30px 20px;
+}
+
+/* ---- Modal bottom controls ---- */
+.card-3d-modal-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.card-3d-ctrl-btn {
+    padding: 10px 28px;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(6px);
+}
+.card-3d-ctrl-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.04); }
+.card-3d-ctrl-btn.close  { background: rgba(255,80,80,0.5); border-color: rgba(255,80,80,0.5); }
+.card-3d-ctrl-btn.close:hover { background: rgba(255,80,80,0.8); }
+
+/* drag hint */
+.card-3d-drag-hint {
+    position: absolute;
+    bottom: -52px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 0.75em;
+    color: rgba(255,255,255,0.3);
+    pointer-events: none;
+}
+
+/* keep claim btn style */
+.card-3d-claim-btn {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1em;
+    background: rgba(0,255,100,0.8);
+    color: white;
+}
+.card-3d-claim-btn:hover { background: rgba(0,255,100,1); transform: scale(1.04); }
+
+.card-3d-face:first-of-type {
+    z-index: 2;
+}
+
+.card-3d-face:last-of-type {
+    transform: rotateY(180deg);
+    z-index: 1;
+}
+
+.card-3d-front {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.card-3d-front img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.card-3d-front-title {
+    font-size: 1.8em;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(135deg, #ff006e, #ff4d00, #ffb700, #00f5d4, #00bbf9, #5e60ce, #7209b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.card-3d-front-subtitle {
+    font-size: 1em;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.card-3d-back {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: space-between;
+}
+
+.card-3d-back-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.card-rewards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.card-reward-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.card-reward-token {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
+}
+
+.card-reward-amount {
+    font-size: 1.4em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.card-3d-message {
+    font-size: 1.2em;
+    text-align: center;
+    color: rgba(255, 100, 100, 0.9);
+    font-weight: 600;
+    padding: 40px;
+}
+
+.card-3d-modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    position: absolute;
+    bottom: -70px;
+    left: 0;
+    right: 0;
+    width: 100%;
+}
+
+.card-3d-flip-btn, .card-3d-claim-btn, .card-3d-close-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1em;
+}
+
+.card-3d-flip-btn {
+    background: rgba(0, 150, 255, 0.8);
+    color: white;
+}
+
+.card-3d-flip-btn:hover {
+    background: rgba(0, 150, 255, 1);
+    transform: scale(1.05);
+}
+
+.card-3d-claim-btn {
+    background: rgba(0, 255, 100, 0.8);
+    color: white;
+}
+
+.card-3d-claim-btn:hover {
+    background: rgba(0, 255, 100, 1);
+    transform: scale(1.05);
+}
+
+.card-3d-close-btn {
+    background: rgba(255, 100, 100, 0.8);
+    color: white;
+}
+
+.card-3d-close-btn:hover {
+    background: rgba(255, 100, 100, 1);
+    transform: scale(1.05);
+}
+
+/* ====== WALLET BOX ====== */
+.wallet-box {
+    display: none;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    backdrop-filter: blur(20px);
+    position: relative;
+    z-index: 9999;
+    min-width: 350px;
+}
+
+.wallet-box.hidden {
+    display: none !important;
+}
+
+.wallet-box.active {
+    display: block !important;
+    animation: slideInDown 0.4s ease;
+}
+
+.wallet-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.wallet-box-toggle {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 1.1em;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.wallet-box-toggle:hover {
+    color: rgba(255,255,255,0.9);
+    background: rgba(255,255,255,0.08);
+}
+
+.wallet-box.collapsed .wallet-box-header {
+    margin-bottom: 0;
+}
+
+.wallet-box.collapsed .wallet-box-content,
+.wallet-box.collapsed .wallet-box-disconnect {
+    display: none;
+}
+
+.wallet-box.collapsed .wallet-box-toggle {
+    transform: rotate(-90deg);
+}
+
+.wallet-box-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.wallet-box-refresh {
+    background: rgba(0, 150, 255, 0.6);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.wallet-box-refresh:hover {
+    background: rgba(0, 150, 255, 0.9);
+    transform: scale(1.05);
+}
+
+.wallet-box-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+}
+
+.wallet-box-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+}
+
+.wallet-box-label {
+    font-size: 0.85em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+}
+
+.wallet-box-value {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.wallet-box-disconnect {
+    margin-top: 15px;
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 100, 100, 0.6);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.wallet-box-disconnect:hover {
+    background: rgba(255, 100, 100, 0.9);
+}
+
+/* ====== ANIMATIONS ====== */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* SVG Filter positioning */
+.svg-filter {
+    position: absolute;
+}
+
+/* Hidden utility class */
+.hidden {
+    display: none;
+}
+
+/* ====== TOKEN SALE ANNOUNCEMENT ====== */
+.token-sale-modal {
+    max-width: min(480px, calc(100vw - 32px));
+    padding: 36px 28px 28px;
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    background: rgba(10, 10, 18, 0.92);
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 80px rgba(160, 100, 255, 0.25);
+    animation: modalFadeIn 0.4s ease;
+}
+.token-sale-modal::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+.token-sale-modal h2 {
+    margin: 8px 0 12px;
+    font-size: 1.7em;
+    background: linear-gradient(90deg, #ff5f6d, #ffc371, #7cff6b, #4fc3ff, #b36bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.token-sale-modal p { margin: 0 0 24px; line-height: 1.5; color: rgba(255, 255, 255, 0.85); }
+.token-sale-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.token-sale-close:hover { opacity: 1; }
+.token-sale-cta {
+    display: inline-block;
+    padding: 14px 32px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff5f6d, #b36bff);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+.token-sale-cta:hover { filter: brightness(1.15); }
+
+/* ====== REWARDS: gallery badge + card-back states ====== */
+.reward-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 3;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(0, 200, 90, 0.92);
+    color: #fff;
+    font-size: 0.85em;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+.card-3d-claim-btn:disabled,
+.card-3d-claim-btn:disabled:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    cursor: default;
+    transform: none;
+}
+.card-3d-note {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    padding: 24px 12px;
+}
+.card-3d-note .amount {
+    display: block;
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #3dff8f;
+    margin: 6px 0 10px;
+}
+.card-3d-note a { color: #9fd8ff; }

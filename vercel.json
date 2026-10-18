@@ -1,5 +1,13 @@
 {
   "version": 2,
+  "redirects": [
+    { "source": "/lib/:path*", "destination": "/not-found", "permanent": false },
+    { "source": "/scripts/:path*", "destination": "/not-found", "permanent": false },
+    { "source": "/tests/:path*", "destination": "/not-found", "permanent": false },
+    { "source": "/docs/:path*", "destination": "/not-found", "permanent": false },
+    { "source": "/(.*)\\.md", "destination": "/not-found", "permanent": false },
+    { "source": "/repopack-output.txt", "destination": "/not-found", "permanent": false }
+  ],
   "rewrites": [
     {
       "source": "/",

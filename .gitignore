@@ -36,3 +36,6 @@ CLAUDE.md
 yours_wallet_keys.json
 
 .env*.local
+
+# Brainstorm mockups (visual companion)
+.superpowers/

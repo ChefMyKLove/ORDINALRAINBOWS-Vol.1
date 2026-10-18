@@ -15,27 +15,7 @@
     <link rel="stylesheet" href="css/rewards-dashboard.css">
     <link rel="stylesheet" href="css/bg-anim.css">
 </head>
-<body class="body-splash">
-    <!-- Token sale announcement (opens over the splash on load) -->
-    <dialog id="token-sale-modal" class="token-sale-modal" aria-labelledby="token-sale-title">
-        <form method="dialog"><button class="token-sale-close" aria-label="Close">&times;</button></form>
-        <div style="font-size:3em">🌈</div>
-        <h2 id="token-sale-title">ORDINAL RAINBOWS Token — Now On Sale</h2>
-        <p>The ORDINAL RAINBOWS BSV21 token is live. Grab yours and join the rainbow.</p>
-        <!-- TODO: replace href with the real BSV21 market listing -->
-        <a class="token-sale-cta" href="https://1sat.market" target="_blank" rel="noopener">Buy Tokens</a>
-    </dialog>
-    <script>
-        (function () {
-            const d = document.getElementById('token-sale-modal');
-            d.showModal();
-            // Click on the backdrop (outside the box) closes it
-            d.addEventListener('click', e => {
-                const r = d.getBoundingClientRect();
-                if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
-            });
-        })();
-    </script>
+<body class="screensaver-on">
     <!-- SVG filter definitions for cloud displacement -->
     <svg id="svg-filters" style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
         <defs>
@@ -165,28 +145,17 @@
         </div>
     </div>
 
-    <!-- Image Carousel Overlay -->
-    <!-- Background-only overlay at z:9999 — hides gallery, cloud layers show above it -->
-    <div id="carouselOverlay" class="carousel-overlay"></div>
-    <!-- Carousel UI at z:10001 — above cloud layers, fully opaque -->
-    <div id="carouselContent">
-        <div class="carousel-container">
-            <button class="carousel-nav prev" id="carouselPrev">‹</button>
-            <img id="carouselImage" class="carousel-image" src="" alt="NFT Preview">
-            <button class="carousel-nav next" id="carouselNext">›</button>
-        </div>
-        <div class="carousel-info">
-            <div class="carousel-title" id="carouselTitle"></div>
-            <div class="carousel-subtitle" id="carouselSubtitle"></div>
-            <button class="carousel-skip" id="carouselSkip">Enter Gallery</button>
-        </div>
-    </div>
-
-    <!-- Individual Card View -->
-    <div id="individualCardView" class="individual-card-view">
-        <div class="individual-card-container">
-            <div id="individualCard" class="nft-card glass-active"></div>
-            <button class="back-to-gallery" id="backToGallery">← Back to Gallery</button>
+    <!-- Screensaver welcome (arrival, ✦ button, 1 minute idle) -->
+    <div id="screensaver" class="screensaver" role="dialog" aria-modal="true" aria-label="ORDINAL•RAINBOWS screensaver">
+        <div class="ss-stage" aria-hidden="true"></div>
+        <button type="button" class="ss-forward" aria-label="Open this piece">
+            <img src="" alt="" decoding="async">
+        </button>
+        <div class="ss-placard bubble">
+            <p class="ss-title"></p>
+            <p class="ss-subtitle"></p>
+            <span class="ss-rarity rarity"></span>
+            <button type="button" class="ss-enter pill-btn pastel">Enter Gallery</button>
         </div>
     </div>
 
@@ -311,143 +280,6 @@
             { id: "UniverseBow", title: "UniverseBow", subtitle: "Everything, Everywhere, All at Once", rarity: "Legendary", inscriptionId: "93f79b45ac8f5d1ef218bb67426aefe53458081010119a620a7bc77f220c74d3", printifyUrl: "https://ordinalrainbows.printify.me/product/26313179/universebow-everything-everywhere-all-at-once" },
             { id: "ZippyBow", title: "ZippyBow", subtitle: "(In Case You Missed It)", rarity: "Exotic", inscriptionId: "d6dc7d95528657302d7fb1473002358323987dc468f833f53a34d0276c24b2d4", printifyUrl: "https://ordinalrainbows.printify.me/product/26313189/zippybow-in-case-you-missed-it" }
         ];
-
-        // Temporary until the screensaver replaces the carousel (Task 6)
-        const isMobile = window.innerWidth <= 768;
-        const showIndividualCard = id => window.openCard3DModal(id);
-
-        // CAROUSEL LOGIC
-        const carouselOverlay = document.getElementById('carouselOverlay');
-        const carouselImage = document.getElementById('carouselImage');
-        const carouselTitle = document.getElementById('carouselTitle');
-        const carouselSubtitle = document.getElementById('carouselSubtitle');
-        const carouselPrev = document.getElementById('carouselPrev');
-        const carouselNext = document.getElementById('carouselNext');
-        const carouselSkip = document.getElementById('carouselSkip');
-
-        let currentSlideIndex = 0;
-
-        function showSlide(index) {
-            if (!window.nfts.length) return;
-            currentSlideIndex = (index + window.nfts.length) % window.nfts.length;
-            const nft = window.nfts[currentSlideIndex];
-            carouselImage.src = `images/${encodeURIComponent(nft.id)}.JPG`;
-            carouselTitle.textContent = nft.title;
-            carouselSubtitle.textContent = nft.subtitle;
-        }
-
-        // init carousel
-        showSlide(0);
-
-        // autoplay every 4 seconds
-       // autoplay every 4 seconds (6 seconds on mobile to reduce load)
-const carouselInterval = isMobile ? 6000 : 4000;
-let carouselTimer = setInterval(() => {
-    showSlide(currentSlideIndex + 1);
-}, carouselInterval);
-
-        carouselPrev.addEventListener('click', () => {
-            showSlide(currentSlideIndex - 1);
-            resetCarouselTimer();
-        });
-
-        carouselNext.addEventListener('click', () => {
-            showSlide(currentSlideIndex + 1);
-            resetCarouselTimer();
-        });
-
-        carouselSkip.addEventListener('click', hideCarousel);
-
-        // Clicking carousel image shows individual card
-        carouselImage.addEventListener('click', () => {
-            const nft = window.nfts[currentSlideIndex];
-            hideCarousel();
-            showIndividualCard(nft.id);
-        });
-
-        function hideCarousel() {
-            carouselOverlay.classList.add('hidden');
-            carouselContent.classList.add('hidden');
-            clearInterval(carouselTimer);
-            setTimeout(() => document.body.classList.remove('body-splash'), 500);
-        }
-
-        function resetCarouselTimer() {
-    clearInterval(carouselTimer);
-    carouselTimer = setInterval(() => {
-        showSlide(currentSlideIndex + 1);
-    }, carouselInterval);
-}
-
-        // Wallet integration is handled by rewards-integration.js
-
-        // ========================
-        // IMAGE PRELOADING SYSTEM
-        // ========================
-        // Preload all background animation images to ensure smooth transitions
-        const backgroundImages = [
-            'images/AlchemyBow.JPG',
-            'images/AuroraBow%231.JPG',
-            'images/GhostyBow%233.JPG',
-            'images/HazeBow%233.JPG',
-            'images/MirrorBow%232.JPG',
-            'images/NebulaBow%234.JPG',
-            'images/SkyBow%231.JPG',
-            'images/TunnelBow%231.JPG',
-            'images/TunnelBow%232.JPG',
-            'images/ZippyBow.JPG',
-            'images/GhostyBow%234.JPG',
-            'images/TieDyeBow%232.JPG',
-            'images/CosmicBow%232.JPG',
-            'images/HummingBow%231.JPG',
-            'images/NebulaBow%231.JPG',
-            'images/FlowBow%233.JPG',
-            'images/HazeBow%231.JPG',
-            'images/Do-ItBow%231.JPG'
-        ];
-
-        let loadedCount = 0;
-        let preloadComplete = false;
-        const bgPreloaderOverlay = document.querySelector('.carousel-overlay');
-        const carouselContent = document.getElementById('carouselContent');
-
-        // Function to show carousel once images are ready
-        function showCarouselAfterPreload() {
-            if (!preloadComplete) {
-                preloadComplete = true;
-                bgPreloaderOverlay.classList.remove('preloading');
-                carouselContent.classList.remove('preloading');
-                document.body.classList.add('images-loaded');
-            }
-        }
-
-        // Start with carousel hidden during preload
-        bgPreloaderOverlay.classList.add('preloading');
-        carouselContent.classList.add('preloading');
-
-        // Safety timeout: show carousel after 5 seconds even if images are still loading
-        setTimeout(() => {
-            showCarouselAfterPreload();
-        }, 5000);
-
-        backgroundImages.forEach(src => {
-            const img = new Image();
-            img.onload = () => {
-                loadedCount++;
-                if (loadedCount === backgroundImages.length) {
-                    // All images loaded - enable animated background
-                    showCarouselAfterPreload();
-                }
-            };
-            img.onerror = () => {
-                loadedCount++;
-                if (loadedCount === backgroundImages.length) {
-                    // Fallback if some images fail to load
-                    showCarouselAfterPreload();
-                }
-            };
-            img.src = src;
-        });
     </script>
 
     <!-- Rewards Dashboard -->
@@ -519,6 +351,7 @@ let carouselTimer = setInterval(() => {
     <script src="js/rewards-integration.js"></script>
     <script src="js/gallery.js"></script>
     <script src="js/wallet-panel.js"></script>
+    <script src="js/screensaver.js"></script>
     <script src="js/bg-anim.js"></script>
 </body>
 </html>

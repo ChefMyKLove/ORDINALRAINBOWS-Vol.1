@@ -47,10 +47,18 @@
         return r.publicKey;
     }
 
+    // Count wallet calls in flight so the screensaver never interrupts a prompt.
+    var busy = 0;
+    function track(promise) {
+        busy++;
+        return promise.finally(function () { busy--; });
+    }
+
     window.ORWallet = {
         available: function () { return !!window.CWI; },
-        listOrdinals: listOrdinals,
-        signWith: signWith,
-        getReceivePubKey: getReceivePubKey
+        listOrdinals: function () { return track(listOrdinals()); },
+        signWith: function (derivation, message) { return track(signWith(derivation, message)); },
+        getReceivePubKey: function () { return track(getReceivePubKey()); },
+        get busy() { return busy; }
     };
 })();

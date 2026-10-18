@@ -1474,22 +1474,23 @@ function setupWalletSDKEvents() {
 // Connects the current Yours Wallet (window.CWI via js/wallet.js). The payout address is the
 // wallet's first deposit address; owned pieces are read from the wallet in fetchUserOrdinals().
 async function showWalletConnection() {
+    const say = msg => window.dispatchEvent(new CustomEvent('or-wallet-error', { detail: msg }));
     if (!window.ORWallet || !window.ORWallet.available()) {
-        alert('Yours Wallet not found. Install the Yours Wallet extension, unlock it, then reload this page.');
+        say('Yours Wallet not found. Install it from yours.org, unlock it, then reload this page.');
         return;
     }
-    const btn = document.getElementById('connect-wallet-btn');
-    const label = btn ? btn.textContent : '';
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Approve in Yours…'; }
+    const pills = document.querySelectorAll('[data-action="wallet"]');
+    pills.forEach(p => { p.disabled = true; p.textContent = '⏳ Approve in Yours…'; });
     try {
         const pubKey = await window.ORWallet.getReceivePubKey();
         const address = window.bsv.PublicKey.fromString(pubKey).toAddress().toString();
         window.dispatchEvent(new CustomEvent('bsv-wallet-authenticated', { detail: { wallet: 'yours', address: address, ordAddress: null } }));
     } catch (error) {
         console.error('[CONNECT] Yours connection failed', error);
-        alert('Could not connect to Yours: ' + (error.message || error));
+        say('Could not connect to Yours: ' + (error.message || error));
     } finally {
-        if (btn) { btn.disabled = false; btn.textContent = label; }
+        pills.forEach(p => { p.disabled = false; });
+        window.dispatchEvent(new Event('or-wallet-changed'));
     }
 }
 
@@ -1510,67 +1511,9 @@ function disconnectWallet() {
     console.log('✅ Wallet disconnected');
 }
 
-function updateWalletUI(connected, address = null, walletType = null) {
-    console.log('[UI] updateWalletUI called - connected:', connected, 'address:', address);
-    
-    const connectBtn = document.getElementById('connect-wallet-btn');
-    const walletStatus = document.getElementById('wallet-status');
-    const walletAddress = document.getElementById('wallet-address');
-    const walletBox = document.getElementById('wallet-box');
-    
-    console.log('[UI] Elements:', { connectBtn: !!connectBtn, walletStatus: !!walletStatus, walletBox: !!walletBox });
-    
-    if (connected && address) {
-        // Show wallet box - hide connect button
-        console.log('[UI] Showing wallet box, hiding connect button');
-        
-        if (connectBtn) {
-            connectBtn.style.display = 'none';
-            connectBtn.classList.add('hidden');
-        }
-        if (walletStatus) {
-            walletStatus.style.display = 'none';
-            walletStatus.classList.add('hidden');
-        }
-        
-        // Show wallet box
-        if (walletBox) {
-            walletBox.style.display = 'block';
-            walletBox.classList.remove('hidden');
-            walletBox.classList.add('active');
-            // Restore collapsed preference
-            try {
-                if (localStorage.getItem('walletBoxCollapsed') === 'true') {
-                    walletBox.classList.add('collapsed');
-                }
-            } catch(e) {}
-            console.log('[UI] Wallet box shown - classes:', walletBox.className);
-            
-            // Refresh balances
-            refreshWalletBoxBalances();
-        } else {
-            console.error('[UI] Wallet box element not found!');
-        }
-    } else {
-        // Show connect button - hide wallet box
-        console.log('[UI] Showing connect button, hiding wallet box');
-        
-        if (connectBtn) {
-            connectBtn.style.display = 'block';
-            connectBtn.classList.remove('hidden');
-        }
-        if (walletStatus) {
-            walletStatus.style.display = 'none';
-            walletStatus.classList.add('hidden');
-        }
-        
-        // Hide wallet box
-        if (walletBox) {
-            walletBox.style.display = 'none';
-            walletBox.classList.add('hidden');
-            walletBox.classList.remove('active');
-        }
-    }
+// The pill, panel and gallery redraw themselves from or-wallet-changed.
+function updateWalletUI() {
+    window.dispatchEvent(new Event('or-wallet-changed'));
 }
 
 // ====== 3D CARD MODAL FUNCTIONS ======
@@ -1860,25 +1803,27 @@ async function checkOrdinalOwnership(nftId) {
  * Sends POST to /api/claim which registers a pending claim (server verifies owner).
  * Actual MNEE payout is processed offline by admin running `scripts/process-claims.js`.
  */
+// Shows a short message at the bottom of the 3D card's back face.
+function showCardMessage(text) {
+    const back = document.getElementById('card-3d-back-content');
+    if (!back) return;
+    const note = document.createElement('div');
+    note.className = 'card-3d-note card-3d-error';
+    note.textContent = text;
+    back.appendChild(note);
+}
+
 async function claimOrdinalReward(inscriptionId, nftId) {
+    const btn = document.getElementById('card-3d-claim-btn');
+    const reset = () => { if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; } };
     try {
-        if (!inscriptionId) {
-            alert('This piece cannot be claimed (no inscriptionId)');
-            return;
-        }
-        if (!window.currentWalletAddress) {
-            alert('Please connect your wallet to claim');
-            return;
-        }
+        if (!inscriptionId) { showCardMessage('This piece cannot be claimed yet.'); return; }
+        if (!window.currentWalletAddress) { showCardMessage('Connect your Yours Wallet to claim.'); return; }
 
         // Client-side ownership check before hitting the API (the server re-checks on-chain)
         const owned = window.userOwnedInscriptions && window.userOwnedInscriptions.find(n => n.inscriptionId === inscriptionId);
-        if (!owned) {
-            alert('❌ Sorry, that\'s not your rainbow. You do not own this NFT.');
-            return;
-        }
+        if (!owned) { showCardMessage('This piece isn’t in your connected wallet.'); return; }
 
-        const btn = document.getElementById('card-3d-claim-btn');
         if (btn) { btn.disabled = true; btn.textContent = '⏳ Claiming...'; }
 
         // Sign with the key that holds this piece; the server checks that key is the current owner.
@@ -1889,8 +1834,8 @@ async function claimOrdinalReward(inscriptionId, nftId) {
             proof = await window.ORWallet.signWith(owned.derivation, message);
         } catch (sigErr) {
             console.error('[CLAIM] signature failed', sigErr);
-            alert('Wallet signature required to verify ownership: ' + sigErr.message);
-            if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
+            showCardMessage('The wallet signature was cancelled or failed. Please try again.');
+            reset();
             return;
         }
 
@@ -1898,8 +1843,8 @@ async function claimOrdinalReward(inscriptionId, nftId) {
         const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const j = await resp.json().catch(() => ({}));
         if (!resp.ok || j.success !== true) {
-            alert('Claim not completed: ' + (j.error || j.message || ('HTTP ' + resp.status)));
-            if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
+            showCardMessage('Claim not completed: ' + (j.error || j.message || ('HTTP ' + resp.status)));
+            reset();
             return;
         }
         // Success: show it on the card and keep the button disabled
@@ -1911,13 +1856,11 @@ async function claimOrdinalReward(inscriptionId, nftId) {
                 `<div class="card-3d-note"><a href="https://whatsonchain.com/tx/${j.txid}" target="_blank" rel="noopener">View the payment ↗</a></div>`);
         }
         if (typeof window.loadRewardBadges === 'function') window.loadRewardBadges();
-        // Refresh wallet header totals immediately
-        if (typeof refreshWalletBoxBalances === 'function') refreshWalletBoxBalances();
+        refreshWalletBoxBalances();
     } catch (err) {
         console.error('claim error', err);
-        const btn = document.getElementById('card-3d-claim-btn');
-        if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
-        alert('Claim failed: ' + err.message);
+        showCardMessage('Claim failed: ' + err.message);
+        reset();
     }
 }
 
@@ -1937,69 +1880,11 @@ async function retryOwnershipCheck(nftId) {
 window.retryOwnershipCheck = retryOwnershipCheck;
 
 /**
- * Toggle wallet box collapsed/expanded state
- */
-function toggleWalletBox() {
-    const box = document.getElementById('wallet-box');
-    if (!box) return;
-    box.classList.toggle('collapsed');
-    // Persist preference
-    try { localStorage.setItem('walletBoxCollapsed', box.classList.contains('collapsed')); } catch(e) {}
-}
-window.toggleWalletBox = toggleWalletBox;
-
-/**
  * Refresh wallet box balances
  */
-async function refreshWalletBoxBalances() {
-    console.log('[WALLET-BOX] Refreshing balances...');
-    
-    try {
-        // Show Vol.1 specific count in the wallet box
-        const vol1Count = window.ownedVol1Count || 0;
-        const collectionSize = window.nfts ? window.nfts.filter(n => n.inscriptionId).length : 0;
-        const display = window._ordinalFetchAttempted
-            ? `${vol1Count} <span style="opacity:0.5;font-size:0.8em">of ${collectionSize} Vol.1</span>`
-            : '—';
-        document.getElementById('wallet-bsv21-balance').innerHTML = display;
-        
-        // Fetch and sum claimables across all owned inscriptions
-        try {
-            const inscriptions = window.userOwnedInscriptions || [];
-            let totalMnee = 0;
-            let totalBsvSats = 0;
-            if (inscriptions.length > 0) {
-                const results = await Promise.all(
-                    inscriptions.map(i => {
-                        const id = i?.inscriptionId || i;
-                        return fetch(`/api/rewards?inscriptionId=${encodeURIComponent(id)}`)
-                            .then(r => r.ok ? r.json() : null)
-                            .catch(() => null);
-                    })
-                );
-                for (const j of results) {
-                    if (j && j.allocation) {
-                        totalMnee    += Number(j.allocation.mnee_claimable || 0);
-                        totalBsvSats += Number(j.allocation.bsv_claimable  || 0);
-                    }
-                }
-            }
-            document.getElementById('wallet-mnee-balance').textContent = totalMnee.toFixed(6) + ' MNEE';
-            document.getElementById('wallet-bsv-balance').textContent  = (totalBsvSats / 100000000).toFixed(8) + ' BSV';
-        } catch (fetchErr) {
-            console.warn('[WALLET-BOX] Failed to fetch claimables', fetchErr);
-            document.getElementById('wallet-mnee-balance').textContent = '0.000000 MNEE';
-            document.getElementById('wallet-bsv-balance').textContent  = '0.00000000 BSV';
-        }
-
-        console.log('[WALLET-BOX] Balances updated — Vol.1 owned:', vol1Count, 'of', collectionSize);
-        
-    } catch (err) {
-        console.error('[WALLET-BOX] Error refreshing balances:', err);
-        document.getElementById('wallet-bsv21-balance').textContent = '?';
-        document.getElementById('wallet-mnee-balance').textContent = '? MNEE';
-        document.getElementById('wallet-bsv-balance').textContent = '? BSV';
-    }
+// Kept under its old name for existing callers; redraws pill, panel and gallery.
+function refreshWalletBoxBalances() {
+    window.dispatchEvent(new Event('or-wallet-changed'));
 }
 
 /**

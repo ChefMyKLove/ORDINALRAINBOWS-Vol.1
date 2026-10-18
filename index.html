@@ -86,45 +86,22 @@
         </defs>
     </svg>
 
-    <!-- Wallet Connection - BSV SDK Integration -->
-    <div class="wallet-section">
-        <div id="wallet-connection">
-            <button id="connect-wallet-btn" class="connect-btn" onclick="showWalletConnection()">
-                🚀 Connect BSV Wallet
-            </button>
-            <div id="wallet-status" class="wallet-status hidden">
-                <span class="wallet-address" id="wallet-address"></span>
-                <button id="disconnect-btn" class="disconnect-btn" onclick="disconnectWallet()">Disconnect</button>
-            </div>
+    <!-- Wallet side panel (opened from the wallet pill) -->
+    <div id="wallet-backdrop" class="wallet-backdrop" hidden></div>
+    <aside id="wallet-panel" class="wallet-panel bubble" hidden aria-label="Your wallet">
+        <div class="wp-head">
+            <h2 class="wp-heading">Your wallet</h2>
+            <button type="button" class="wp-close icon-btn" aria-label="Close wallet">✕</button>
         </div>
-        
-        <!-- Wallet Box - Shows when authenticated -->
-        <div id="wallet-box" class="wallet-box hidden">
-            <div class="wallet-box-header" onclick="toggleWalletBox()">
-                <div class="wallet-box-title">🌈 Your Wallet</div>
-                <div style="display:flex;gap:6px;align-items:center">
-                    <button class="wallet-box-refresh" onclick="event.stopPropagation(); refreshWalletBoxBalances()">🔄</button>
-                    <button class="wallet-box-toggle" onclick="event.stopPropagation(); toggleWalletBox()">&#x25BE;</button>
-                </div>
-            </div>
-            <div class="wallet-box-content">
-                <div class="wallet-box-item">
-                    <div class="wallet-box-label">🌈 ORDINAL RAINBOWS BSV21</div>
-                    <div class="wallet-box-value" id="wallet-bsv21-balance">—</div>
-                </div>
-                <div class="wallet-box-item">
-                    <div class="wallet-box-label">💎 MNEE Claimable</div>
-                    <div class="wallet-box-value" id="wallet-mnee-balance">—</div>
-                </div>
-                <div class="wallet-box-item">
-                    <div class="wallet-box-label">⚡ BSV Claimable</div>
-                    <div class="wallet-box-value" id="wallet-bsv-balance">—</div>
-                </div>
-            </div>
-            <button class="wallet-box-disconnect" onclick="disconnectWallet()">🔌 Disconnect Wallet</button>
-        </div>
-    </div>
-    
+        <p class="wp-row">Address <span class="wp-address"></span>
+            <button type="button" class="icon-btn" data-copy-address="" aria-label="Copy address">📋</button></p>
+        <h3 class="wp-sub">Your pieces</h3>
+        <ul class="wp-pieces"></ul>
+        <p class="wp-row wp-total-row">Rewards waiting <strong class="wp-total">0.00000000 BSV</strong></p>
+        <button type="button" class="pill-btn wp-disconnect" data-action="disconnect">Disconnect</button>
+    </aside>
+    <p id="wallet-toast" class="wallet-toast bubble" role="status" hidden></p>
+
     <!-- 3D Card Modal -->
     <div id="card-3d-modal" class="card-3d-modal">
         <!-- Backdrop click to close -->
@@ -541,6 +518,7 @@ let carouselTimer = setInterval(() => {
     <script src="js/wallet.js"></script>
     <script src="js/rewards-integration.js"></script>
     <script src="js/gallery.js"></script>
+    <script src="js/wallet-panel.js"></script>
     <script src="js/bg-anim.js"></script>
 </body>
 </html>

@@ -658,6 +658,17 @@ body {
     background: rgba(0, 0, 0, 0.25);
     cursor: pointer;
 }
+.nft-open {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    border-radius: var(--radius-image);
+}
+.nft-open:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .card-text { padding: 12px 4px 0; }
 .nft-title { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; letter-spacing: 0.02em; line-height: 1.25; }
 .nft-subtitle { margin: 3px 0 0; font-family: var(--font-body); font-style: italic; font-size: 0.86rem; opacity: 0.85; }
@@ -757,7 +768,7 @@ body {
     position: fixed;
     top: 74px;
     right: 16px;
-    z-index: 70;
+    z-index: 10001; /* above the 3D card modal (10000) so connect errors from its back are visible */
     max-width: 320px;
     padding: 12px 16px;
     border-radius: 16px;

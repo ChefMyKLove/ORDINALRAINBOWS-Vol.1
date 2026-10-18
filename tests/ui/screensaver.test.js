@@ -92,3 +92,20 @@ test('cycles through every piece and wraps around', () => {
   assert.strictEqual(S.nextIndex(0, 64), 1);
   assert.strictEqual(S.nextIndex(63, 64), 0);
 });
+
+test('click swallower: swallows exactly one click after being armed, then stops', () => {
+  const timers = fakeTimers();
+  const swallower = S.createClickSwallower({ timers });
+  assert.strictEqual(swallower.shouldSwallow(), false, 'nothing to swallow before arming');
+  swallower.arm();
+  assert.strictEqual(swallower.shouldSwallow(), true, 'swallows the next click once armed');
+  assert.strictEqual(swallower.shouldSwallow(), false, 'does not swallow a second click');
+});
+
+test('click swallower: auto-clears after its window so a later tap is not eaten', () => {
+  const timers = fakeTimers();
+  const swallower = S.createClickSwallower({ windowMs: 500, timers });
+  swallower.arm();
+  timers.advance(500);
+  assert.strictEqual(swallower.shouldSwallow(), false, 'window elapsed without a click; stops swallowing');
+});

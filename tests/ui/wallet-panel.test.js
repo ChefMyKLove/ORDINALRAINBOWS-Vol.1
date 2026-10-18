@@ -9,6 +9,11 @@ test('pill label covers missing wallet, not connected, empty and rich wallets', 
   assert.strictEqual(W.pillLabel({ available: true, connected: true, ownedCount: 2, waitingSats: 5000 }), '⭐ 2 · ⚡ 0.00005000 BSV');
 });
 
+test('pill label shows a loading state while connected but pieces have not been read yet', () => {
+  assert.strictEqual(W.pillLabel({ available: true, connected: true, ownedCount: 0, waitingSats: 0, loading: true }), '⭐ …');
+  assert.strictEqual(W.pillLabel({ available: true, connected: true, ownedCount: 2, waitingSats: 5000, loading: true }), '⭐ …');
+});
+
 test('waiting total counts only owned pieces and ignores missing entries', () => {
   const rewards = { a: 3000, b: 2000, c: 7000 };
   assert.strictEqual(W.waitingTotal(['a', 'b', 'zzz'], rewards), 5000);

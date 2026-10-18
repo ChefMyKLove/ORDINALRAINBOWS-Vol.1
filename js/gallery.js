@@ -38,11 +38,11 @@
     return list.sort(sorters[filters.sort] || byTitle);
   }
 
-  function emptyMessage(filters, connected) {
+  function emptyMessage(filters, connected, loading) {
     if (filters.onlyMine) {
-      return connected
-        ? 'No ORDINAL•RAINBOWS pieces in your wallet yet.'
-        : 'Connect your Yours Wallet to see your pieces.';
+      if (!connected) return 'Connect your Yours Wallet to see your pieces.';
+      if (loading) return 'Loading your pieces…';
+      return 'No ORDINAL•RAINBOWS pieces in your wallet yet.';
     }
     return 'No pieces match your search.';
   }
@@ -66,8 +66,10 @@
     return `
       ${waiting > 0 ? `<div class="reward-badge">⚡ ${formatBsv(waiting)} BSV to claim</div>` : ''}
       ${owned ? '<div class="owned-star" aria-label="In your wallet">⭐</div>' : ''}
-      <img class="nft-image" src="${imagePath(nft, 'sm')}" data-full="${imagePath(nft)}" alt="${nft.title}"
-           loading="lazy" decoding="async" onerror="ORGallery.onImageError(this)">
+      <button type="button" class="nft-open" aria-label="Open ${nft.title}">
+        <img class="nft-image" src="${imagePath(nft, 'sm')}" data-full="${imagePath(nft)}" alt=""
+             loading="lazy" decoding="async" onerror="ORGallery.onImageError(this)">
+      </button>
       <div class="card-text">
         <h3 class="nft-title">${nft.title}</h3>
         <p class="nft-subtitle">${nft.subtitle}</p>
@@ -112,7 +114,7 @@
       if (!list.length) {
         const p = document.createElement('p');
         p.className = 'gallery-empty';
-        p.textContent = emptyMessage(state, connected());
+        p.textContent = emptyMessage(state, connected(), connected() && !window._ordinalFetchAttempted);
         gallery.appendChild(p);
         return;
       }
@@ -156,8 +158,8 @@
         });
         return;
       }
-      const img = e.target.closest('.nft-image');
-      if (img) window.openCard3DModal(img.closest('.nft-card').dataset.id);
+      const openBtn = e.target.closest('.nft-open');
+      if (openBtn) window.openCard3DModal(openBtn.closest('.nft-card').dataset.id);
     });
 
     window.addEventListener('or-wallet-changed', () => {

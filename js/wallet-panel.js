@@ -13,9 +13,10 @@
     return ownedIds.reduce((total, id) => total + (Number(rewards[id]) || 0), 0);
   }
 
-  function pillLabel({ available, connected, ownedCount, waitingSats }) {
+  function pillLabel({ available, connected, ownedCount, waitingSats, loading }) {
     if (!available) return 'Get Yours Wallet ↗';
     if (!connected) return '🔗 Connect';
+    if (loading) return '⭐ …';
     return `⭐ ${ownedCount}` + (waitingSats > 0 ? ` · ⚡ ${bsv(waitingSats)} BSV` : '');
   }
 
@@ -37,7 +38,8 @@
       const rewards = window.rewardsByInscription || {};
       const ids = ownedIds();
       const connected = Boolean(window.currentWalletAddress);
-      const label = pillLabel({ available: available(), connected, ownedCount: ids.length, waitingSats: waitingTotal(ids, rewards) });
+      const loading = connected && !window._ordinalFetchAttempted;
+      const label = pillLabel({ available: available(), connected, ownedCount: ids.length, waitingSats: waitingTotal(ids, rewards), loading });
       document.querySelectorAll('[data-action="wallet"]').forEach(p => {
         if (!p.disabled) p.textContent = label;
         p.classList.toggle('is-connected', connected);
@@ -52,7 +54,7 @@
       if (!pieces.length) {
         const li = document.createElement('li');
         li.className = 'wp-empty';
-        li.textContent = 'No ORDINAL•RAINBOWS pieces in this wallet yet.';
+        li.textContent = loading ? 'Loading your pieces…' : 'No ORDINAL•RAINBOWS pieces in this wallet yet.';
         list.appendChild(li);
       }
       pieces.forEach(n => {

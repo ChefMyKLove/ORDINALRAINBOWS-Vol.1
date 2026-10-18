@@ -38,7 +38,28 @@
 
   function nextIndex(i, n) { return (i + 1) % n; }
 
-  const api = { IDLE_MS, FORWARD_MS, createIdleTimer, createScreensaverState, nextIndex };
+  // Swallows one click within `windowMs` of being armed — used so the touchstart/pointerdown
+  // that dismisses the idle screensaver doesn't also fire its synthesized click on whatever
+  // gallery element sits underneath.
+  function createClickSwallower({ windowMs = 500, timers = { setTimeout, clearTimeout } } = {}) {
+    let active = false;
+    let handle = null;
+    return {
+      arm() {
+        active = true;
+        timers.clearTimeout(handle);
+        handle = timers.setTimeout(() => { active = false; }, windowMs);
+      },
+      shouldSwallow() {
+        if (!active) return false;
+        active = false;
+        timers.clearTimeout(handle);
+        return true;
+      },
+    };
+  }
+
+  const api = { IDLE_MS, FORWARD_MS, createIdleTimer, createScreensaverState, nextIndex, createClickSwallower };
 
   function initBrowser() {
     const root = document.getElementById('screensaver');
@@ -109,11 +130,19 @@
       document.body.classList.contains('wallet-panel-open') ||
       Boolean(window.ORWallet && window.ORWallet.busy > 0);
     const idle = createIdleTimer({ isSuppressed, onIdle: () => show('idle') });
+    const clickSwallower = createClickSwallower();
+    document.addEventListener('click', e => {
+      if (clickSwallower.shouldSwallow()) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
 
     ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach(type => {
       window.addEventListener(type, () => {
-        if (state.exitsOnInput()) hide();
-        else if (!state.mode) idle.poke();
+        if (state.exitsOnInput()) {
+          // pointerdown/touchstart dismiss the overlay then synthesize a click on the element
+          // underneath; swallow that one click so it doesn't open a card or follow a link.
+          if (type === 'pointerdown' || type === 'touchstart') clickSwallower.arm();
+          hide();
+        } else if (!state.mode) idle.poke();
       }, { passive: true });
     });
 

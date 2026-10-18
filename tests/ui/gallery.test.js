@@ -54,6 +54,12 @@ test('connected wallet with no pieces: only-mine is empty and says why', () => {
   assert.match(G.emptyMessage({ ...base, search: 'zzz' }, true), /No pieces match/);
 });
 
+test('only-mine while the wallet read is still in flight says so, not "no pieces"', () => {
+  assert.match(G.emptyMessage({ ...base, onlyMine: true }, true, true), /Loading your pieces/);
+  assert.match(G.emptyMessage({ ...base, onlyMine: true }, true, false), /No ORDINAL•RAINBOWS pieces in your wallet yet/);
+  assert.match(G.emptyMessage({ ...base, onlyMine: true }, false, true), /Connect your Yours Wallet/);
+});
+
 test('disconnecting turns only-mine off; staying connected keeps it', () => {
   assert.strictEqual(G.nextFilters({ ...base, onlyMine: true }, false).onlyMine, false);
   assert.strictEqual(G.nextFilters({ ...base, onlyMine: true }, true).onlyMine, true);
@@ -96,4 +102,9 @@ test('card image uses the small copy and keeps the full-size image as fallback',
   assert.match(html, /src="images\/sm\/Beta%231\.JPG"/);
   assert.match(html, /data-full="images\/Beta%231\.JPG"/);
   assert.match(html, /onerror="ORGallery\.onImageError\(this\)"/);
+});
+
+test('card image is wrapped in a keyboard-operable button, not a bare click target', () => {
+  const html = G.cardHTML(nfts[0], { owned: false, waitingSats: 0 });
+  assert.match(html, /<button type="button" class="nft-open" aria-label="Open Beta #1">\s*<img class="nft-image"/);
 });

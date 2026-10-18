@@ -2013,6 +2013,7 @@ async function fetchUserOrdinals() {
         console.log('[ORDINALS] Wallet ordinals:', ordinals.length, '| Vol.1 pieces:', owned.map(n => n.title));
     } catch (err) {
         console.warn('[ORDINALS] Could not read ordinals from Yours:', err);
+        window.dispatchEvent(new CustomEvent('or-wallet-error', { detail: "Couldn't read your pieces — try reconnecting." }));
     }
 
     window.userOwnedInscriptions = owned.map(nft => ({

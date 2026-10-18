@@ -1,3 +1,10 @@
 {
-  "version": 2
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "checker.ordinalrainbows.com" }],
+      "destination": "/checker.html"
+    }
+  ]
 }

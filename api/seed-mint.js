@@ -102,6 +102,6 @@ module.exports = async function (req, res) {
 
   } catch (err) {
     console.error('[seed-mint] error', err);
-    return res.status(500).json({ error: 'internal', detail: err.message });
+    return res.status(500).json({ error: 'internal' });
   }
 };

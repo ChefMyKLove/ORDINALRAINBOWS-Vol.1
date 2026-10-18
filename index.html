@@ -6,12 +6,8 @@
     <title>ORDINAL 🌈 RAINBOWS Vol. 1</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
-    <!-- BSV Libraries for Signature Verification -->
+    <!-- BSV library (turns the wallet's receive public key into an address) -->
     <script src="https://unpkg.com/bsv@1.5.6/bsv.min.js" onload="console.log('BSV library loaded')" onerror="console.error('BSV library failed to load')"></script>
-    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js" onload="console.log('Crypto-JS library loaded')" onerror="console.error('Crypto-JS library failed to load')"></script>
-    
-    <!-- BSV Wallet SDK Integration -->
-    <script src="js/bsv-wallet-sdk.js" onload="console.log('BSV Wallet SDK loaded')" onerror="console.error('BSV Wallet SDK failed to load')"></script>
     <style>
 * {
     margin: 0;
@@ -672,69 +668,6 @@ h1 {
     animation: none;
 }
 
-/* Printify Modal */
-.printify-modal {
-    display: block;
-    position: fixed;
-    z-index: 10000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-}
-
-.printify-modal-content {
-    position: relative;
-    margin: 2% auto;
-    width: 95%;
-    max-width: 1400px;
-    height: 90vh;
-    background: rgba(10, 10, 18, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 24px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-}
-
-.printify-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 30px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.printify-modal-header h2 {
-    margin: 0;
-    color: #fff;
-    font-weight: 700;
-}
-
-.printify-modal-close {
-    font-size: 40px;
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    line-height: 1;
-    opacity: 0.7;
-}
-
-.printify-modal-close:hover {
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-.printify-iframe {
-    flex: 1;
-    width: 100%;
-    border: none;
-    border-radius: 0 0 24px 24px;
-}
-
 /* Mobile optimizations */
 @media (max-width: 768px) {
     /* Disable resource-intensive animations */
@@ -1365,12 +1298,118 @@ h1 {
 .hidden {
     display: none;
 }
+
+/* ====== TOKEN SALE ANNOUNCEMENT ====== */
+.token-sale-modal {
+    max-width: min(480px, calc(100vw - 32px));
+    padding: 36px 28px 28px;
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    background: rgba(10, 10, 18, 0.92);
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 80px rgba(160, 100, 255, 0.25);
+    animation: modalFadeIn 0.4s ease;
+}
+.token-sale-modal::backdrop {
+    background: rgba(0, 0, 0, 0.7);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+.token-sale-modal h2 {
+    margin: 8px 0 12px;
+    font-size: 1.7em;
+    background: linear-gradient(90deg, #ff5f6d, #ffc371, #7cff6b, #4fc3ff, #b36bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+.token-sale-modal p { margin: 0 0 24px; line-height: 1.5; color: rgba(255, 255, 255, 0.85); }
+.token-sale-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.token-sale-close:hover { opacity: 1; }
+.token-sale-cta {
+    display: inline-block;
+    padding: 14px 32px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff5f6d, #b36bff);
+    color: #fff;
+    font-weight: 700;
+    text-decoration: none;
+}
+.token-sale-cta:hover { filter: brightness(1.15); }
+
+/* ====== REWARDS: gallery badge + card-back states ====== */
+.reward-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 3;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(0, 200, 90, 0.92);
+    color: #fff;
+    font-size: 0.85em;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+.card-3d-claim-btn:disabled,
+.card-3d-claim-btn:disabled:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    cursor: default;
+    transform: none;
+}
+.card-3d-note {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    padding: 24px 12px;
+}
+.card-3d-note .amount {
+    display: block;
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #3dff8f;
+    margin: 6px 0 10px;
+}
+.card-3d-note a { color: #9fd8ff; }
     </style>
     <!-- Rewards Dashboard Stylesheet -->
     <link rel="stylesheet" href="css/rewards-dashboard.css">
     <link rel="stylesheet" href="css/bg-anim.css">
 </head>
 <body class="body-splash">
+    <!-- Token sale announcement (opens over the splash on load) -->
+    <dialog id="token-sale-modal" class="token-sale-modal" aria-labelledby="token-sale-title">
+        <form method="dialog"><button class="token-sale-close" aria-label="Close">&times;</button></form>
+        <div style="font-size:3em">🌈</div>
+        <h2 id="token-sale-title">ORDINAL RAINBOWS Token — Now On Sale</h2>
+        <p>The ORDINAL RAINBOWS BSV21 token is live. Grab yours and join the rainbow.</p>
+        <!-- TODO: replace href with the real BSV21 market listing -->
+        <a class="token-sale-cta" href="https://1sat.market" target="_blank" rel="noopener">Buy Tokens</a>
+    </dialog>
+    <script>
+        (function () {
+            const d = document.getElementById('token-sale-modal');
+            d.showModal();
+            // Click on the backdrop (outside the box) closes it
+            d.addEventListener('click', e => {
+                const r = d.getBoundingClientRect();
+                if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) d.close();
+            });
+        })();
+    </script>
     <!-- SVG filter definitions for cloud displacement -->
     <svg id="svg-filters" style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
         <defs>
@@ -1691,8 +1730,13 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
             const rarityClass = nft.rarity.toLowerCase();
             const hasUrl = nft.printifyUrl && nft.printifyUrl !== null;
             const inscriptionDisplay = nft.inscriptionId ? nft.inscriptionId : 'Coming Soon';
+            const waitingSats = (window.rewardsByInscription || {})[nft.inscriptionId] || 0;
+            const rewardBadge = waitingSats > 0
+                ? `<div class="reward-badge">⚡ ${(waitingSats / 1e8).toFixed(8)} BSV to claim</div>`
+                : '';
 
             return `
+                ${rewardBadge}
                 <div class="nft-header">
                     <div class="nft-title">${nft.title}</div>
                     <div class="nft-subtitle">${nft.subtitle}</div>
@@ -1716,7 +1760,7 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
                         <span class="info-value" style="font-size:0.85em;word-break:break-all;">${inscriptionDisplay}</span>
                     </div>
                     ${hasUrl ?
-                        `<a href="#" class="sale-link" onclick="openPrintifyStore('${nft.printifyUrl}'); return false;">Order Prints</a>` :
+                        `<a href="${nft.printifyUrl}" class="sale-link" target="_blank" rel="noopener">Order Prints ↗</a>` :
                         `<div class="sale-link unavailable">Coming Soon</div>`
                     }
                 </div>
@@ -1784,16 +1828,11 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
                 card.dataset.id = nft.id;
                 card.innerHTML = createCardHTML(nft);
 
-                // Add click handler to open 3D modal (only if authenticated)
+                // Open the 3D card; its back shows rewards (and a connect prompt if no wallet yet)
                 const img = card.querySelector('.nft-image');
                 img.addEventListener('click', (e) => {
                     e.preventDefault();
-                    // Check if authenticated, if not show wallet connection
-                    if (isWalletAuthenticated && isWalletAuthenticated()) {
-                        openCard3DModal(nft.id);
-                    } else {
-                        showWalletConnection();
-                    }
+                    openCard3DModal(nft.id);
                 });
 
                 gallery.appendChild(card);
@@ -1803,6 +1842,20 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
 
         // initial render
         renderGallery();
+
+        // Reward badges: which pieces have BSV waiting (re-run after a claim)
+        async function loadRewardBadges() {
+            try {
+                const r = await fetch('/api/rewards');
+                const j = await r.json();
+                window.rewardsByInscription = Object.fromEntries((j.rewards || []).map(a => [a.inscription_id, Number(a.bsv_claimable)]));
+                renderGallery();
+            } catch (e) {
+                console.warn('[rewards] could not load reward badges', e);
+            }
+        }
+        window.loadRewardBadges = loadRewardBadges;
+        loadRewardBadges();
 
         // activate header glass
         document.getElementById('main-header').classList.add('glass-active');
@@ -1815,47 +1868,6 @@ const liquidGlassObserver = new IntersectionObserver((entries) => {
         // back to gallery button
         backToGallery.addEventListener('click', hideIndividualCard);
 
-        // PRINTIFY MODAL
-        function openPrintifyStore(printifyUrl) {
-            if (!printifyUrl) {
-                alert('Product not yet available');
-                return;
-            }
-            const modal = document.createElement('div');
-            modal.className = 'printify-modal';
-
-            const nft = window.nfts.find(n => n.printifyUrl === printifyUrl);
-            const title = nft ? nft.title : 'Product';
-
-            modal.innerHTML = `
-                <div class="printify-modal-content">
-                    <div class="printify-modal-header">
-                        <h2>${title}</h2>
-                        <span class="printify-modal-close">&times;</span>
-                    </div>
-                    <iframe src="${printifyUrl}" class="printify-iframe"></iframe>
-                </div>
-            `;
-
-            document.body.appendChild(modal);
-
-            const closeBtn = modal.querySelector('.printify-modal-close');
-            closeBtn.onclick = () => closePrintifyModal(modal);
-            modal.onclick = (e) => { if (e.target === modal) closePrintifyModal(modal); };
-
-            document.addEventListener('keydown', function escHandler(e) {
-                if (e.key === 'Escape') {
-                    closePrintifyModal(modal);
-                    document.removeEventListener('keydown', escHandler);
-                }
-            });
-        }
-
-        function closePrintifyModal(modal) {
-            modal.remove();
-        }
-
-        window.openPrintifyStore = openPrintifyStore;
 
         // CAROUSEL LOGIC
         const carouselOverlay = document.getElementById('carouselOverlay');
@@ -2003,13 +2015,7 @@ let carouselTimer = setInterval(() => {
                     margin-bottom: 20px;
                     font-size: 14px;
                     color: rgba(255, 255, 255, 0.9);">
-            🔐 <strong>Enhanced Security:</strong> This system now requires cryptographic signature verification to prove wallet ownership before claiming rewards. No more copy/paste vulnerabilities!
-            <br>
-            <div style="margin-top: 8px; font-size: 12px; opacity: 0.8;">
-                🧪 <strong>Test Mode:</strong> Type "TEST" when prompted for signature to test the system without a real signature.
-                <br>
-                🔧 <strong>Having ElectrumSV issues?</strong> Type "DEBUG" for help, or open console and run: <code style="background: rgba(0,0,0,0.3); padding: 2px 4px; border-radius: 3px;">BSVDebugger.troubleshootAuthentication()</code>
-            </div>
+            🔐 <strong>Secure claims:</strong> each claim is signed in your Yours Wallet by the key that holds that piece, and checked on-chain before it's accepted.
         </div>
         
         <!-- Unclaimed Rewards -->
@@ -2061,32 +2067,8 @@ let carouselTimer = setInterval(() => {
         </button>
     </div>
 
-    <!-- BSV Authentication Module (MUST load before rewards integration) -->
-    <script src="js/bsv-auth-fixed.js" onload="console.log('BSV Auth module loaded')" onerror="console.error('BSV Auth module failed to load')"></script>
-    
-    <!-- BSV Wallet Debugger -->
-    <script src="js/bsv-wallet-debugger.js"></script>
-    
-    <!-- Module Loading Verification -->
-    <script>
-    window.addEventListener('load', function() {
-        console.log('🔍 CHECKING MODULE STATUS:');
-        console.log('- BSV library:', typeof bsv !== 'undefined' ? '✅ Loaded' : '❌ Missing');
-        console.log('- CryptoJS:', typeof CryptoJS !== 'undefined' ? '✅ Loaded' : '❌ Missing');
-        console.log('- BSVAuth:', typeof window.BSVAuth !== 'undefined' ? '✅ Loaded' : '❌ Missing');
-        console.log('- BSVWalletSDK:', typeof window.BSVWalletSDK !== 'undefined' ? '✅ Loaded' : '❌ Missing');
-        console.log('- BSVWalletSDKManager:', typeof BSVWalletSDKManager !== 'undefined' ? '✅ Loaded' : '❌ Missing');
-        
-        if (typeof window.BSVWalletSDK !== 'undefined') {
-            console.log('🔐 BSV Wallet SDK system ready for use!');
-            console.log('💡 Try: debugYoursWallet() or showWalletConnection()');
-        } else {
-            console.error('❌ BSV Wallet SDK failed to load - check browser console for errors');
-        }
-    });
-    </script>
-    
-    <!-- Rewards Integration Script -->
+    <!-- Yours Wallet (window.CWI) helpers, then the rewards integration that uses them -->
+    <script src="js/wallet.js"></script>
     <script src="js/rewards-integration.js"></script>
     <script src="js/bg-anim.js"></script>
 </body>

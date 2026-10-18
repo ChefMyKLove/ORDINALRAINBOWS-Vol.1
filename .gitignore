@@ -26,3 +26,13 @@ secrets.json
 *.key
 *.pem
 .vercel
+
+# Local agent instructions
+CLAUDE.md
+
+# Wallet key exports (never commit)
+*keys*.json
+*.wif
+yours_wallet_keys.json
+
+.env*.local

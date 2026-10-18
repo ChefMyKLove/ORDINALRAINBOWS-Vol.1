@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORDINAL RAINBOWS Token — Now On Sale</title>
+    <meta name="description" content="The ORDINAL RAINBOWS BSV21 token is live.">
+    <link rel="stylesheet" href="../css/bg-anim.css">
+    <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 50%, #16213e 100%);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+}
+
+/* Cloud layers are hidden on mobile (bg-anim.css) — show a still image instead */
+@media (max-width: 768px) {
+    body {
+        background: linear-gradient(rgba(10, 10, 18, 0.55), rgba(10, 10, 18, 0.55)),
+                    url('../images/AlchemyBow.JPG') center / cover fixed;
+    }
+}
+
+.splash {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 560px;
+    padding: 44px 28px 32px;
+    text-align: center;
+    background: rgba(10, 10, 18, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 28px;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 90px rgba(160, 100, 255, 0.25);
+}
+
+.splash-emoji { font-size: 3.5em; line-height: 1; }
+
+.splash h1 {
+    margin: 14px 0 12px;
+    font-size: clamp(1.8em, 6vw, 2.6em);
+    line-height: 1.15;
+    background: linear-gradient(90deg, #ff5f6d, #ffc371, #7cff6b, #4fc3ff, #b36bff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.splash p {
+    margin: 0 0 28px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.cta {
+    display: block;
+    padding: 16px 32px;
+    margin-bottom: 24px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff5f6d, #b36bff);
+    color: #fff;
+    font-size: 1.15em;
+    font-weight: 700;
+    text-decoration: none;
+}
+.cta:hover { filter: brightness(1.15); }
+
+.links {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+.links a {
+    display: block;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.links a:hover { background: rgba(255, 255, 255, 0.16); }
+.cta:focus-visible, .links a:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    </style>
+</head>
+<body>
+    <!-- SVG filters + layers used by ../js/bg-anim.js (same ids as the main site) -->
+    <svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+        <defs>
+            <filter id="cloud-warp" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+                <feTurbulence id="cloud-turb" type="fractalNoise" baseFrequency="0.009 0.011" numOctaves="4" seed="7" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="124" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="cloud-warp-b" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+                <feTurbulence id="cloud-turb-b" type="fractalNoise" baseFrequency="0.010 0.009" numOctaves="4" seed="13" result="noise"/>
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="124" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+    </svg>
+    <div class="cloud-layer cloud-layer-1">
+        <div class="cloud-inner" id="cloud1A"></div>
+        <div class="cloud-inner" id="cloud1B"></div>
+    </div>
+    <div class="cloud-layer cloud-layer-2">
+        <div class="cloud-inner" id="cloud2A"></div>
+        <div class="cloud-inner" id="cloud2B"></div>
+    </div>
+
+    <main class="splash">
+        <div class="splash-emoji" aria-hidden="true">🌈</div>
+        <h1>ORDINAL RAINBOWS Token<br>Now On Sale</h1>
+        <p>The ORDINAL RAINBOWS BSV21 token is live. Grab yours and join the rainbow.</p>
+
+        <!-- TODO: replace href with the real BSV21 market listing -->
+        <a class="cta" href="https://1sat.market" target="_blank" rel="noopener">Buy Tokens</a>
+
+        <!-- TODO: fill in the real links / add more <li> rows as needed -->
+        <ul class="links">
+            <li><a href="/">🖼️ Enter the Gallery</a></li>
+            <li><a href="#">📜 About the Token</a></li>
+            <li><a href="#">🐦 Follow on X</a></li>
+            <li><a href="#">💬 Join the Community</a></li>
+        </ul>
+    </main>
+
+    <script>window.BG_BASE_PATH = '../images/';</script>
+    <script src="../js/bg-anim.js"></script>
+</body>
+</html>

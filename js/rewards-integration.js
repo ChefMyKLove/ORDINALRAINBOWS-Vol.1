@@ -1471,31 +1471,25 @@ function setupWalletSDKEvents() {
 }
 
 // Global wallet connection functions for button clicks
-function showWalletConnection() {
-    console.log('🚀 Connect Wallet button clicked');
-    console.log('BSV SDK available:', !!window.BSVWalletSDK);
-    console.log('showWalletModal available:', !!window.BSVWalletSDK?.showWalletModal);
-    
-    if (!window.BSVWalletSDK) {
-        console.error('❌ BSV Wallet SDK not loaded!');
-        alert('Wallet SDK not loaded. Checking...');
-        // Try initializing if not loaded
-        if (window.BSVWalletSDKManager) {
-            console.log('Creating BSVWalletSDKManager instance...');
-            window.BSVWalletSDK = new window.BSVWalletSDKManager();
-        } else {
-            alert('BSV Wallet SDK failed to load. Please refresh the page.');
-            return;
-        }
+// Connects the current Yours Wallet (window.CWI via js/wallet.js). The payout address is the
+// wallet's first deposit address; owned pieces are read from the wallet in fetchUserOrdinals().
+async function showWalletConnection() {
+    if (!window.ORWallet || !window.ORWallet.available()) {
+        alert('Yours Wallet not found. Install the Yours Wallet extension, unlock it, then reload this page.');
+        return;
     }
-    
+    const btn = document.getElementById('connect-wallet-btn');
+    const label = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Approve in Yours…'; }
     try {
-        console.log('Calling showWalletModal...');
-        window.BSVWalletSDK.showWalletModal();
-        console.log('✅ Wallet modal shown');
+        const pubKey = await window.ORWallet.getReceivePubKey();
+        const address = window.bsv.PublicKey.fromString(pubKey).toAddress().toString();
+        window.dispatchEvent(new CustomEvent('bsv-wallet-authenticated', { detail: { wallet: 'yours', address: address, ordAddress: null } }));
     } catch (error) {
-        console.error('❌ Error showing wallet modal:', error);
-        alert('Error: ' + error.message);
+        console.error('[CONNECT] Yours connection failed', error);
+        alert('Could not connect to Yours: ' + (error.message || error));
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = label; }
     }
 }
 
@@ -1586,12 +1580,7 @@ function updateWalletUI(connected, address = null, walletType = null) {
  */
 async function openCard3DModal(nftId) {
     console.log('[3D] Opening card modal for NFT:', nftId);
-    
-    if (!isWalletAuthenticated()) {
-        alert('Please connect your wallet first to view card rewards');
-        return;
-    }
-    
+
     try {
         const nft = window.nfts?.find(n => n.id === nftId);
         if (!nft) {
@@ -1639,96 +1628,62 @@ async function openCard3DModal(nftId) {
 async function checkCardOwnershipAndRewards(nft) {
     const backContent = document.getElementById('card-3d-back-content');
     const buttonArea = document.getElementById('card-3d-button-area');
-    
+    const bsv = sats => (Number(sats || 0) / 1e8).toFixed(8);
+
     try {
-        // Check if wallet is connected
-        if (!isWalletAuthenticated()) {
-            backContent.innerHTML = '<div class="card-3d-message">Connect wallet to view rewards</div>';
+        if (!nft.inscriptionId) {
+            backContent.innerHTML = '<div class="card-3d-note">This piece isn’t inscribed on-chain yet, so it has no rewards.</div>';
             buttonArea.innerHTML = '';
             return;
         }
-        
-        console.log('[3D] Checking ownership for:', nft.title, '| inscriptionId:', nft.inscriptionId?.substring(0,12) + '...');
-        
-        // If ordinals haven't been fetched yet, do it now (awaited, so the result is ready below)
-        // Always query ordAddress (inscriptions are locked there), falling back to bsvAddress
-        if (!window._ordinalFetchAttempted && (window.currentOrdAddress || window.currentWalletAddress)) {
-            backContent.innerHTML = '<div class="card-3d-message">🔄 Loading your ordinals...</div>';
+
+        backContent.innerHTML = '<div class="card-3d-note">🔄 Loading rewards…</div>';
+        buttonArea.innerHTML = '';
+
+        // BSV waiting for this piece's holder (public, shown to everyone)
+        let waitingSats = 0;
+        try {
+            const resp = await fetch(`/api/rewards?inscriptionId=${encodeURIComponent(nft.inscriptionId)}`);
+            const j = await resp.json();
+            waitingSats = Number(j?.allocation?.bsv_claimable || 0);
+        } catch (e) {
+            console.warn('[3D] Failed to load rewards', e);
+        }
+        const waitingText = waitingSats > 0
+            ? `This piece has rewards waiting for its holder:<span class="amount">⚡ ${bsv(waitingSats)} BSV</span>`
+            : 'No rewards are waiting for this piece right now.<br>';
+
+        if (!isWalletAuthenticated()) {
+            backContent.innerHTML = `<div class="card-3d-note">${waitingText}Connect your Yours Wallet to see if it’s yours.</div>`;
+            buttonArea.innerHTML = '<button class="card-3d-claim-btn" onclick="showWalletConnection()">🔗 Connect Yours Wallet</button>';
+            return;
+        }
+
+        if (!window._ordinalFetchAttempted) {
+            backContent.innerHTML = '<div class="card-3d-note">🔄 Loading your ordinals…</div>';
+            await fetchUserOrdinals();
+        }
+        const ownsThisCard = (window.userOwnedInscriptions || []).some(i => i.inscriptionId === nft.inscriptionId);
+
+        if (!ownsThisCard) {
+            backContent.innerHTML = `<div class="card-3d-note">${waitingText}It isn’t in your connected wallet.</div>`;
             buttonArea.innerHTML = '';
-            await fetchUserOrdinals(window.currentOrdAddress || window.currentWalletAddress);
+            return;
         }
-        
-        // Check if user specifically owns THIS card by inscriptionId
-        let ownsThisCard = false;
-        if (nft.inscriptionId && window.userOwnedInscriptions && window.userOwnedInscriptions.length > 0) {
-            ownsThisCard = window.userOwnedInscriptions.some(insc =>
-                insc.inscriptionId?.toLowerCase() === nft.inscriptionId.toLowerCase()
-            );
-        }
-        
-        console.log('[3D] userOwnedInscriptions count:', window.userOwnedInscriptions?.length,
-            '| ownedOrdinalsCount:', window.ownedOrdinalsCount,
-            '| owns this card:', ownsThisCard);
-        
-        if (ownsThisCard) {
-            console.log('[3D] ✅ Ownership verified — showing rewards interface');
-            
-            backContent.innerHTML = `
-                <div class="card-3d-back-title">Available Rewards</div>
-                <div id="card-3d-claimable" class="card-rewards-grid">
-                    <div class="card-reward-item">
-                        <div class="card-reward-token">💎 MNEE</div>
-                        <div class="card-reward-amount" id="claimable-mnee">Loading...</div>
-                    </div>
-                    <div class="card-reward-item">
-                        <div class="card-reward-token">⚡ BSV</div>
-                        <div class="card-reward-amount" id="claimable-bsv">0.0000</div>
-                    </div>
+
+        backContent.innerHTML = `
+            <div class="card-3d-back-title">Your Rewards</div>
+            <div id="card-3d-claimable" class="card-rewards-grid">
+                <div class="card-reward-item">
+                    <div class="card-reward-token">⚡ BSV</div>
+                    <div class="card-reward-amount" id="claimable-bsv">${bsv(waitingSats)}</div>
                 </div>
-            `;
+            </div>
+        `;
+        buttonArea.innerHTML = waitingSats > 0
+            ? `<button class="card-3d-claim-btn" id="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.inscriptionId}','${nft.id}')">✨ Claim ${bsv(waitingSats)} BSV</button>`
+            : '<button class="card-3d-claim-btn" id="card-3d-claim-btn" disabled>Nothing to claim yet</button>';
 
-            buttonArea.innerHTML = `
-                <button class="card-3d-claim-btn" id="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.inscriptionId}','${nft.id}')">✨ Claim Rewards</button>
-            `;
-
-            // Fetch claimable MNEE + BSV from server
-            (async function(){
-                try{
-                    const resp = await fetch(`/api/rewards?inscriptionId=${encodeURIComponent(nft.inscriptionId)}`);
-                    const j = await resp.json();
-                    if (j && j.allocation) {
-                        const mnee = Number(j.allocation.mnee_claimable || 0).toFixed(6);
-                        const bsv  = Number(j.allocation.bsv_claimable  || 0);
-                        const bsvDisplay = (bsv / 100000000).toFixed(8);
-                        document.getElementById('claimable-mnee').textContent = mnee;
-                        try{ document.getElementById('claimable-bsv').textContent = bsvDisplay; }catch(_){}
-                        document.getElementById('card-3d-claim-btn').disabled = (Number(mnee) <= 0 && bsv <= 0);
-                    } else {
-                        document.getElementById('claimable-mnee').textContent = '0.000000';
-                        try{ document.getElementById('claimable-bsv').textContent = '0.00000000'; }catch(_){}
-                    }
-                }catch(e){
-                    console.warn('Failed to load claimable', e);
-                    try{ document.getElementById('claimable-mnee').textContent = '0.000000'; }catch(_){}
-                }
-            })();
-        } else if (!nft.inscriptionId) {
-            console.warn('[3D] NFT has no inscriptionId set, cannot verify ownership');
-            backContent.innerHTML = '<div class="card-3d-message">⚠️ Ownership verification unavailable for this piece</div>';
-            buttonArea.innerHTML = '';
-        } else if (!window._ordinalFetchAttempted || (window.ownedOrdinalsCount === 0 && window.userOwnedInscriptions?.length === 0)) {
-            // Fetch hasn't run, or it ran but got nothing (API may have failed) — offer retry
-
-            console.log('[3D] Ordinals not loaded or fetch failed — showing retry');
-            backContent.innerHTML = '<div class="card-3d-message">⚠️ Could not load ordinal data</div>';
-            buttonArea.innerHTML = `<button class="card-3d-claim-btn" onclick="retryOwnershipCheck('${nft.id}')">↻ Retry</button>`;
-        } else {
-            // Ordinals loaded but this card not found in wallet
-            console.log('[3D] ❌ User does not own this specific card');
-            backContent.innerHTML = `<div class="card-3d-message">❌ You do not own <strong>${nft.title}</strong><br><small>You hold ${window.ownedOrdinalsCount || 0} ordinal${window.ownedOrdinalsCount !== 1 ? 's' : ''} total${window.ownedVol1Count ? ', ' + window.ownedVol1Count + ' from Vol.1' : ''}</small></div>`;
-            buttonArea.innerHTML = '';
-        }
-        
     } catch (err) {
         console.error('[3D] Error checking ownership:', err);
         backContent.innerHTML = '<div class="card-3d-message">Unable to load rewards</div>';
@@ -1911,13 +1866,13 @@ async function claimOrdinalReward(inscriptionId, nftId) {
             alert('This piece cannot be claimed (no inscriptionId)');
             return;
         }
-        if (!window.currentOrdAddress) {
+        if (!window.currentWalletAddress) {
             alert('Please connect your wallet to claim');
             return;
         }
 
-        // Client-side ownership check before hitting the API
-        const owned = window.userOwnedInscriptions && window.userOwnedInscriptions.some(n => n.inscriptionId === inscriptionId);
+        // Client-side ownership check before hitting the API (the server re-checks on-chain)
+        const owned = window.userOwnedInscriptions && window.userOwnedInscriptions.find(n => n.inscriptionId === inscriptionId);
         if (!owned) {
             alert('❌ Sorry, that\'s not your rainbow. You do not own this NFT.');
             return;
@@ -1926,17 +1881,12 @@ async function claimOrdinalReward(inscriptionId, nftId) {
         const btn = document.getElementById('card-3d-claim-btn');
         if (btn) { btn.disabled = true; btn.textContent = '⏳ Claiming...'; }
 
+        // Sign with the key that holds this piece; the server checks that key is the current owner.
         const timestamp = Math.floor(Date.now() / 1000);
         const message = `ordinalrainbows-claim:${inscriptionId}:${window.currentWalletAddress}:${timestamp}`;
-        let signature;
+        let proof;
         try {
-            const rawSig = await window.walletManager.signMessage(message);
-            console.log('[CLAIM] raw signMessage() result:', rawSig);
-            // Different wallet providers may return a raw base64 string, or an object
-            // like { signature } / { sig }. This normalizes the common shapes — verify
-            // against your actual connected wallet in Task 7's manual test and adjust
-            // this line if the server rejects a real signature as invalid.
-            signature = (typeof rawSig === 'string') ? rawSig : (rawSig?.signature || rawSig?.sig);
+            proof = await window.ORWallet.signWith(owned.derivation, message);
         } catch (sigErr) {
             console.error('[CLAIM] signature failed', sigErr);
             alert('Wallet signature required to verify ownership: ' + sigErr.message);
@@ -1944,16 +1894,23 @@ async function claimOrdinalReward(inscriptionId, nftId) {
             return;
         }
 
-        const body = { inscriptionId, nftId, ordAddress: window.currentOrdAddress, bsvAddress: window.currentWalletAddress, epoch: 'default', signature, timestamp };
+        const body = { inscriptionId, nftId, bsvAddress: window.currentWalletAddress, epoch: 'default', pubKey: proof.pubKey, sig: proof.sig, timestamp };
         const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-        const j = await resp.json();
-        alert(JSON.stringify(j));
-        if (!resp.ok || j.success === false) {
+        const j = await resp.json().catch(() => ({}));
+        if (!resp.ok || j.success !== true) {
+            alert('Claim not completed: ' + (j.error || j.message || ('HTTP ' + resp.status)));
             if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; }
             return;
         }
-        // keep button disabled on success — claim is registered
-        if (btn) btn.disabled = true;
+        // Success: show it on the card and keep the button disabled
+        const amountEl = document.getElementById('claimable-bsv');
+        if (amountEl) amountEl.textContent = '0.00000000';
+        if (btn) { btn.disabled = true; btn.textContent = j.txid ? '✅ Claimed, sent to your wallet' : '✅ Claim registered, payout pending'; }
+        if (j.txid && /^[0-9a-f]{64}$/i.test(j.txid)) {
+            document.getElementById('card-3d-back-content').insertAdjacentHTML('beforeend',
+                `<div class="card-3d-note"><a href="https://whatsonchain.com/tx/${j.txid}" target="_blank" rel="noopener">View the payment ↗</a></div>`);
+        }
+        if (typeof window.loadRewardBadges === 'function') window.loadRewardBadges();
         // Refresh wallet header totals immediately
         if (typeof refreshWalletBoxBalances === 'function') refreshWalletBoxBalances();
     } catch (err) {
@@ -2109,11 +2066,10 @@ window.addEventListener('bsv-wallet-authenticated', async function(e) {
     // Refresh balances now that ordinals are loaded
     refreshWalletBoxBalances();
     
-    // Close wallet modal if open
+    // If a card is open (e.g. they connected from its back), refresh it for the connected wallet
     const modal = document.getElementById('card-3d-modal');
-    if (modal && modal.classList.contains('active')) {
-        closeCard3DModal();
-    }
+    const openNft = modal && modal.classList.contains('active') && window.nfts?.find(n => n.id === window.currentCard3DNFTID);
+    if (openNft) checkCardOwnershipAndRewards(openNft);
 });
 
 window.addEventListener('bsv-wallet-disconnected', function() {
@@ -2157,63 +2113,27 @@ window.addEventListener('bsv-wallet-session-restored', function(e) {
 });
 
 /**
- * Fetch user's actual ordinals from their wallet and match against Vol.1 collection.
- *
- * Strategy: query each Vol.1 inscription directly at /api/inscriptions/{txid}_0
- * and check if item.owner === ordAddress. This is accurate regardless of wallet size
- * (no pagination needed even for 14K+ inscription wallets).
+ * Read the connected Yours wallet's ordinals and match them against the Vol.1 collection.
+ * New Yours keeps each 1sat on its own key, so ownership comes from the wallet's own list
+ * (with each piece's key derivation, used later to sign claims). The server re-verifies on-chain.
  */
-async function fetchUserOrdinals(address) {
-    console.log('[ORDINALS] Checking Vol.1 ownership for address:', address);
-
-    if (!address) {
-        console.warn('[ORDINALS] No address provided');
-        window.ownedOrdinalsCount = 0;
-        window.userOwnedInscriptions = [];
-        return;
-    }
-
+async function fetchUserOrdinals() {
     const nftsWithId = window.nfts ? window.nfts.filter(n => n.inscriptionId) : [];
-    console.log('[ORDINALS] Checking', nftsWithId.length, 'Vol.1 inscriptions for ownership by', address);
-
-    if (nftsWithId.length === 0) {
-        console.warn('[ORDINALS] No inscriptionIds found in window.nfts');
-        window._ordinalFetchAttempted = true;
-        return;
+    let owned = [];
+    let byOrigin = new Map();
+    try {
+        const ordinals = await window.ORWallet.listOrdinals();
+        byOrigin = new Map(ordinals.map(o => [o.origin, o]));
+        owned = nftsWithId.filter(n => byOrigin.has(n.inscriptionId + '_0'));
+        console.log('[ORDINALS] Wallet ordinals:', ordinals.length, '| Vol.1 pieces:', owned.map(n => n.title));
+    } catch (err) {
+        console.warn('[ORDINALS] Could not read ordinals from Yours:', err);
     }
 
-    const addressLower = address.toLowerCase();
-
-    // Query each inscription in parallel batches of 8
-    const BATCH = 8;
-    const owned = [];
-
-    for (let i = 0; i < nftsWithId.length; i += BATCH) {
-        const batch = nftsWithId.slice(i, i + BATCH);
-        const results = await Promise.allSettled(
-            batch.map(async nft => {
-                const url = `https://ordinals.gorillapool.io/api/inscriptions/${nft.inscriptionId}_0`;
-                const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
-                if (!resp.ok) throw new Error(`HTTP ${resp.status} for ${nft.inscriptionId}`);
-                const data = await resp.json();
-                return { nft, owner: data.owner, name: data.origin?.data?.map?.name };
-            })
-        );
-
-        for (const r of results) {
-            if (r.status === 'fulfilled') {
-                const { nft, owner, name } = r.value;
-                if (owner && owner.toLowerCase() === addressLower) {
-                    console.log(`[ORDINALS] ✅ OWNS: ${name || nft.title} | owner: ${owner}`);
-                    owned.push(nft);
-                }
-            } else {
-                console.warn('[ORDINALS] Lookup failed for one item:', r.reason?.message);
-            }
-        }
-    }
-
-    window.userOwnedInscriptions = owned.map(nft => ({ id: nft.id, inscriptionId: nft.inscriptionId, nftId: nft.id }));
+    window.userOwnedInscriptions = owned.map(nft => ({
+        id: nft.id, inscriptionId: nft.inscriptionId, nftId: nft.id,
+        derivation: byOrigin.get(nft.inscriptionId + '_0').derivation
+    }));
     window.ownedOrdinalsCount = owned.length;
     window.ownedVol1Count = owned.length;
     window._ordinalFetchAttempted = true;

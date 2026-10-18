@@ -124,12 +124,30 @@ async function processClaimPayout(claimId) {
   }
 
   if (claim.inscription_id) {
-    await supabase.from('reward_allocations')
-      .update({ bsv_claimable: 0 })
-      .eq('inscription_id', claim.inscription_id);
+    const ok = await deductClaimable(claim.inscription_id, Number(claim.amount));
+    if (!ok) console.error('[payout] CRITICAL: paid but could not deduct allocation. claimId:', claim.id, 'txid:', txid);
   }
 
   return txid;
+}
+
+// Subtract a paid amount from an allocation (never below 0). Compare-and-set on the current
+// value, so an allocation added between claim and payout is kept instead of being wiped.
+async function deductClaimable(inscriptionId, amount, attempts = 5) {
+  for (let i = 0; i < attempts; i++) {
+    const { data: alloc, error } = await supabase
+      .from('reward_allocations').select('bsv_claimable').eq('inscription_id', inscriptionId).maybeSingle();
+    if (error || !alloc) return false;
+    const current = Number(alloc.bsv_claimable || 0);
+    const { data: updated } = await supabase
+      .from('reward_allocations')
+      .update({ bsv_claimable: Math.max(0, current - amount) })
+      .eq('inscription_id', inscriptionId)
+      .eq('bsv_claimable', alloc.bsv_claimable)
+      .select('inscription_id');
+    if (updated && updated.length) return true;
+  }
+  return false;
 }
 
 module.exports = async function (req, res) {
@@ -165,3 +183,4 @@ module.exports = async function (req, res) {
 };
 
 module.exports.processClaimPayout = processClaimPayout;
+module.exports.deductClaimable = deductClaimable;

@@ -1,54 +1,56 @@
 const test = require('node:test');
 const assert = require('node:assert');
-const { PrivateKey, BSM, Utils } = require('@bsv/sdk');
-const { verifySignedOwnership, buildClaimMessage, isTimestampFresh } = require('../../api/_verify-signature');
+const { ProtoWallet, PrivateKey, PublicKey, Utils } = require('@bsv/sdk');
+const { buildClaimMessage, isTimestampFresh } = require('../../api/_verify-signature');
+const { proofAddress } = require('../../lib/checker');
 
-test('verifySignedOwnership accepts a valid signature from the claimed address', () => {
-  const pk = PrivateKey.fromRandom();
-  const address = pk.toPublicKey().toAddress();
-  const message = buildClaimMessage('a'.repeat(64), 'mockBsvAddr', Math.floor(Date.now() / 1000));
-  const sig = BSM.sign(Utils.toArray(message, 'utf8'), pk, 'base64');
-  assert.strictEqual(verifySignedOwnership(message, sig, address), true);
+// Proofs come from a BRC-100 wallet signing with the key that holds a piece (as new Yours does).
+const args = { protocolID: [0, 'onesat'], keyID: 'piece 1', counterparty: 'self' };
+
+async function sign(wallet, message) {
+  const { signature } = await wallet.createSignature({ ...args, data: Utils.toArray(message, 'utf8') });
+  const { publicKey } = await wallet.getPublicKey({ ...args, forSelf: true });
+  return { pubKey: publicKey, sig: Utils.toHex(signature), address: PublicKey.fromString(publicKey).toAddress() };
+}
+
+const freshMessage = (id = 'a') => buildClaimMessage(id.repeat(64), 'mockBsvAddr', Math.floor(Date.now() / 1000));
+
+test('proofAddress returns the signing key address for a valid signature', async () => {
+  const message = freshMessage();
+  const p = await sign(new ProtoWallet(PrivateKey.fromRandom()), message);
+  assert.strictEqual(proofAddress(message, p.pubKey, p.sig), p.address);
 });
 
-test('verifySignedOwnership rejects a signature from a different address', () => {
-  const pk = PrivateKey.fromRandom();
-  const otherAddress = PrivateKey.fromRandom().toPublicKey().toAddress();
-  const message = buildClaimMessage('a'.repeat(64), 'mockBsvAddr', Math.floor(Date.now() / 1000));
-  const sig = BSM.sign(Utils.toArray(message, 'utf8'), pk, 'base64');
-  assert.strictEqual(verifySignedOwnership(message, sig, otherAddress), false);
+test('proofAddress rejects a signature checked against a different key', async () => {
+  const message = freshMessage();
+  const p = await sign(new ProtoWallet(PrivateKey.fromRandom()), message);
+  const other = await sign(new ProtoWallet(PrivateKey.fromRandom()), message);
+  assert.strictEqual(proofAddress(message, other.pubKey, p.sig), null);
 });
 
-test('verifySignedOwnership rejects a tampered message', () => {
-  const pk = PrivateKey.fromRandom();
-  const address = pk.toPublicKey().toAddress();
-  const message = buildClaimMessage('a'.repeat(64), 'mockBsvAddr', Math.floor(Date.now() / 1000));
-  const sig = BSM.sign(Utils.toArray(message, 'utf8'), pk, 'base64');
-  assert.strictEqual(verifySignedOwnership(message + 'x', sig, address), false);
+test('proofAddress rejects a tampered message', async () => {
+  const message = freshMessage();
+  const p = await sign(new ProtoWallet(PrivateKey.fromRandom()), message);
+  assert.strictEqual(proofAddress(message + 'x', p.pubKey, p.sig), null);
 });
 
-test('verifySignedOwnership rejects garbage input instead of throwing', () => {
-  assert.strictEqual(verifySignedOwnership('msg', 'not-a-real-signature', '1SomeAddress'), false);
-});
-
-test('verifySignedOwnership rejects a different message of the same length (same-length forgery)', () => {
-  const pk = PrivateKey.fromRandom();
-  const address = pk.toPublicKey().toAddress();
+test('proofAddress rejects a different message of the same length (same-length forgery)', async () => {
   const timestamp = Math.floor(Date.now() / 1000);
   const message = buildClaimMessage('a'.repeat(64), 'mockBsvAddr', timestamp);
-  const forgedMessage = buildClaimMessage('b'.repeat(64), 'mockBsvAddr', timestamp);
-  assert.strictEqual(message.length, forgedMessage.length);
-  const sig = BSM.sign(Utils.toArray(message, 'utf8'), pk, 'base64');
-  assert.strictEqual(verifySignedOwnership(forgedMessage, sig, address), false);
+  const forged = buildClaimMessage('b'.repeat(64), 'mockBsvAddr', timestamp);
+  assert.strictEqual(message.length, forged.length);
+  const p = await sign(new ProtoWallet(PrivateKey.fromRandom()), message);
+  assert.strictEqual(proofAddress(forged, p.pubKey, p.sig), null);
 });
 
-test('verifySignedOwnership rejects a null/undefined message instead of throwing', () => {
-  const pk = PrivateKey.fromRandom();
-  const address = pk.toPublicKey().toAddress();
-  const message = buildClaimMessage('a'.repeat(64), 'mockBsvAddr', Math.floor(Date.now() / 1000));
-  const sig = BSM.sign(Utils.toArray(message, 'utf8'), pk, 'base64');
-  assert.strictEqual(verifySignedOwnership(null, sig, address), false);
-  assert.strictEqual(verifySignedOwnership(undefined, sig, address), false);
+test('proofAddress rejects garbage and null input instead of throwing', async () => {
+  const message = freshMessage();
+  const p = await sign(new ProtoWallet(PrivateKey.fromRandom()), message);
+  assert.strictEqual(proofAddress('msg', 'not-a-pubkey', 'not-a-sig'), null);
+  assert.strictEqual(proofAddress(message, p.pubKey, 'zz'), null);
+  assert.strictEqual(proofAddress(null, p.pubKey, p.sig), null);
+  assert.strictEqual(proofAddress(undefined, p.pubKey, p.sig), null);
+  assert.strictEqual(proofAddress(message, undefined, p.sig), null);
 });
 
 test('isTimestampFresh rejects a timestamp older than 5 minutes', () => {

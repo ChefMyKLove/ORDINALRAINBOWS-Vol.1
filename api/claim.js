@@ -1,6 +1,6 @@
 const supabase = require('./_db');
-const fetch = require('node-fetch');
-const { verifySignedOwnership, buildClaimMessage, isTimestampFresh } = require('./_verify-signature');
+const { lookupOwner, proofAddress } = require('../lib/checker');
+const { buildClaimMessage, isTimestampFresh } = require('./_verify-signature');
 
 const INSCRIPTION_ID_RE = /^[0-9a-fA-F]{64}$/;
 
@@ -8,26 +8,24 @@ module.exports = async function (req, res) {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-    const { inscriptionId, ordAddress, bsvAddress, epoch, signature, timestamp } = req.body || {};
-    if (!inscriptionId || !ordAddress) return res.status(400).json({ error: 'inscriptionId and ordAddress required' });
+    // Proof = BRC-100 signature (DER hex, over sha256 of the claim message) from the key that holds the
+    // inscription, plus that key's public key. New Yours keeps each 1sat on its own derived key.
+    const { inscriptionId, bsvAddress, epoch, pubKey, sig, timestamp } = req.body || {};
+    if (!inscriptionId) return res.status(400).json({ error: 'inscriptionId required' });
     if (!bsvAddress) return res.status(400).json({ error: 'bsvAddress (BSV payment address) required' });
-    if (!signature || !timestamp) return res.status(400).json({ error: 'signature and timestamp required' });
+    if (!pubKey || !sig || !timestamp) return res.status(400).json({ error: 'signature and timestamp required' });
     if (!INSCRIPTION_ID_RE.test(inscriptionId)) return res.status(400).json({ error: 'invalid inscriptionId format' });
     if (!isTimestampFresh(timestamp)) return res.status(400).json({ error: 'signature expired, please retry' });
 
-    const expectedMessage = buildClaimMessage(inscriptionId, bsvAddress, timestamp);
-    if (!verifySignedOwnership(expectedMessage, signature, ordAddress)) {
+    const signer = proofAddress(buildClaimMessage(inscriptionId, bsvAddress, timestamp), pubKey, sig);
+    if (!signer) {
       return res.status(403).json({ error: 'invalid signature — could not verify wallet ownership' });
     }
 
-    // Re-verify current on-chain ownership via GorillaPool (defense in depth — catches
-    // the case where the ordinal was transferred after the signature's timestamp).
-    const apiUrl = `https://ordinals.gorillapool.io/api/inscriptions/${inscriptionId}_0`;
-    const r = await fetch(apiUrl);
-    if (!r.ok) return res.status(502).json({ error: 'upstream failure' });
-    const item = await r.json();
-    const owner = item?.owner || null;
-    if (!owner || owner.toLowerCase() !== ordAddress.toLowerCase()) {
+    // The signing key must be the inscription's current on-chain owner (history lookup, not the mint output).
+    const current = await lookupOwner(`${inscriptionId}_0`);
+    if (current.status === 'unknown') return res.status(502).json({ error: 'upstream failure' });
+    if (!current.owner || current.owner !== signer) {
       return res.status(403).json({ error: 'ownership mismatch' });
     }
 

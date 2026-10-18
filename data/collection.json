@@ -1,0 +1,642 @@
+[
+  {
+    "piece": 1,
+    "id": "AlchemyBow",
+    "name": "AlchemyBow",
+    "subtitle": "Magical Transformation of Light Into Gold",
+    "rarity": "Exotic",
+    "origin": "704a7653a4d8c4d7bf356e1d2aeb0f0349b91c7a34c6b7eee4b4b0f5ae054a33_0",
+    "image": "images/AlchemyBow.JPG",
+    "printifyId": "26270333"
+  },
+  {
+    "piece": 2,
+    "id": "AuroraBow#1",
+    "name": "AuroraBow #1",
+    "subtitle": "First Whisper of the Polar Veil",
+    "rarity": "Common",
+    "origin": "868d6443ccb191aee5211c64273beb140bdbbe9e7293a70189acf6a46263f6f6_0",
+    "image": "images/AuroraBow%231.JPG",
+    "printifyId": "26270391"
+  },
+  {
+    "piece": 3,
+    "id": "AuroraBow#2",
+    "name": "AuroraBow #2",
+    "subtitle": "At Peace in an Optical Embrace",
+    "rarity": "Common",
+    "origin": "424cce2ffaffef15bb75ad2ff0f5db3c436363b9d2a56a2f7443ae088bd5f466_0",
+    "image": "images/AuroraBow%232.JPG",
+    "printifyId": "26270419"
+  },
+  {
+    "piece": 4,
+    "id": "AuroraBow#3",
+    "name": "AuroraBow #3",
+    "subtitle": "Heavenly Dreams in Electric Motion",
+    "rarity": "Common",
+    "origin": "b6ddeeaf1a9b81645522f0dab614a528e06be9675c9bc7d73e4fce1012619e0e_0",
+    "image": "images/AuroraBow%233.JPG",
+    "printifyId": "26282847"
+  },
+  {
+    "piece": 5,
+    "id": "CometBow#1",
+    "name": "CometBow #1",
+    "subtitle": "Streak Across the Void",
+    "rarity": "Rare",
+    "origin": "5176ddd8cd3442390610a15b61ce14179bb9f3d1095b0948ebf851b02dd61b6f_0",
+    "image": "images/CometBow%231.JPG",
+    "printifyId": "26282992"
+  },
+  {
+    "piece": 6,
+    "id": "CometBow#2",
+    "name": "CometBow #2",
+    "subtitle": "Ripples Through Space and Time",
+    "rarity": "Rare",
+    "origin": "bd6d6afe40e8fb6433157de8fbc0e7621778f0ade01a828d0463af02aaef2e3f_0",
+    "image": "images/CometBow%232.JPG",
+    "printifyId": "26284639"
+  },
+  {
+    "piece": 7,
+    "id": "CometBow#3",
+    "name": "CometBow #3",
+    "subtitle": "Slash Splits the Darkness",
+    "rarity": "Rare",
+    "origin": "06614b83002f72520337085d41be2bdc87082e9d551cc1c5ff46f527a5dad55f_0",
+    "image": "images/CometBow%233.JPG",
+    "printifyId": "26284652"
+  },
+  {
+    "piece": 8,
+    "id": "CosmicBow#1",
+    "name": "CosmicBow #1",
+    "subtitle": "Smiling Deep Space Into a Whirl",
+    "rarity": "Common",
+    "origin": "40747e9e6f8e09294660ce2f529911ac7d50c596bb52ce89af6af98c00deeeb1_0",
+    "image": "images/CosmicBow%231.JPG",
+    "printifyId": "26293528"
+  },
+  {
+    "piece": 9,
+    "id": "CosmicBow#2",
+    "name": "CosmicBow #2",
+    "subtitle": "Transmissions of the Satellite Heart",
+    "rarity": "Common",
+    "origin": "8f966e873f5afd0a8712c83207d6d43ffaba7eabfe5c36dbdd6d702102f3fb8a_0",
+    "image": "images/CosmicBow%232.JPG",
+    "printifyId": "26293547"
+  },
+  {
+    "piece": 10,
+    "id": "CosmicBow#3",
+    "name": "CosmicBow #3",
+    "subtitle": "A Comet Disappears",
+    "rarity": "Common",
+    "origin": "87aa51ecda149cb5449a2ae0524a5dca6ce280adcd22b82bff18c352f1f81a80_0",
+    "image": "images/CosmicBow%233.JPG",
+    "printifyId": "26293564"
+  },
+  {
+    "piece": 11,
+    "id": "Do-ItBow#1",
+    "name": "Do-ItBow #1",
+    "subtitle": "Soft Focus, Bold Swoosh",
+    "rarity": "Common",
+    "origin": "3e3b8082610574a01eeefedbceb8da0b29742cc4358392c9ebe7372b06171cb4_0",
+    "image": "images/Do-ItBow%231.JPG",
+    "printifyId": "26293778"
+  },
+  {
+    "piece": 12,
+    "id": "Do-ItBow#2",
+    "name": "Do-ItBow #2",
+    "subtitle": "Swoosh the Prismatic Moment",
+    "rarity": "Common",
+    "origin": "bd8a04d8da3bfab3a956bb8997a121408a45267543854ef2bf2f16b3de88a279_0",
+    "image": "images/Do-ItBow%232.JPG",
+    "printifyId": "26293799"
+  },
+  {
+    "piece": 13,
+    "id": "Do-ItBow#3",
+    "name": "Do-ItBow #3",
+    "subtitle": "Swoosh Like Nike",
+    "rarity": "Common",
+    "origin": "338b7e14c29ca471bd7b3fa8a0b05a73e6631e8331805fbd73141995a3404af8_0",
+    "image": "images/Do-ItBow%233.JPG",
+    "printifyId": "26293817"
+  },
+  {
+    "piece": 14,
+    "id": "DreamyBow#1",
+    "name": "DreamyBow #1",
+    "subtitle": "Float Through Liquid Reverie",
+    "rarity": "Common",
+    "origin": "d8ae13f6b2917a0b342734ff402ea79a5a88634f8f6ffda468db2926cf14326a_0",
+    "image": "images/DreamyBow%231.JPG",
+    "printifyId": "26293830"
+  },
+  {
+    "piece": 15,
+    "id": "DreamyBow#2",
+    "name": "DreamyBow #2",
+    "subtitle": "Twin Portals to Elsewhere Dimensions",
+    "rarity": "Common",
+    "origin": "eda2953ca6035933baed5d01ee49e64a47fcb49af833da5c6db194dd0cc0f8c2_0",
+    "image": "images/DreamyBow%232.JPG",
+    "printifyId": "26293854"
+  },
+  {
+    "piece": 16,
+    "id": "DreamyBow#3",
+    "name": "DreamyBow #3",
+    "subtitle": "Tumbling Towards Ecstacy",
+    "rarity": "Common",
+    "origin": "3db6fe8da41b899cf9c0835a2aa8ad52cad034f811ea60e040a660ad3b792370_0",
+    "image": "images/DreamyBow%233.JPG",
+    "printifyId": "26293873"
+  },
+  {
+    "piece": 17,
+    "id": "EclipseBow#1",
+    "name": "EclipseBow #1",
+    "subtitle": "Light Surrenders to shadow",
+    "rarity": "Rare",
+    "origin": "2f44447d38039c3b428bf99aea49eb0fd6c6ca1802941adaebf936bb665df238_0",
+    "image": "images/EclipseBow%231.JPG",
+    "printifyId": "26293894"
+  },
+  {
+    "piece": 18,
+    "id": "EclipseBow#2",
+    "name": "EclipseBow #2",
+    "subtitle": "Cascading Into an Infinite Void",
+    "rarity": "Rare",
+    "origin": "5845539bca4fa413f1bf3cb487c4f55c1c3c8881c6eb5dbb70088ff59adcae97_0",
+    "image": "images/EclipseBow%232.JPG",
+    "printifyId": "26294035"
+  },
+  {
+    "piece": 19,
+    "id": "EclipseBow#3",
+    "name": "EclipseBow #3",
+    "subtitle": "Darkness at the Threshold of Light",
+    "rarity": "Rare",
+    "origin": null,
+    "image": "images/EclipseBow%233.JPG",
+    "printifyId": "26294053"
+  },
+  {
+    "piece": 20,
+    "id": "ElectraBow#1",
+    "name": "ElectraBow #1",
+    "subtitle": "Charged Grid of Possibilities",
+    "rarity": "Common",
+    "origin": "8c927450f64f216f9d334ddcf4314ef637c651d627a507dbd893774e747f5184_0",
+    "image": "images/ElectraBow%231.JPG",
+    "printifyId": "26294074"
+  },
+  {
+    "piece": 21,
+    "id": "ElectraBow#2",
+    "name": "ElectraBow #2",
+    "subtitle": "Spectrum Shimmer, Restless. Alive",
+    "rarity": "Common",
+    "origin": "0874b7ace03c44299b0a0e4f32631b30c74e84ed6200fa97408685751d9ff223_0",
+    "image": "images/ElectraBow%232.JPG",
+    "printifyId": "26312143"
+  },
+  {
+    "piece": 22,
+    "id": "ElectraBow#3",
+    "name": "ElectraBow #3",
+    "subtitle": "Waves of Rainbows Surge",
+    "rarity": "Common",
+    "origin": "601386e283d90039576afceef08a8cc4f1c198ba68039e416250bface86b9c17_0",
+    "image": "images/ElectraBow%233.JPG",
+    "printifyId": "26312152"
+  },
+  {
+    "piece": 23,
+    "id": "EyeBow#1",
+    "name": "EyeBow #1",
+    "subtitle": "Watching You From Beyond the Darkness",
+    "rarity": "Common",
+    "origin": "a0d7ece47a892a986bf7f86aee23aeb1fc860d8c7eb0c0123421d9222fbe13d6_0",
+    "image": "images/EyeBow%231.JPG",
+    "printifyId": "26312176"
+  },
+  {
+    "piece": 24,
+    "id": "EyeBow#2",
+    "name": "EyeBow #2",
+    "subtitle": "Perception Transmuted Into Awareness",
+    "rarity": "Common",
+    "origin": "cd17d1f904c65ad67abcf183d3a098969a5692af9ceadd27fbcdf0fdead665e6_0",
+    "image": "images/EyeBow%232.JPG",
+    "printifyId": "26312183"
+  },
+  {
+    "piece": 25,
+    "id": "FishBow#1",
+    "name": "FishBow #1",
+    "subtitle": "Rainbows in the Midnight Zone",
+    "rarity": "Uncommon",
+    "origin": "5523845b52b4adcabfc610f7dc339a8fd2eb227806e959e25ee4ea5bcf1cc4e4_0",
+    "image": "images/FishBow%231.JPG",
+    "printifyId": "26312205"
+  },
+  {
+    "piece": 26,
+    "id": "FishBow#2",
+    "name": "FishBow #2",
+    "subtitle": "Shimmer Beneath Refracted Waters",
+    "rarity": "Uncommon",
+    "origin": "127e1fda223d75f09def4cc65950311206cc41cd77fbbdd98790644813534ea6_0",
+    "image": "images/FishBow%232.JPG",
+    "printifyId": "26312224"
+  },
+  {
+    "piece": 27,
+    "id": "FishBow#3",
+    "name": "FishBow #3",
+    "subtitle": "Deception at Depth of Scale",
+    "rarity": "Uncommon",
+    "origin": "e75c7f265941dde250f1cec7d4f55e4d6984b72e757a57e8ca9de088b383f48a_0",
+    "image": "images/FishBow%233.JPG",
+    "printifyId": "26751705"
+  },
+  {
+    "piece": 28,
+    "id": "FishBow#4",
+    "name": "FishBow #4",
+    "subtitle": "All Coming Into Focus",
+    "rarity": "Uncommon",
+    "origin": "536c740ebb2b73602946d3372a85aa1238d260b785696ffaa69f2d4817f0f502_0",
+    "image": "images/FishBow%234.JPG",
+    "printifyId": "26312237"
+  },
+  {
+    "piece": 29,
+    "id": "FlowBow#1",
+    "name": "FlowBow #1",
+    "subtitle": "Mirrored Ribbons of Light in motion",
+    "rarity": "Uncommon",
+    "origin": "dff3186d06960555da07543bf4741a41febd39c614249a605b43f62f364f2a27_0",
+    "image": "images/FlowBow%231.JPG",
+    "printifyId": "26312264"
+  },
+  {
+    "piece": 30,
+    "id": "FlowBow#2",
+    "name": "FlowBow #2",
+    "subtitle": "Getting Out of Hand",
+    "rarity": "Uncommon",
+    "origin": "a2a5c43d25471df04c210a8c1083ec9f80a6d72dd9f0df0cb6bb76a4fe4b27bb_0",
+    "image": "images/FlowBow%232.JPG",
+    "printifyId": "26312275"
+  },
+  {
+    "piece": 31,
+    "id": "FlowBow#3",
+    "name": "FlowBow #3",
+    "subtitle": "Melted Waves of Harmony",
+    "rarity": "Uncommon",
+    "origin": "bf780dcd1a56d77f76a4631d7cfe90108bfa6c1d180633396fc6151d734bd0dd_0",
+    "image": "images/FlowBow%233.JPG",
+    "printifyId": "26312283"
+  },
+  {
+    "piece": 32,
+    "id": "FlowBow#4",
+    "name": "FlowBow #4",
+    "subtitle": "Painting the Milky Depths",
+    "rarity": "Uncommon",
+    "origin": "1a6cb972cb0cd30fa8a30ec63b550f11719add091b6bcc54f77730c58cbf247c_0",
+    "image": "images/FlowBow%234.JPG",
+    "printifyId": "26312296"
+  },
+  {
+    "piece": 33,
+    "id": "GhostyBow#1",
+    "name": "GhostyBow #1",
+    "subtitle": "Ethereal Presence Glowing",
+    "rarity": "Uncommon",
+    "origin": "7d8fb85b90c267287a7c106b51abe6d156029e5a7e041d74a9fe5bf75565ab37_0",
+    "image": "images/GhostyBow%231.JPG",
+    "printifyId": "26751736"
+  },
+  {
+    "piece": 34,
+    "id": "GhostyBow#2",
+    "name": "GhostyBow #2",
+    "subtitle": "Happy Phantom From Beyond",
+    "rarity": "Uncommon",
+    "origin": "d2e9dea19f43dae8f89b37525259710c5ef84260a8746beded8e4f0d8f8cac9a_0",
+    "image": "images/GhostyBow%232.JPG",
+    "printifyId": "26312312"
+  },
+  {
+    "piece": 35,
+    "id": "GhostyBow#3",
+    "name": "GhostyBow #3",
+    "subtitle": "Translucent Soul Drifting Ethereally",
+    "rarity": "Uncommon",
+    "origin": "d4eea2459e0227a7a027b59568abfa831b933cc4ca593cb8a16dded97bfe008b_0",
+    "image": "images/GhostyBow%233.JPG",
+    "printifyId": "26312321"
+  },
+  {
+    "piece": 36,
+    "id": "GhostyBow#4",
+    "name": "GhostyBow #4",
+    "subtitle": "Haunting at the Edge of Night",
+    "rarity": "Uncommon",
+    "origin": "78e6ca0d142042a368b7bd20080c2bc224d6233a944a2d8dab15763589ee4346_0",
+    "image": "images/GhostyBow%234.JPG",
+    "printifyId": "26312329"
+  },
+  {
+    "piece": 37,
+    "id": "HazeBow#1",
+    "name": "HazeBow #1",
+    "subtitle": "Lost in Soft Rainbow Phases",
+    "rarity": "Common",
+    "origin": "cea8bc77e6b94d77510407cb1d0bab887248a84eda6a463de30d4ee56d69e283_0",
+    "image": "images/HazeBow%231.JPG",
+    "printifyId": "26312342"
+  },
+  {
+    "piece": 38,
+    "id": "HazeBow#2",
+    "name": "HazeBow #2",
+    "subtitle": "Between Reality and Dreams",
+    "rarity": "Common",
+    "origin": "f6e664cfbebf03d99e8568a45f2d310815a8dc2124922c6fd376f0452da4a2ae_0",
+    "image": "images/HazeBow%232.JPG",
+    "printifyId": "26313072"
+  },
+  {
+    "piece": 39,
+    "id": "HazeBow#3",
+    "name": "HazeBow #3",
+    "subtitle": "When First You Open Your Eyes",
+    "rarity": "Common",
+    "origin": "92386fa66c0272f5b32eec44c5e3136f6c7550c622ddb1cf3fbee22d56b42bef_0",
+    "image": "images/HazeBow%233.JPG",
+    "printifyId": "26313088"
+  },
+  {
+    "piece": 40,
+    "id": "HeartBow",
+    "name": "HeartBow",
+    "subtitle": "Love In the Palm of Your Hand",
+    "rarity": "Legendary",
+    "origin": "19a1e5047dcb0b91991007863b9112e121e374f2e24710bd7d06571706cb5182_0",
+    "image": "images/HeartBow.JPG",
+    "printifyId": "26312781"
+  },
+  {
+    "piece": 41,
+    "id": "HummingBow#1",
+    "name": "HummingBow #1",
+    "subtitle": "Hovering Prism Heartbeat",
+    "rarity": "Common",
+    "origin": "e681e0e13d14ab786884358330e8e74858758562208411f0416ff77c68bda4ee_0",
+    "image": "images/HummingBow%231.JPG",
+    "printifyId": "26312802"
+  },
+  {
+    "piece": 42,
+    "id": "HummingBow#2",
+    "name": "HummingBow #2",
+    "subtitle": "How Rapid is Rapid?",
+    "rarity": "Common",
+    "origin": "ec486ff5a307932e6efb5cabefdd64effcbedcd6f6334e8849c5059bc127b815_0",
+    "image": "images/HummingBow%232.JPG",
+    "printifyId": "26312814"
+  },
+  {
+    "piece": 43,
+    "id": "MirrorBow#1",
+    "name": "MirrorBow #1",
+    "subtitle": "Infinite Reflection Chamber",
+    "rarity": "Uncommon",
+    "origin": "573bea88ee8a4b906ac64a01a2c49ff020130ef87005bd1c5019454710d0f1fa_0",
+    "image": "images/MirrorBow%231.JPG",
+    "printifyId": "26312825"
+  },
+  {
+    "piece": 44,
+    "id": "MirrorBow#2",
+    "name": "MirrorBow #2",
+    "subtitle": "A Chance Spectral Meeting",
+    "rarity": "Uncommon",
+    "origin": "d4c9ceac64108b39a04f5f0c792ebb2ac163156f88f541023df13c557b6f00b0_0",
+    "image": "images/MirrorBow%232.JPG",
+    "printifyId": "26312841"
+  },
+  {
+    "piece": 45,
+    "id": "MirrorBow#3",
+    "name": "MirrorBow #3",
+    "subtitle": "Echoes of Tumbling Rainbows",
+    "rarity": "Uncommon",
+    "origin": "7e64760635f1526de060b327d11ca303c71fa53f630d0635694117f42c723d23_0",
+    "image": "images/MirrorBow%233.JPG",
+    "printifyId": "26312853"
+  },
+  {
+    "piece": 46,
+    "id": "MirrorBow#4",
+    "name": "MirrorBow #4",
+    "subtitle": "Depths of Illusion",
+    "rarity": "Uncommon",
+    "origin": "683bbd4c5aeb7e2ba121fec1289abb60e34263bc7d2ff55509a0801024a750fe_0",
+    "image": "images/MirrorBow%234.JPG",
+    "printifyId": "26312867"
+  },
+  {
+    "piece": 47,
+    "id": "NebulaBow#1",
+    "name": "NebulaBow #1",
+    "subtitle": "Clouds of Prismatic Stardust",
+    "rarity": "Epic",
+    "origin": "2056d7e53ca9eef2526cca04dc84695e195ab23f9edb8e58ae94a296a04f2f4b_0",
+    "image": "images/NebulaBow%231.JPG",
+    "printifyId": "26312876"
+  },
+  {
+    "piece": 48,
+    "id": "NebulaBow#2",
+    "name": "NebulaBow #2",
+    "subtitle": "Interstellar Overdrive",
+    "rarity": "Epic",
+    "origin": "dc70aed2f7fc88695d100846b3f6e6273f82fc51c9e64b69b4ce59f5f07bd243_0",
+    "image": "images/NebulaBow%232.JPG",
+    "printifyId": "26312881"
+  },
+  {
+    "piece": 49,
+    "id": "NebulaBow#3",
+    "name": "NebulaBow #3",
+    "subtitle": "A Cosmic Nursery Blooming",
+    "rarity": "Epic",
+    "origin": "88ef3f60165d06c5ef5810567d754714eeb4ff7039763b5b2af39e2a17903d22_0",
+    "image": "images/NebulaBow%233.JPG",
+    "printifyId": "26312891"
+  },
+  {
+    "piece": 50,
+    "id": "NebulaBow#4",
+    "name": "NebulaBow #4",
+    "subtitle": "Stardust Dreaming Into Shapes",
+    "rarity": "Epic",
+    "origin": "c2b9364a967649a6faf5a63a391fbf80438dfbf3b2de1f58eea15a7143de7f55_0",
+    "image": "images/NebulaBow%234.JPG",
+    "printifyId": "26312905"
+  },
+  {
+    "piece": 51,
+    "id": "NebulaBow#5",
+    "name": "NebulaBow #5",
+    "subtitle": "Celestial Whirlpool Casting Hues",
+    "rarity": "Epic",
+    "origin": "50184e4be6267bc2c00ce72efe51cafad535dfea05b25232fef64dd4367369e2_0",
+    "image": "images/NebulaBow%235.JPG",
+    "printifyId": "26312924"
+  },
+  {
+    "piece": 52,
+    "id": "NebulaBow#6",
+    "name": "NebulaBow #6",
+    "subtitle": "Chromatic Creation torn apart",
+    "rarity": "Epic",
+    "origin": "edab0ea4344d09ecffe22be1eab95d65850f19f26469b2768bc09576139f7e09_0",
+    "image": "images/NebulaBow%236.JPG",
+    "printifyId": "26312935"
+  },
+  {
+    "piece": 53,
+    "id": "RoadBow#1",
+    "name": "RoadBow #1",
+    "subtitle": "Red Light District",
+    "rarity": "Common",
+    "origin": "5e7b3681ccae9c1e08ce3aebecf476f99b1d1e911f295b8afca3619f9647496f_0",
+    "image": "images/RoadBow%231.JPG",
+    "printifyId": "26312959"
+  },
+  {
+    "piece": 54,
+    "id": "RoadBow#2",
+    "name": "RoadBow #2",
+    "subtitle": "Textured Trail to a Spectral Tomorrow",
+    "rarity": "Common",
+    "origin": "d8999dc285d71c54013bf6915323c28eb2157c8cf41d3f47388c52ac29d1e6bd_0",
+    "image": "images/RoadBow%232.JPG",
+    "printifyId": "26312976"
+  },
+  {
+    "piece": 55,
+    "id": "RoadBow#3",
+    "name": "RoadBow #3",
+    "subtitle": "Follow the Rainbow Brick Road",
+    "rarity": "Common",
+    "origin": "ae744a42863d6b4cfdb097c61e169a6b3ef8c540226532a52e261ec96ceb4caa_0",
+    "image": "images/RoadBow%233.JPG",
+    "printifyId": "26312997"
+  },
+  {
+    "piece": 56,
+    "id": "SkyBow#1",
+    "name": "SkyBow #1",
+    "subtitle": "Droplets of the Essence of Life",
+    "rarity": "Rare",
+    "origin": "71243868d8a334ac2df558e017e59bcf5a9c3042195ae0ece8852c6e0682f37a_0",
+    "image": "images/SkyBow%231.JPG",
+    "printifyId": "26313007"
+  },
+  {
+    "piece": 57,
+    "id": "SkyBow#2",
+    "name": "SkyBow #2",
+    "subtitle": "Fire of Sunrise Across the Horizon",
+    "rarity": "Rare",
+    "origin": "eb684aecec0a8073989030eeefc34b208981ec97d746e434d988b7b5a8266590_0",
+    "image": "images/SkyBow%232.JPG",
+    "printifyId": "26313018"
+  },
+  {
+    "piece": 58,
+    "id": "TieDyeBow#1",
+    "name": "TieDyeBow #1",
+    "subtitle": "Saturated in Psychedelic Bliss",
+    "rarity": "Legendary",
+    "origin": "7def583d3dad15f9343f3189c7a8837a13e7615d6310453cf6268803b3704342_0",
+    "image": "images/TieDyeBow%231.JPG",
+    "printifyId": "26312757"
+  },
+  {
+    "piece": 59,
+    "id": "TieDyeBow#2",
+    "name": "TieDyeBow #2",
+    "subtitle": "Kaleidoscope of Prescience",
+    "rarity": "Legendary",
+    "origin": "0a4d806faa2e0ca230c41283ad38519ef8efe6c7287d407762852605ca29ebff_0",
+    "image": "images/TieDyeBow%232.JPG",
+    "printifyId": "26312740"
+  },
+  {
+    "piece": 60,
+    "id": "TunnelBow#1",
+    "name": "TunnelBow #1",
+    "subtitle": "Portal Into Chromatic Unknowns",
+    "rarity": "Common",
+    "origin": "22141ab40840b31ba0c2a96fe452d97c0457f288a427e7f8bf54d55cc674fad2_0",
+    "image": "images/TunnelBow%231.JPG",
+    "printifyId": "25134633"
+  },
+  {
+    "piece": 61,
+    "id": "TunnelBow#2",
+    "name": "TunnelBow #2",
+    "subtitle": "Vortex of Warm Invitation",
+    "rarity": "Common",
+    "origin": "33e25defc213d9f5d28547080df83bd2b39482197b399af79b3b0d62ce961249_0",
+    "image": "images/TunnelBow%232.JPG",
+    "printifyId": "26313100"
+  },
+  {
+    "piece": 62,
+    "id": "TunnelBow#3",
+    "name": "TunnelBow #3",
+    "subtitle": "Return From the Mystic Void",
+    "rarity": "Common",
+    "origin": "8405acc073776a2bd41d0623495cb932ab477c66be6500a62c4324fc9d9016a7_0",
+    "image": "images/TunnelBow%233.JPG",
+    "printifyId": "26313138"
+  },
+  {
+    "piece": 63,
+    "id": "UniverseBow",
+    "name": "UniverseBow",
+    "subtitle": "Everything, Everywhere, All at Once",
+    "rarity": "Legendary",
+    "origin": "93f79b45ac8f5d1ef218bb67426aefe53458081010119a620a7bc77f220c74d3_0",
+    "image": "images/UniverseBow.JPG",
+    "printifyId": "26313179"
+  },
+  {
+    "piece": 64,
+    "id": "ZippyBow",
+    "name": "ZippyBow",
+    "subtitle": "(In Case You Missed It)",
+    "rarity": "Exotic",
+    "origin": "d6dc7d95528657302d7fb1473002358323987dc468f833f53a34d0276c24b2d4_0",
+    "image": "images/ZippyBow.JPG",
+    "printifyId": "26313189"
+  }
+]

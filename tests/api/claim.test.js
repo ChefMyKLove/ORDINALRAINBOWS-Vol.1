@@ -7,7 +7,7 @@ process.env.SUPABASE_SERVICE_KEY = 'test-key';
 
 test('claim rejects a request with no signature or timestamp', async () => {
   const claim = require('../../api/claim');
-  const req = { method: 'POST', body: { inscriptionId: 'a'.repeat(64), ordAddress: 'addr1', bsvAddress: 'addr2' } };
+  const req = { method: 'POST', body: { inscriptionId: 'a'.repeat(64), bsvAddress: 'addr2' } };
   const res = fakeRes();
   await claim(req, res);
   assert.strictEqual(res.statusCode, 400);
@@ -15,7 +15,7 @@ test('claim rejects a request with no signature or timestamp', async () => {
 
 test('claim rejects a malformed inscriptionId', async () => {
   const claim = require('../../api/claim');
-  const req = { method: 'POST', body: { inscriptionId: 'not-a-valid-id', ordAddress: 'addr1', bsvAddress: 'addr2', signature: 'x', timestamp: Math.floor(Date.now() / 1000) } };
+  const req = { method: 'POST', body: { inscriptionId: 'not-a-valid-id', bsvAddress: 'addr2', pubKey: '02aa', sig: 'x', timestamp: Math.floor(Date.now() / 1000) } };
   const res = fakeRes();
   await claim(req, res);
   assert.strictEqual(res.statusCode, 400);
@@ -24,7 +24,7 @@ test('claim rejects a malformed inscriptionId', async () => {
 test('claim rejects an expired timestamp', async () => {
   const claim = require('../../api/claim');
   const old = Math.floor(Date.now() / 1000) - 9999;
-  const req = { method: 'POST', body: { inscriptionId: 'a'.repeat(64), ordAddress: 'addr1', bsvAddress: 'addr2', signature: 'x', timestamp: old } };
+  const req = { method: 'POST', body: { inscriptionId: 'a'.repeat(64), bsvAddress: 'addr2', pubKey: '02aa', sig: 'x', timestamp: old } };
   const res = fakeRes();
   await claim(req, res);
   assert.strictEqual(res.statusCode, 400);
@@ -32,7 +32,7 @@ test('claim rejects an expired timestamp', async () => {
 
 test('claim rejects an invalid signature before touching the network', async () => {
   const claim = require('../../api/claim');
-  const req = { method: 'POST', body: { inscriptionId: 'a'.repeat(64), ordAddress: 'addr1', bsvAddress: 'addr2', signature: 'bogus-signature-value', timestamp: Math.floor(Date.now() / 1000) } };
+  const req = { method: 'POST', body: { inscriptionId: 'a'.repeat(64), bsvAddress: 'addr2', pubKey: '02aa', sig: 'bogus-signature-value', timestamp: Math.floor(Date.now() / 1000) } };
   const res = fakeRes();
   await claim(req, res);
   assert.strictEqual(res.statusCode, 403);

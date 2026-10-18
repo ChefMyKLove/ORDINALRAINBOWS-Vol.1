@@ -865,3 +865,7 @@ body.screensaver-on .sticky-bar { visibility: hidden; }
     .ss-stage { transform: none; transition: none; }
     .screensaver.ss-swap .ss-forward { animation: ss-fade-in 1s ease-out both; }
 }
+
+/* ===== 3D card popup: new fonts only (behaviour unchanged) ===== */
+.card-front-title, .card-3d-back-title, .card-3d-front-title { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.02em; }
+.card-face, .card-3d-ctrl-btn, .card-3d-claim-btn, .card-3d-note { font-family: var(--font-body); }

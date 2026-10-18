@@ -72,10 +72,9 @@
     68%      { opacity: 0.96; }
 }
 
-@media (max-width: 768px) {
-    .cloud-layer { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .cloud-layer { animation: none !important; }
+/* Crossfade fallback: reduced motion or a struggling device (set by js/bg-anim.js) */
+.bg-fade .cloud-layer {
+    filter: none !important;
+    animation: none !important;
+    transform: scale(1.08);
 }

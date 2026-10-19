@@ -11,8 +11,10 @@
   const IDLE_MS = 60 * 1000;
   const FORWARD_MS = 6000;
   const FLOATERS = 7;
+  // Wrapped so they are never called as methods of this object: browsers throw "Illegal invocation".
+  const realTimers = { setTimeout: (fn, ms) => setTimeout(fn, ms), clearTimeout: h => clearTimeout(h) };
 
-  function createIdleTimer({ timeoutMs = IDLE_MS, isSuppressed = () => false, onIdle, timers = { setTimeout, clearTimeout } }) {
+  function createIdleTimer({ timeoutMs = IDLE_MS, isSuppressed = () => false, onIdle, timers = realTimers }) {
     let handle = null;
     function fire() {
       if (isSuppressed()) { arm(); return; }
@@ -41,7 +43,7 @@
   // Swallows one click within `windowMs` of being armed — used so the touchstart/pointerdown
   // that dismisses the idle screensaver doesn't also fire its synthesized click on whatever
   // gallery element sits underneath.
-  function createClickSwallower({ windowMs = 500, timers = { setTimeout, clearTimeout } } = {}) {
+  function createClickSwallower({ windowMs = 500, timers = realTimers } = {}) {
     let active = false;
     let handle = null;
     return {

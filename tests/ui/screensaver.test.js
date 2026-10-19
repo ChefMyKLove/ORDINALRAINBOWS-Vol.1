@@ -109,3 +109,22 @@ test('click swallower: auto-clears after its window so a later tap is not eaten'
   timers.advance(500);
   assert.strictEqual(swallower.shouldSwallow(), false, 'window elapsed without a click; stops swallowing');
 });
+
+test('default timers work when the host rejects detached calls (browsers throw Illegal invocation)', () => {
+  const realSet = globalThis.setTimeout;
+  const realClear = globalThis.clearTimeout;
+  function strict(fn) { return function (...args) { if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation'); return fn(...args); }; }
+  globalThis.setTimeout = strict(realSet);
+  globalThis.clearTimeout = strict(realClear);
+  try {
+    const t = S.createIdleTimer({ timeoutMs: 1e6, onIdle() {} });
+    t.poke();
+    t.stop();
+    const sw = S.createClickSwallower();
+    sw.arm();
+    assert.strictEqual(sw.shouldSwallow(), true);
+  } finally {
+    globalThis.setTimeout = realSet;
+    globalThis.clearTimeout = realClear;
+  }
+});

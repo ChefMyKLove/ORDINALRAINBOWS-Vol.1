@@ -125,7 +125,9 @@
       "Bash(xargs wc -c)",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('vercel.json','utf8'\\)\\);console.log\\('json ok'\\)\")",
       "Bash(node -e \"const c=require\\('fs'\\).readFileSync\\('css/site.css','utf8'\\);let d=0;for\\(const ch of c\\){if\\(ch=='{'\\)d++;if\\(ch=='}'\\)d--;if\\(d<0\\)throw 'unbalanced'}console.log\\('braces',d\\)\")",
-      "Bash(echo \"Final: fixed claim reset label + removed dead/duplicate 3D card CSS \\(commit $\\(git rev-parse --short HEAD\\), suite 74/74\\)\")"
+      "Bash(echo \"Final: fixed claim reset label + removed dead/duplicate 3D card CSS \\(commit $\\(git rev-parse --short HEAD\\), suite 74/74\\)\")",
+      "Bash(git fetch *)",
+      "Bash(git rev-list *)"
     ]
   }
 }

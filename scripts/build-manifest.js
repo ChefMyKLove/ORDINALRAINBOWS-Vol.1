@@ -10,7 +10,7 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const EXPECTED_PIECES = 64;
-// Piece 19 (EclipseBow #3) has no inscriptionId on the site yet. Remove once filled in.
+// Piece 19 (EclipseBow #3) has no 1sat, so it has no origin and is never claimable.
 const ALLOW_NULL_ORIGIN = new Set([19]);
 
 function parseNfts(indexHtml) {
@@ -34,6 +34,7 @@ function buildManifest(nfts) {
       subtitle: n.subtitle || '',
       rarity: n.rarity || 'Common',
       origin: n.inscriptionId ? `${n.inscriptionId}_0` : null,
+      claimable: Boolean(n.inscriptionId),
       image: fs.existsSync(path.join(ROOT, image)) ? image.replace(/#/g, '%23') : null,
       // Printify product's external.id (the number in its printify.me link): maps a print sale to this piece
       printifyId: ((n.printifyUrl || '').match(/\/product\/(\d+)/) || [])[1] || null,
@@ -46,6 +47,7 @@ function validateManifest(manifest, allowNull = ALLOW_NULL_ORIGIN) {
   if (manifest.length !== EXPECTED_PIECES) errors.push(`expected ${EXPECTED_PIECES} pieces, got ${manifest.length}`);
   const seen = new Set();
   for (const p of manifest) {
+    if (p.claimable !== Boolean(p.origin)) errors.push(`piece ${p.piece} claimable flag does not match its origin`);
     if (!p.origin) {
       if (!allowNull.has(p.piece)) errors.push(`piece ${p.piece} (${p.name}) has no origin`);
       continue;

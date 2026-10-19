@@ -93,8 +93,11 @@ h1 {
 .badge.pending { background: rgba(255, 195, 113, 0.2); color: #ffc371; }
 .badge.delivered { background: rgba(124, 255, 107, 0.2); color: #7cff6b; }
 
-.claim-form { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-.claim-form input {
+.pick { display: flex; align-items: center; gap: 8px; margin-top: auto; cursor: pointer; font-weight: 600; }
+.pick input { width: 20px; height: 20px; accent-color: #b36bff; }
+.claim-bar { margin-top: 32px; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.claim-bar[hidden] { display: none; }
+.claim-bar input {
     padding: 10px 12px;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -102,8 +105,8 @@ h1 {
     color: #fff;
     font-size: 1em;
 }
-.claim-form .btn { padding: 10px 16px; font-size: 0.95em; }
 .claim-error { font-size: 0.85em; color: #ff8a8a; }
+.claim-ok { font-size: 0.85em; color: #7cff6b; }
 
 @media (max-width: 768px) {
     body {
@@ -132,14 +135,21 @@ h1 {
     <div class="wrap">
         <section class="panel">
             <h1>ORDINAL🌈RAINBOWS<br>Holder Checker</h1>
-            <p>Connect your Yours wallet and approve a one-time signature for each piece to see which of the 64 you hold right now.</p>
-            <p>Each piece you hold can claim its matching <strong>Twetch twonk</strong>. The twonk is a separate asset from your 1sat ordinal: claiming it doesn't move or change your 1sat. Twonks are airdropped by hand, so delivery is not instant.</p>
-            <p class="note">Signing is free and doesn't send anything. It only proves you control the keys holding your pieces.</p>
+            <p>Connect your Yours wallet to see which ORDINAL RAINBOWS pieces it holds.</p>
+            <p>Each piece can claim its matching <strong>Twetch twonk</strong> once. The twonk is a separate asset from your 1sat ordinal: claiming doesn’t move or change your 1sat. Twonks are airdropped by hand, so delivery is not instant.</p>
+            <p class="note">You’ll approve one signature per piece you claim. It only says “I want this twonk, send it to this handle”. It’s free and moves no funds.</p>
             <button id="connect" class="btn">Connect Yours Wallet</button>
             <div id="status" role="status" aria-live="polite"></div>
         </section>
 
         <div id="pieces" class="grid"></div>
+
+        <form id="claim-form" class="panel claim-bar" hidden>
+            <label for="handle">Your Twetch handle</label>
+            <input id="handle" placeholder="@yourhandle" maxlength="33" required autocomplete="off">
+            <button id="claim-btn" class="btn" type="submit" disabled>Claim twonk</button>
+            <div id="claim-msg" role="status" aria-live="polite"></div>
+        </form>
     </div>
 
     <script>
@@ -147,19 +157,34 @@ h1 {
         const connectBtn = document.getElementById('connect');
         const statusEl = document.getElementById('status');
         const grid = document.getElementById('pieces');
+        const form = document.getElementById('claim-form');
+        const handleInput = document.getElementById('handle');
+        const claimBtn = document.getElementById('claim-btn');
+        const claimMsg = document.getElementById('claim-msg');
+
+        let mine = [];          // [{ piece, ordinal }] for this wallet's claimable pieces; display only, the server re-checks
+        const selected = new Set();
+
+        const RESULT_TEXT = {
+            claimed: 'Claimed',
+            already_claimed: 'Already claimed',
+            not_owner: 'Not on your keys on-chain',
+            unknown: 'Couldn’t check, try again',
+            invalid_signature: 'Signature didn’t match',
+            not_claimable: 'Not claimable',
+        };
 
         function setStatus(text, isError) {
             statusEl.textContent = text;
             statusEl.className = isError ? 'error' : '';
         }
 
-        async function post(url, body) {
-            const r = await fetch(url, {
+        async function api(url, body) {
+            const r = await fetch(url, body ? {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
                 body: JSON.stringify(body)
-            });
+            } : { cache: 'no-store' });
             const data = await r.json().catch(() => ({}));
             if (!r.ok && !data.error && [404, 405, 501].includes(r.status)) {
                 throw new Error('The checker’s server isn’t running here (HTTP ' + r.status + '). Open the site through Vercel (vercel dev or the live site), not a plain file server.');
@@ -175,7 +200,8 @@ h1 {
             return e;
         }
 
-        function renderCard(p) {
+        function renderCard(item) {
+            const p = item.piece;
             const card = el('article', 'card');
             if (p.image) {
                 const img = el('img');
@@ -188,46 +214,37 @@ h1 {
             body.appendChild(el('div', 'card-title', '#' + p.piece + ' ' + p.name));
             body.appendChild(el('div', 'card-meta', p.subtitle + ' · ' + p.rarity));
 
-            if (p.claim === 'pending') {
+            if (item.status === 'pending') {
                 body.appendChild(el('span', 'badge pending', 'Pending airdrop'));
-            } else if (p.claim === 'delivered') {
+            } else if (item.status === 'delivered') {
                 body.appendChild(el('span', 'badge delivered', 'Delivered'));
             } else {
-                const form = el('form', 'claim-form');
-                const label = el('label', null, 'Your Twetch handle');
-                label.style.fontSize = '0.85em';
-                const input = el('input');
-                input.placeholder = '@yourhandle';
-                input.maxLength = 33;
-                input.required = true;
-                input.autocomplete = 'off';
-                label.htmlFor = input.id = 'handle-' + p.piece;
-                const btn = el('button', 'btn', 'Claim twonk');
-                btn.type = 'submit';
-                const err = el('div', 'claim-error');
-                form.append(label, input, btn, err);
-                form.addEventListener('submit', async function (e) {
-                    e.preventDefault();
-                    btn.disabled = true;
-                    err.textContent = '';
-                    try {
-                        await post('/api/checker-claim', { origin: p.origin, handle: input.value });
-                        p.claim = 'pending';
-                        card.replaceWith(renderCard(p));
-                    } catch (ex) {
-                        if (/already claimed/.test(ex.message)) {
-                            p.claim = 'pending';
-                            card.replaceWith(renderCard(p));
-                            return;
-                        }
-                        err.textContent = ex.message;
-                        btn.disabled = false;
-                    }
+                const label = el('label', 'pick');
+                const box = el('input');
+                box.type = 'checkbox';
+                box.checked = selected.has(p.origin);
+                box.addEventListener('change', function () {
+                    if (box.checked) selected.add(p.origin); else selected.delete(p.origin);
+                    updateForm();
                 });
-                body.appendChild(form);
+                label.append(box, document.createTextNode(' Claim this twonk'));
+                body.appendChild(label);
             }
+            if (item.result) body.appendChild(el('div', item.result === 'claimed' ? 'claim-ok' : 'claim-error', RESULT_TEXT[item.result] || item.result));
             card.appendChild(body);
             return card;
+        }
+
+        function render() {
+            grid.replaceChildren.apply(grid, mine.map(renderCard));
+            updateForm();
+        }
+
+        function updateForm() {
+            const unclaimed = mine.some(m => m.status === 'unclaimed');
+            form.hidden = !unclaimed;
+            claimBtn.disabled = selected.size === 0;
+            claimBtn.textContent = selected.size > 1 ? 'Claim ' + selected.size + ' twonks' : 'Claim twonk';
         }
 
         connectBtn.addEventListener('click', async function () {
@@ -236,54 +253,70 @@ h1 {
                 return;
             }
             connectBtn.disabled = true;
-            grid.replaceChildren();
+            selected.clear();
+            mine = [];
+            render();
             try {
                 setStatus('Reading your ordinals… approve the request in your wallet if asked.');
-                const manifest = await (await fetch('/data/collection.json')).json();
-                const ourOrigins = new Set(manifest.filter(p => p.origin).map(p => p.origin));
-                const ordinals = await window.ORWallet.listOrdinals();
-                const mine = [];
+                const [manifest, ordinals, status] = await Promise.all([
+                    fetch('/data/collection.json').then(r => r.json()),
+                    window.ORWallet.listOrdinals(),
+                    api('/api/checker-status')
+                ]);
+                const byOrigin = new Map(manifest.filter(p => p.claimable).map(p => [p.origin, p]));
                 const seen = new Set();
                 ordinals.forEach(o => {
-                    if (ourOrigins.has(o.origin) && !seen.has(o.origin)) { seen.add(o.origin); mine.push(o); }
+                    if (byOrigin.has(o.origin) && !seen.has(o.origin)) {
+                        seen.add(o.origin);
+                        mine.push({ piece: byOrigin.get(o.origin), ordinal: o, status: status[o.origin] || 'unclaimed' });
+                    }
                 });
-                console.log('[checker] wallet 1sat outputs:', ordinals.length, '· ORDINAL RAINBOWS pieces:', mine.length, mine);
-
-                if (mine.length === 0) {
-                    setStatus('No ORDINAL RAINBOWS pieces found in this wallet (it has ' + ordinals.length + ' ordinal' + (ordinals.length === 1 ? '' : 's') + ' in total).', false);
-                    return;
-                }
-
-                const challenge = await post('/api/checker-challenge', {});
-                const proofs = [];
-                for (let i = 0; i < mine.length; i++) {
-                    setStatus('Proving piece ' + (i + 1) + ' of ' + mine.length + '… approve the signature in your wallet if asked.');
-                    const proof = await window.ORWallet.signWith(mine[i].derivation, challenge.message);
-                    proofs.push(Object.assign({ origin: mine[i].origin }, proof));
-                }
-
-                setStatus('Checking your pieces on-chain…');
-                const result = await post('/api/checker-verify', { nonce: challenge.nonce, proofs: proofs });
-
-                result.pieces.forEach(p => grid.appendChild(renderCard(p)));
-                let msg = result.counts.held === 0
-                    ? 'This wallet doesn’t hold any ORDINAL RAINBOWS pieces right now.'
-                    : 'You hold ' + result.counts.held + ' piece' + (result.counts.held === 1 ? '' : 's') + '.';
-                if (result.counts.not_held > 0) {
-                    msg += ' ' + result.counts.not_held + ' piece' + (result.counts.not_held === 1 ? '' : 's') +
-                        ' listed in your wallet ' + (result.counts.not_held === 1 ? 'is' : 'are') +
-                        ' not on your keys on-chain (often an unfinished transfer or sweep), so ' +
-                        (result.counts.not_held === 1 ? 'it' : 'they') + ' can’t be claimed yet.';
-                }
-                if (result.counts.unknown > 0) {
-                    msg += ' Couldn’t check ' + result.counts.unknown + ' piece' + (result.counts.unknown === 1 ? '' : 's') + ' (#' + result.unknown.join(', #') + '). Press the button again to retry.';
-                }
-                setStatus(msg, false);
+                mine.sort((a, b) => a.piece.piece - b.piece.piece);
+                render();
+                setStatus(mine.length === 0
+                    ? 'No ORDINAL RAINBOWS pieces found in this wallet (it has ' + ordinals.length + ' ordinal' + (ordinals.length === 1 ? '' : 's') + ' in total).'
+                    : 'This wallet lists ' + mine.length + ' piece' + (mine.length === 1 ? '' : 's') + '. Pick the ones to claim, enter your Twetch handle, then sign.', false);
             } catch (e) {
                 setStatus(e.message || String(e), true);
             } finally {
                 connectBtn.disabled = false;
                 connectBtn.textContent = 'Check again';
+            }
+        });
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const picked = mine.filter(m => selected.has(m.piece.origin));
+            if (picked.length === 0) return;
+            claimBtn.disabled = true;
+            claimMsg.textContent = '';
+            try {
+                const challenge = await api('/api/checker-challenge', { handle: handleInput.value, origins: picked.map(m => m.piece.origin) });
+                const claims = [];
+                for (let i = 0; i < picked.length; i++) {
+                    claimMsg.textContent = 'Signing ' + (i + 1) + ' of ' + picked.length + '… approve it in your wallet.';
+                    const origin = picked[i].piece.origin;
+                    const proof = await window.ORWallet.signWith(picked[i].ordinal.derivation, challenge.messages[origin]);
+                    claims.push({ origin: origin, pubKey: proof.pubKey, sig: proof.sig });
+                }
+                claimMsg.textContent = 'Checking ownership on-chain…';
+                const out = await api('/api/checker-claim', { nonce: challenge.nonce, handle: challenge.handle, claims: claims });
+                let ok = 0;
+                out.results.forEach(r => {
+                    const m = mine.find(x => x.piece.origin === r.origin);
+                    if (!m) return;
+                    m.result = r.result;
+                    if (r.result === 'claimed' || r.result === 'already_claimed') { m.status = 'pending'; selected.delete(r.origin); }
+                    if (r.result === 'claimed') ok++;
+                });
+                render();
+                claimMsg.textContent = ok
+                    ? ok + ' twonk' + (ok === 1 ? '' : 's') + ' claimed for @' + out.handle + '. They’ll be airdropped by hand; it’s not instant.'
+                    : 'Nothing was claimed. See the note on each piece.';
+            } catch (ex) {
+                claimMsg.textContent = ex.message || String(ex);
+            } finally {
+                updateForm();
             }
         });
     })();

@@ -83,9 +83,9 @@
     let savedScroll = 0;
     let pool = null;
 
-    // Grab-and-fling spheres; null under reduced motion or on very narrow screens (they stay still).
+    // Grab-and-fling spheres on computers only; phones/tablets (and reduced motion) keep them still.
     function startPool() {
-      if (!window.BubblePhysics) return;
+      if (!window.BubblePhysics || window.matchMedia('(max-width: 768px), (pointer: coarse)').matches) return;
       const visible = floaters.filter(el => el.getClientRects().length);
       pool = window.BubblePhysics.createField({ field: stage, bodies: visible });
     }

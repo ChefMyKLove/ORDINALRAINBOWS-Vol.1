@@ -1,8 +1,9 @@
 /*
   Background animation: two cloud layers of the pieces, warped by animated SVG turbulence and
   crossfading between images.
-  full (desktop) · lite (phones: gentler warp, ~15 updates/s, 800px images) · fade (crossfade only:
-  reduced motion, or the first 3 s measure a median frame slower than 40 ms).
+  full (desktop) · fade (crossfade only, no warp: phones/tablets with 800px images, reduced motion,
+  or the first 3 s measure a median frame slower than 40 ms). iOS Safari stutters on animated SVG
+  filters without the frame timer noticing, so touch devices never get the warp.
 */
 (function () {
     var NAMES = [
@@ -13,8 +14,7 @@
     ];
 
     function chooseBgMode(opts) {
-        if (opts.reducedMotion) return 'fade';
-        return opts.isPhone ? 'lite' : 'full';
+        return opts.reducedMotion || opts.isPhone ? 'fade' : 'full';
     }
 
     function isStuttering(intervals) {
@@ -31,8 +31,7 @@
     var BASE = (typeof window.BG_BASE_PATH !== 'undefined') ? window.BG_BASE_PATH : 'images/';
     var isPhone = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
     var mode = chooseBgMode({ isPhone: isPhone, reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches });
-    var useSmall = mode === 'lite' || (mode === 'fade' && isPhone);
-    var BG_IMAGES = NAMES.map(function (n) { return BASE + (useSmall ? 'sm/' : '') + n; });
+    var BG_IMAGES = NAMES.map(function (n) { return BASE + (isPhone ? 'sm/' : '') + n; });
     var cloudAnimT = 0;
 
     function enterFade() {
@@ -40,25 +39,16 @@
         document.documentElement.classList.add('bg-fade');
     }
 
-    // Fewer noise octaves and a smaller warp: the turbulence's next sibling is its feDisplacementMap.
-    function tuneForPhones() {
-        document.querySelectorAll('#cloud-turb, #cloud-turb-b').forEach(function (el) {
-            el.setAttribute('numOctaves', '2');
-            if (el.nextElementSibling) el.nextElementSibling.setAttribute('scale', '56');
-        });
-    }
-
-    /* Animate turbulence baseFrequency; lite mode updates every 4th frame. */
+    /* Animate turbulence baseFrequency. */
     function startCloudAnim() {
         var turb = document.getElementById('cloud-turb');
         var turb2 = document.getElementById('cloud-turb-b');
         if (!turb || mode === 'fade') return;
-        var frame = 0;
         var last = 0;
         var started = 0;
         var checked = false;
         var intervals = [];
-        var step = mode === 'lite' ? 0.0026 : 0.00065;
+        var step = 0.00065;
         function tick(ts) {
             if (mode === 'fade') return;
             if (!started) started = ts;
@@ -70,8 +60,6 @@
                 }
             }
             last = ts;
-            frame++;
-            if (mode === 'lite' && frame % 4 !== 0) { requestAnimationFrame(tick); return; }
             cloudAnimT += step;
             var fx = 0.009 + Math.sin(cloudAnimT * 1.10) * 0.012 + Math.sin(cloudAnimT * 2.30) * 0.006;
             var fy = 0.011 + Math.cos(cloudAnimT * 0.75) * 0.011 + Math.cos(cloudAnimT * 1.90) * 0.006;
@@ -157,7 +145,6 @@
 
     function init() {
         if (mode === 'fade') document.documentElement.classList.add('bg-fade');
-        if (mode === 'lite') tuneForPhones();
         startCloudAnim();
         initBackgroundCycle();
     }

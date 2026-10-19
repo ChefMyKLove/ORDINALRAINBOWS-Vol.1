@@ -527,6 +527,13 @@ body {
     .sticky-bar .wordmark-small { display: none; }
     .sticky-bar .pill-search { flex: 1 1 auto; }
 }
+/* Phones: search on its own row, controls below, nothing clipped (a long wallet pill truncates) */
+@media (max-width: 520px) {
+    .sticky-bar { flex-wrap: wrap; justify-content: center; gap: 6px; padding: 8px; border-radius: 22px; }
+    .sticky-bar .pill-search { flex: 1 1 100%; }
+    .sticky-bar .pill-btn, .sticky-bar .pill-select { padding: 8px 12px; font-size: 0.85rem; white-space: nowrap; }
+    .sticky-bar [data-action="wallet"] { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+}
 @media (prefers-reduced-motion: reduce) { .sticky-bar { transition: none; } }
 
 /* ===== Gallery cards (redesign) ===== */
@@ -795,9 +802,15 @@ body.screensaver-on .sticky-bar { visibility: hidden; }
 }
 @keyframes ss-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 600px) {
-    .ss-card:nth-child(n + 5) { display: none; }
+    .ss-card:nth-child(n + 3) { display: none; }
     .ss-forward { width: min(70vw, 340px); transform: translateY(-12vh); }
     .ss-placard { bottom: 4vh; }
+}
+/* Phones/tablets: no live blur (recomputed every scroll frame) and still spheres — keeps iPhones smooth */
+@media (max-width: 768px), (pointer: coarse) {
+    .nft-card, .ss-forward { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(22, 19, 38, 0.62); }
+    .ss-card { animation: none; }
+    .ss-stage { transform: none; transition: none; }
 }
 @media (prefers-reduced-motion: reduce) {
     .ss-card { animation: none; }

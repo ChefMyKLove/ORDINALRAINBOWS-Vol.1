@@ -2,9 +2,9 @@ const test = require('node:test');
 const assert = require('node:assert');
 const B = require('../../js/bg-anim.js');
 
-test('desktop gets the full animation, phones the lite one', () => {
+test('desktop gets the full animation, phones and tablets only the crossfade', () => {
   assert.strictEqual(B.chooseBgMode({ isPhone: false, reducedMotion: false }), 'full');
-  assert.strictEqual(B.chooseBgMode({ isPhone: true, reducedMotion: false }), 'lite');
+  assert.strictEqual(B.chooseBgMode({ isPhone: true, reducedMotion: false }), 'fade');
 });
 
 test('reduced motion always gets the crossfade', () => {

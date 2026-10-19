@@ -83,3 +83,8 @@
     animation: none !important;
     transform: scale(1.08);
 }
+/* Phones/tablets: one plain layer — no blending, mask or extra GPU layer to recomposite while scrolling */
+@media (max-width: 768px), (pointer: coarse) {
+    .bg-fade .cloud-layer { mix-blend-mode: normal; -webkit-mask-image: none; mask-image: none; will-change: auto; }
+    .bg-fade .cloud-layer-2 { display: none; }
+}

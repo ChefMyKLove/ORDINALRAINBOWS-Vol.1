@@ -81,6 +81,20 @@
     let swaps = 0;
     let cycle = null;
     let savedScroll = 0;
+    let pool = null;
+
+    // Grab-and-fling spheres; null under reduced motion or on very narrow screens (they stay still).
+    function startPool() {
+      if (!window.BubblePhysics) return;
+      const visible = floaters.filter(el => el.getClientRects().length);
+      pool = window.BubblePhysics.createField({ field: stage, bodies: visible });
+    }
+    function stopPool() {
+      if (!pool) return;
+      pool.destroy();
+      pool = null;
+      floaters.forEach(el => { el.style.position = el.style.top = el.style.left = el.style.margin = el.style.transform = ''; });
+    }
 
     for (let i = 0; i < FLOATERS; i++) {
       const card = document.createElement('div');
@@ -115,12 +129,14 @@
       root.hidden = false;
       showForward();
       cycle = setInterval(showForward, FORWARD_MS);
+      startPool();
       enter.focus({ preventScroll: true });
     }
 
     function hide() {
       if (!state.hide()) return;
       clearInterval(cycle);
+      stopPool();
       root.hidden = true;
       document.body.classList.remove('screensaver-on');
       window.scrollTo(0, savedScroll);

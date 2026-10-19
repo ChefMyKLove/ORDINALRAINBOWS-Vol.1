@@ -725,6 +725,10 @@ body.screensaver-on .sticky-bar { visibility: hidden; }
         radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 32%),
         radial-gradient(circle, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.35) 100%);
 }
+/* grab-and-fling (js/bubble-physics.js): physics owns the transform, so drop the CSS drift and the tilt */
+.ss-stage.pool-active { transform: none; transition: none; }
+.ss-stage.pool-active .ss-card { animation: none; cursor: grab; touch-action: none; user-select: none; }
+.ss-stage.pool-active .ss-card.dragging { cursor: grabbing; opacity: 0.8; }
 .ss-card:nth-child(1) { top: 8%; left: 6%; }
 .ss-card:nth-child(2) { top: 12%; right: 8%; }
 .ss-card:nth-child(3) { bottom: 14%; left: 10%; }

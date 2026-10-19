@@ -695,9 +695,12 @@ body.screensaver-on .sticky-bar { visibility: hidden; }
     position: absolute;
     width: clamp(110px, 14vw, 190px);
     aspect-ratio: 1;
-    border-radius: 22px;
+    border-radius: 50%;
     background: var(--frost-glass) center / cover no-repeat;
-    box-shadow: var(--shadow-float);
+    /* sphere shading: dark lower-right limb, soft light upper-left */
+    box-shadow: var(--shadow-float),
+        inset -18px -22px 40px rgba(0, 0, 0, 0.55),
+        inset 10px 12px 26px rgba(255, 255, 255, 0.2);
     opacity: 0.55;
     animation: ss-drift 38s ease-in-out infinite;
     animation-delay: calc(var(--i) * -5.4s);
@@ -712,6 +715,15 @@ body.screensaver-on .sticky-bar { visibility: hidden; }
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
+}
+.ss-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0) 32%),
+        radial-gradient(circle, rgba(0, 0, 0, 0) 58%, rgba(0, 0, 0, 0.35) 100%);
 }
 .ss-card:nth-child(1) { top: 8%; left: 6%; }
 .ss-card:nth-child(2) { top: 12%; right: 8%; }

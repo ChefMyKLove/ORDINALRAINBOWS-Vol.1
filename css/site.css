@@ -502,6 +502,18 @@ body {
     transition: transform 0.35s ease;
 }
 .sticky-bar.is-visible { transform: translate(-50%, 0); }
+/* the • between ORDINAL and RAINBOWS drawn as a little rainbow arc (the bullet stays in the text for screen readers / copy) */
+.wm-rainbow {
+    display: inline-block;
+    width: 0.9em;
+    height: 0.45em;
+    margin: 0 0.06em;
+    vertical-align: 0.18em;
+    color: transparent;
+    overflow: hidden;
+    background: radial-gradient(circle 0.45em at 50% 100%,
+        transparent 40%, #d9c8ef 40% 52%, #c3dff2 52% 64%, #cdeccd 64% 76%, #f9e2b8 76% 88%, #f7c6c7 88% 100%, transparent 100%);
+}
 .sticky-bar .wordmark-small {
     margin-right: auto;
     font-family: var(--font-display);

@@ -1815,7 +1815,8 @@ function showCardMessage(text) {
 
 async function claimOrdinalReward(inscriptionId, nftId) {
     const btn = document.getElementById('card-3d-claim-btn');
-    const reset = () => { if (btn) { btn.disabled = false; btn.textContent = '✨ Claim Rewards'; } };
+    const label = btn ? btn.textContent : '';
+    const reset = () => { if (btn) { btn.disabled = false; btn.textContent = label; } };
     try {
         if (!inscriptionId) { showCardMessage('This piece cannot be claimed yet.'); return; }
         if (!window.currentWalletAddress) { showCardMessage('Connect your Yours Wallet to claim.'); return; }

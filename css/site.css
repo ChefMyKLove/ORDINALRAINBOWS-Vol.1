@@ -261,11 +261,11 @@ body {
 .card-reward-amount { font-size: 1.4em; font-weight: 700; color: rgba(255,255,255,0.9); }
 
 .card-3d-message {
-    font-size: 1.1em;
+    font-size: 1.2em;
     text-align: center;
-    color: rgba(255,160,100,0.9);
+    color: rgba(255, 100, 100, 0.9);
     font-weight: 600;
-    padding: 30px 20px;
+    padding: 40px;
 }
 
 /* ---- Modal bottom controls ---- */
@@ -303,6 +303,7 @@ body {
 
 /* keep claim btn style */
 .card-3d-claim-btn {
+    flex: 1;
     width: 100%;
     padding: 12px 20px;
     border: none;
@@ -314,7 +315,7 @@ body {
     background: rgba(0,255,100,0.8);
     color: white;
 }
-.card-3d-claim-btn:hover { background: rgba(0,255,100,1); transform: scale(1.04); }
+.card-3d-claim-btn:hover { background: rgba(0,255,100,1); transform: scale(1.05); }
 
 .card-3d-face:first-of-type {
     z-index: 2;
@@ -352,107 +353,6 @@ body {
     font-size: 1em;
     text-align: center;
     color: rgba(255, 255, 255, 0.7);
-}
-
-.card-3d-back {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    justify-content: space-between;
-}
-
-.card-3d-back-title {
-    font-size: 1.2em;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.9);
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.card-rewards-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.card-reward-item {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 15px;
-    text-align: center;
-}
-
-.card-reward-token {
-    font-size: 0.9em;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 8px;
-}
-
-.card-reward-amount {
-    font-size: 1.4em;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.card-3d-message {
-    font-size: 1.2em;
-    text-align: center;
-    color: rgba(255, 100, 100, 0.9);
-    font-weight: 600;
-    padding: 40px;
-}
-
-.card-3d-modal-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-    position: absolute;
-    bottom: -70px;
-    left: 0;
-    right: 0;
-    width: 100%;
-}
-
-.card-3d-flip-btn, .card-3d-claim-btn, .card-3d-close-btn {
-    flex: 1;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1em;
-}
-
-.card-3d-flip-btn {
-    background: rgba(0, 150, 255, 0.8);
-    color: white;
-}
-
-.card-3d-flip-btn:hover {
-    background: rgba(0, 150, 255, 1);
-    transform: scale(1.05);
-}
-
-.card-3d-claim-btn {
-    background: rgba(0, 255, 100, 0.8);
-    color: white;
-}
-
-.card-3d-claim-btn:hover {
-    background: rgba(0, 255, 100, 1);
-    transform: scale(1.05);
-}
-
-.card-3d-close-btn {
-    background: rgba(255, 100, 100, 0.8);
-    color: white;
-}
-
-.card-3d-close-btn:hover {
-    background: rgba(255, 100, 100, 1);
-    transform: scale(1.05);
 }
 
 /* ====== ANIMATIONS ====== */

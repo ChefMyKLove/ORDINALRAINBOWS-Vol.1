@@ -9,6 +9,7 @@
 const { PrivateKey, Transaction, P2PKH, ARC } = require('@bsv/sdk');
 const supabase = require('./_db');
 const fetch    = require('node-fetch');
+const { sendAlert } = require('../lib/alert');
 
 const TREASURY_ADDRESS = '1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb';
 const FETCH_TIMEOUT_MS = 8000;
@@ -70,6 +71,12 @@ async function sendBSVToAddress(toAddress, satoshis) {
 
   console.log('[payout] broadcast result:', JSON.stringify(result));
 
+  // ARC returns {status:'error', ..., txid} on a rejected broadcast — it echoes the computed
+  // txid back even on rejection (e.g. insufficient funds), so txid presence alone doesn't mean success.
+  if (result && result.status === 'error') {
+    throw new Error(`Broadcast rejected: ${result.description || result.code || 'unknown error'}`);
+  }
+
   const txid = (typeof result === 'string' && result.length === 64) ? result
     : (typeof result?.txid === 'string' && result.txid.length > 0) ? result.txid
     : (typeof result?.id   === 'string' && result.id.length   > 0) ? result.id
@@ -111,6 +118,10 @@ async function processClaimPayout(claimId) {
     txid = await sendBSVToAddress(claim.recipient_address, satoshis);
   } catch (broadcastErr) {
     await supabase.from('claims').update({ status: 'failed' }).eq('id', claim.id).eq('status', 'broadcasting');
+    sendAlert(
+      `ORDINAL RAINBOWS: payout FAILED — claim ${claim.id}`,
+      `Payout of ${claim.amount} sats to ${claim.recipient_address} failed: ${broadcastErr.message}. Likely an underfunded treasury — fund it and retry with scripts/process-claims.js.`
+    );
     throw broadcastErr;
   }
 

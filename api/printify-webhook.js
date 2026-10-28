@@ -15,6 +15,7 @@ const fetch = require('node-fetch');
 const supabase = require('./_db');
 const manifest = require('../data/collection.json');
 const { allocateSale, usdCentsToSats } = require('../lib/rewards');
+const { sendAlert } = require('../lib/alert');
 
 const SHOP_ID = 25429970; // ORDINALRAINBOWS Pop-Up Store
 const API = 'https://api.printify.com/v1';
@@ -75,6 +76,10 @@ async function processOrder(orderId) {
       const added = await allocateSale(supabase, inscriptionId, conv.sats, `printify:${order.id}`);
       await supabase.from('print_rewards').update({ sats_allocated: added }).eq('order_id', key.order_id).eq('line_key', key.line_key);
       results.push({ line: i, piece: piece.name, profit_cents: profitCents, sats_added: added });
+      sendAlert(
+        `ORDINAL RAINBOWS: ${piece.name} shipped — ${added} sats owed`,
+        `Order ${order.id} shipped. ${piece.name} holder is now owed ${added} sats. Check treasury is funded before they claim.`
+      );
     } catch (e) {
       // Release the line so Printify's retry can allocate it.
       await supabase.from('print_rewards').delete().eq('order_id', key.order_id).eq('line_key', key.line_key);

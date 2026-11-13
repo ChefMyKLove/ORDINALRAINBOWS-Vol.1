@@ -1,0 +1,7 @@
+Vercel CLI 48.10.14
+Retrieving project…
+WARN! The "has" property in vercel.json will be ignored during development. Deployments will work as expected.
+> Ready! Available at http://localhost:3000
+[mint-complete] tx not found yet (HTTP 404) — pending
+[mint-complete] payment confirmed
+[seed-mint] pool 1000 sats across 8 ordinals (rarity-weighted)

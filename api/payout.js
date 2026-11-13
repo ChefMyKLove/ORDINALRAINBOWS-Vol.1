@@ -10,6 +10,7 @@ const { PrivateKey, Transaction, P2PKH, ARC } = require('@bsv/sdk');
 const supabase = require('./_db');
 const fetch    = require('node-fetch');
 const { sendAlert } = require('../lib/alert');
+const { isValidAdminSecret } = require('../lib/admin-secret');
 
 const TREASURY_ADDRESS = '1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb';
 const FETCH_TIMEOUT_MS = 8000;
@@ -165,8 +166,7 @@ module.exports = async function (req, res) {
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-    const adminSecret = req.headers['x-admin-secret'];
-    if (!process.env.ADMIN_SECRET || adminSecret !== process.env.ADMIN_SECRET) {
+    if (!isValidAdminSecret(req)) {
       return res.status(401).json({ error: 'unauthorized' });
     }
 

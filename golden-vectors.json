@@ -1,0 +1,283 @@
+{
+  "config": {
+    "p0": "6400000",
+    "floor": "640000",
+    "bumpNum": "11",
+    "bumpDen": "10",
+    "decayNum": "9975",
+    "decayDen": "10000",
+    "windowBlocks": "1008",
+    "holdersPct": "50",
+    "platformPct": "10",
+    "holderCount": "8"
+  },
+  "startBlock": 1,
+  "walkthrough": {
+    "blocks": [
+      1,
+      1,
+      3,
+      4
+    ],
+    "rows": [
+      {
+        "edition": 1,
+        "block": 1,
+        "price": "6400000",
+        "creator": "2560000",
+        "platform": "640000",
+        "perHolder": "400000",
+        "pAfter": "70400000/10"
+      },
+      {
+        "edition": 2,
+        "block": 1,
+        "price": "7040000",
+        "creator": "2816000",
+        "platform": "704000",
+        "perHolder": "440000",
+        "pAfter": "77440000/10"
+      },
+      {
+        "edition": 3,
+        "block": 3,
+        "price": "7705329",
+        "creator": "3082133",
+        "platform": "770532",
+        "perHolder": "481583",
+        "pAfter": "84758619/10"
+      },
+      {
+        "edition": 4,
+        "block": 4,
+        "price": "8454673",
+        "creator": "3381870",
+        "platform": "845467",
+        "perHolder": "528417",
+        "pAfter": "93001403/10"
+      }
+    ],
+    "totals": {
+      "mints": 4,
+      "gross": "29600002",
+      "creator": "11840003",
+      "platform": "2959999",
+      "holders": "14800000",
+      "perComponent": "1850000"
+    }
+  },
+  "week": {
+    "blocks": [
+      1,
+      1,
+      2,
+      2,
+      11,
+      95,
+      160,
+      160,
+      233,
+      590,
+      655,
+      655,
+      730,
+      731,
+      802,
+      880,
+      881,
+      881,
+      940,
+      1003
+    ],
+    "rows": [
+      {
+        "edition": 1,
+        "block": 1,
+        "price": "6400000",
+        "creator": "2560000",
+        "platform": "640000",
+        "perHolder": "400000",
+        "pAfter": "70400000/10"
+      },
+      {
+        "edition": 2,
+        "block": 1,
+        "price": "7040000",
+        "creator": "2816000",
+        "platform": "704000",
+        "perHolder": "440000",
+        "pAfter": "77440000/10"
+      },
+      {
+        "edition": 3,
+        "block": 2,
+        "price": "7724640",
+        "creator": "3089856",
+        "platform": "772464",
+        "perHolder": "482790",
+        "pAfter": "84971040/10"
+      },
+      {
+        "edition": 4,
+        "block": 2,
+        "price": "8497104",
+        "creator": "3398842",
+        "platform": "849710",
+        "perHolder": "531069",
+        "pAfter": "93468144/10"
+      },
+      {
+        "edition": 5,
+        "block": 11,
+        "price": "9138602",
+        "creator": "3655446",
+        "platform": "913860",
+        "perHolder": "571162",
+        "pAfter": "100524622/10"
+      },
+      {
+        "edition": 6,
+        "block": 95,
+        "price": "8146226",
+        "creator": "3258492",
+        "platform": "814622",
+        "perHolder": "509139",
+        "pAfter": "89608486/10"
+      },
+      {
+        "edition": 7,
+        "block": 160,
+        "price": "7615316",
+        "creator": "3046129",
+        "platform": "761531",
+        "perHolder": "475957",
+        "pAfter": "83768476/10"
+      },
+      {
+        "edition": 8,
+        "block": 160,
+        "price": "8376848",
+        "creator": "3350740",
+        "platform": "837684",
+        "perHolder": "523553",
+        "pAfter": "92145328/10"
+      },
+      {
+        "edition": 9,
+        "block": 233,
+        "price": "7675654",
+        "creator": "3070265",
+        "platform": "767565",
+        "perHolder": "479728",
+        "pAfter": "84432194/10"
+      },
+      {
+        "edition": 10,
+        "block": 590,
+        "price": "3454737",
+        "creator": "1381896",
+        "platform": "345473",
+        "perHolder": "215921",
+        "pAfter": "38002107/10"
+      },
+      {
+        "edition": 11,
+        "block": 655,
+        "price": "3229584",
+        "creator": "1291834",
+        "platform": "322958",
+        "perHolder": "201849",
+        "pAfter": "35525424/10"
+      },
+      {
+        "edition": 12,
+        "block": 655,
+        "price": "3552543",
+        "creator": "1421025",
+        "platform": "355254",
+        "perHolder": "222033",
+        "pAfter": "39077973/10"
+      },
+      {
+        "edition": 13,
+        "block": 730,
+        "price": "3238918",
+        "creator": "1295571",
+        "platform": "323891",
+        "perHolder": "202432",
+        "pAfter": "35628098/10"
+      },
+      {
+        "edition": 14,
+        "block": 731,
+        "price": "3553903",
+        "creator": "1421569",
+        "platform": "355390",
+        "perHolder": "222118",
+        "pAfter": "39092933/10"
+      },
+      {
+        "edition": 15,
+        "block": 802,
+        "price": "3272763",
+        "creator": "1309111",
+        "platform": "327276",
+        "perHolder": "204547",
+        "pAfter": "36000393/10"
+      },
+      {
+        "edition": 16,
+        "block": 880,
+        "price": "2961514",
+        "creator": "1184611",
+        "platform": "296151",
+        "perHolder": "185094",
+        "pAfter": "32576654/10"
+      },
+      {
+        "edition": 17,
+        "block": 881,
+        "price": "3249522",
+        "creator": "1299810",
+        "platform": "324952",
+        "perHolder": "203095",
+        "pAfter": "35744742/10"
+      },
+      {
+        "edition": 18,
+        "block": 881,
+        "price": "3574475",
+        "creator": "1429796",
+        "platform": "357447",
+        "perHolder": "223404",
+        "pAfter": "39319225/10"
+      },
+      {
+        "edition": 19,
+        "block": 940,
+        "price": "3392082",
+        "creator": "1356834",
+        "platform": "339208",
+        "perHolder": "212005",
+        "pAfter": "37312902/10"
+      },
+      {
+        "edition": 20,
+        "block": 1003,
+        "price": "3186927",
+        "creator": "1274779",
+        "platform": "318692",
+        "perHolder": "199182",
+        "pAfter": "35056197/10"
+      }
+    ],
+    "totals": {
+      "mints": 20,
+      "gross": "107281358",
+      "creator": "42912606",
+      "platform": "10728128",
+      "holders": "53640624",
+      "perComponent": "6705078"
+    }
+  }
+}

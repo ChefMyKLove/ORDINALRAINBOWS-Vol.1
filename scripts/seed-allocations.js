@@ -38,15 +38,6 @@ async function main() {
   console.log('Done');
 }
 
-function getMultiplier(r) {
-  switch ((r||'').toLowerCase()) {
-    case 'exotic': return 0.5;
-    case 'legendary': return 0.4;
-    case 'epic': return 0.3;
-    case 'rare': return 0.2;
-    case 'uncommon': return 0.1;
-    default: return 0.05; // common
-  }
-}
+const { rarityMultiplier: getMultiplier } = require('../lib/rarity');
 
 main().catch(e => { console.error(e); process.exit(1); });

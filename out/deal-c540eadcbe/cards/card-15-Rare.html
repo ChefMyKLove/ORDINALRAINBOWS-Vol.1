@@ -7,15 +7,16 @@
 *{margin:0;padding:0;box-sizing:border-box}
 
 :root{
-  --f0:url('{{F0}}');
-  --f1:url('{{F1}}');
-  --f2:url('{{F2}}');
-  --f3:url('{{F3}}');
-  --f4:url('{{F4}}');
-  --f5:url('{{F5}}');
-  --f6:url('{{F6}}');
-  --f7:url('{{F7}}');
+  --f0:url('https://ordinals.gorillapool.io/content/0a4d806faa2e0ca230c41283ad38519ef8efe6c7287d407762852605ca29ebff_0');
+  --f1:url('https://ordinals.gorillapool.io/content/7d8fb85b90c267287a7c106b51abe6d156029e5a7e041d74a9fe5bf75565ab37_0');
+  --f2:url('https://ordinals.gorillapool.io/content/536c740ebb2b73602946d3372a85aa1238d260b785696ffaa69f2d4817f0f502_0');
+  --f3:url('https://ordinals.gorillapool.io/content/5176ddd8cd3442390610a15b61ce14179bb9f3d1095b0948ebf851b02dd61b6f_0');
+  --f4:url('https://ordinals.gorillapool.io/content/2056d7e53ca9eef2526cca04dc84695e195ab23f9edb8e58ae94a296a04f2f4b_0');
+  --f5:url('https://ordinals.gorillapool.io/content/a2a5c43d25471df04c210a8c1083ec9f80a6d72dd9f0df0cb6bb76a4fe4b27bb_0');
+  --f6:url('https://ordinals.gorillapool.io/content/424cce2ffaffef15bb75ad2ff0f5db3c436363b9d2a56a2f7443ae088bd5f466_0');
+  --f7:url('https://ordinals.gorillapool.io/content/cd17d1f904c65ad67abcf183d3a098969a5692af9ceadd27fbcdf0fdead665e6_0');
   --dur: 4.2s;
+  --tier: #00cfff;
 }
 
 body{
@@ -230,7 +231,7 @@ body{
 .back-emoji{font-size:52px;filter:drop-shadow(0 2px 20px rgba(0,0,0,0.9))}
 .back-title{font-size:22px;font-weight:bold;letter-spacing:4px;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,1);line-height:1.3}
 .back-sub{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:3px;text-shadow:0 1px 8px rgba(0,0,0,1)}
-.back-badge{font-size:13px;color:rgba(255,255,255,0.9);padding:8px 18px;border:1px solid rgba(255,255,255,0.28);border-radius:4px;background:rgba(0,0,0,0.3);letter-spacing:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.25);text-shadow:0 1px 8px rgba(0,0,0,1);margin-top:4px}
+.back-badge{font-size:13px;color:var(--tier);padding:8px 18px;border:1px solid var(--tier);border-radius:4px;background:rgba(0,0,0,0.3);letter-spacing:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.25),0 0 16px -4px var(--tier);text-shadow:0 1px 8px rgba(0,0,0,1);margin-top:4px}
 .back-btn-row{display:flex;gap:8px;margin-top:10px}
 .back-flip-btn{font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:2px;cursor:pointer;padding:8px 16px;border:1px solid rgba(255,255,255,0.2);border-radius:6px;background:rgba(255,255,255,0.05);transition:all 0.2s;display:inline-block}
 .back-flip-btn:hover{color:#fff;border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.12)}
@@ -301,7 +302,7 @@ body{
     <div class="face front">
       <div class="card-header">
         <div class="card-title">Rainbow Legends</div>
-        <div class="card-num">{{LABEL}}</div>
+        <div class="card-num">15 OF 16 · RARE</div>
       </div>
       <div class="frames">
         <div class="frame frame-0"></div>
@@ -337,9 +338,9 @@ body{
       <div class="back-glass"></div>
       <div class="back-content">
         <div class="back-emoji">🌈</div>
-        <div class="back-title">ORDINAL<br>RAINBOWS</div>
-        <div class="back-sub">ANIMATED SERIES</div>
-        <div class="back-badge">{{LABEL}}</div>
+        <div class="back-title">RAINBOW<br>LEGENDS</div>
+        <div class="back-sub">ANIMATED SERIES · VOLUME ONE</div>
+        <div class="back-badge">15 OF 16 · RARE</div>
         <div class="back-btn-row">
           <label for="flipper" class="back-flip-btn">↺ FLIP</label>
           <label for="glasser" class="back-flip-btn">⤢ GLASS</label>

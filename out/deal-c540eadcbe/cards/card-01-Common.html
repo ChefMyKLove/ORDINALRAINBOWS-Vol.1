@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --f0:url('https://ordinals.gorillapool.io/content/bf780dcd1a56d77f76a4631d7cfe90108bfa6c1d180633396fc6151d734bd0dd_0');
+  --f1:url('https://ordinals.gorillapool.io/content/5e7b3681ccae9c1e08ce3aebecf476f99b1d1e911f295b8afca3619f9647496f_0');
+  --f2:url('https://ordinals.gorillapool.io/content/d2e9dea19f43dae8f89b37525259710c5ef84260a8746beded8e4f0d8f8cac9a_0');
+  --f3:url('https://ordinals.gorillapool.io/content/868d6443ccb191aee5211c64273beb140bdbbe9e7293a70189acf6a46263f6f6_0');
+  --f4:url('https://ordinals.gorillapool.io/content/e681e0e13d14ab786884358330e8e74858758562208411f0416ff77c68bda4ee_0');
+  --f5:url('https://ordinals.gorillapool.io/content/92386fa66c0272f5b32eec44c5e3136f6c7550c622ddb1cf3fbee22d56b42bef_0');
+  --f6:url('https://ordinals.gorillapool.io/content/d8999dc285d71c54013bf6915323c28eb2157c8cf41d3f47388c52ac29d1e6bd_0');
+  --f7:url('https://ordinals.gorillapool.io/content/601386e283d90039576afceef08a8cc4f1c198ba68039e416250bface86b9c17_0');
+  --dur: 4.2s;
+  --tier: rgba(255,255,255,0.55);
+}
+
+body{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  width:100%;
+  margin:0;
+  background:radial-gradient(ellipse at 50% 0%,#1a1040 0%,#060608 60%);
+  font-family:'Courier New',monospace;
+  perspective:1200px;
+  overflow:hidden;
+}
+
+/* Fill iframe when embedded — card scales to fit viewport */
+@media (max-width:400px),(max-height:600px){
+  .card{
+    width:100vw !important;
+    height:100vh !important;
+    border-radius:0 !important;
+  }
+  .edge{ display:none }
+}
+
+/* ── ALL INPUTS HIDDEN ──────────────────────────────────────── */
+#flipper,#fuller,#glasser,#spd-slow,#spd-med,#spd-fast,#pauser{
+  position:absolute;opacity:0;width:0;height:0;pointer-events:none;
+}
+
+/* ── SPEED CONTROL via CSS custom property override ────────── */
+/* default (med) = 4.2s already set in :root */
+#spd-slow:checked ~ .scene .frame,
+#spd-slow:checked ~ .scene .back-frame,
+#spd-slow:checked ~ .overlay .overlay-frame,
+#spd-slow:checked ~ .glass-overlay .overlay-frame{
+  animation-duration:8.4s !important;
+}
+#spd-fast:checked ~ .scene .frame,
+#spd-fast:checked ~ .scene .back-frame,
+#spd-fast:checked ~ .overlay .overlay-frame,
+#spd-fast:checked ~ .glass-overlay .overlay-frame{
+  animation-duration:2.1s !important;
+}
+
+/* ── PAUSE ──────────────────────────────────────────────────── */
+#pauser:checked ~ .scene .frame,
+#pauser:checked ~ .scene .back-frame{
+  animation-play-state:paused !important;
+}
+#pauser:checked ~ .scene .card{
+  animation-play-state:paused !important;
+}
+
+/* ── FLIP ───────────────────────────────────────────────────── */
+#flipper:checked ~ .scene .card{animation:float-flipped 6s ease-in-out infinite}
+
+/* ── FULLSCREEN ─────────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(3,6,12,0.97)}
+#fuller:checked ~ .overlay{display:block}
+#fuller:checked ~ .scene{display:none}
+
+.glass-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(3,6,12,0.92)}
+#glasser:checked ~ .glass-overlay{display:block}
+#glasser:checked ~ .scene{display:none}
+
+/* ── SCENE ──────────────────────────────────────────────────── */
+.scene{perspective:1200px}
+
+/* ── CARD ───────────────────────────────────────────────────── */
+.card{
+  width:min(340px, 90vmin);
+  height:min(520px, 138vmin);
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform 0.7s cubic-bezier(0.4,0.2,0.2,1);
+  animation:float 6s ease-in-out infinite;
+  cursor:default;
+}
+@keyframes float{
+  0%,100%{transform:translateY(0) rotateY(0deg)}
+  50%{transform:translateY(-12px) rotateY(0deg)}
+}
+#flipper:checked ~ .scene .card{animation:float-flipped 6s ease-in-out infinite}
+@keyframes float-flipped{
+  0%,100%{transform:translateY(0) rotateY(180deg)}
+  50%{transform:translateY(-12px) rotateY(180deg)}
+}
+
+/* ── EDGES ──────────────────────────────────────────────────── */
+.edge{
+  position:absolute;
+  background:linear-gradient(90deg,
+    rgba(255,0,0,0.7) 0%,rgba(255,165,0,0.7) 14%,rgba(255,255,0,0.7) 28%,
+    rgba(0,200,80,0.7) 42%,rgba(0,220,255,0.7) 57%,rgba(80,0,255,0.7) 71%,
+    rgba(200,0,255,0.7) 85%,rgba(255,0,120,0.7) 100%);
+}
+.edge-t{width:100%;height:8px;top:0;left:0;transform-origin:top;transform:rotateX(90deg);border-radius:12px 12px 0 0}
+.edge-b{width:100%;height:8px;bottom:0;left:0;transform-origin:bottom;transform:rotateX(-90deg);border-radius:0 0 12px 12px}
+.edge-l{width:8px;height:100%;top:0;left:0;transform-origin:left;transform:rotateY(-90deg);border-radius:12px 0 0 12px}
+.edge-r{width:8px;height:100%;top:0;right:0;transform-origin:right;transform:rotateY(90deg);border-radius:0 12px 12px 0}
+
+/* ── FACES ──────────────────────────────────────────────────── */
+.face{
+  position:absolute;inset:0;border-radius:14px;
+  backface-visibility:hidden;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.08),0 30px 80px rgba(0,0,0,0.7),0 0 40px rgba(120,60,255,0.15);
+}
+.front{background:#000;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,0.1)}
+.back{transform:rotateY(180deg);background:#000;border:1px solid rgba(255,255,255,0.1);display:flex;justify-content:center;align-items:center}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+.card-header{padding:14px 16px 10px;background:rgba(0,0,0,0.6);border-bottom:1px solid rgba(255,255,255,0.08);text-align:center;flex-shrink:0}
+.card-title{color:#fff;font-size:13px;font-weight:bold;letter-spacing:3px;text-transform:uppercase}
+.card-num{color:rgba(255,255,255,0.4);font-size:10px;margin-top:4px;letter-spacing:1px}
+
+/* ── FRAME ANIMATION ────────────────────────────────────────── */
+.frames{flex:1;position:relative;background:#000;min-height:0}
+.frame{
+  position:absolute;inset:16px;border-radius:8px;
+  background-size:contain;background-repeat:no-repeat;background-position:center;
+  opacity:0;animation-name:fade;animation-duration:4.2s;animation-iteration-count:infinite;
+}
+@keyframes fade{
+  0%{opacity:0} 5%{opacity:1} 10%{opacity:1} 20%{opacity:0} 100%{opacity:0}
+}
+.frame-0{background-image:var(--f0);animation-delay:0.000s}
+.frame-1{background-image:var(--f1);animation-delay:0.525s}
+.frame-2{background-image:var(--f2);animation-delay:1.050s}
+.frame-3{background-image:var(--f3);animation-delay:1.575s}
+.frame-4{background-image:var(--f4);animation-delay:2.100s}
+.frame-5{background-image:var(--f5);animation-delay:2.625s}
+.frame-6{background-image:var(--f6);animation-delay:3.150s}
+.frame-7{background-image:var(--f7);animation-delay:3.675s}
+
+/* ── RAINBOW BAR ────────────────────────────────────────────── */
+.rainbow-bar{
+  height:3px;flex-shrink:0;
+  background:linear-gradient(90deg,#f00 0%,#ff8c00 14%,#ffe000 28%,#00c853 42%,#00cfff 57%,#7b51ff 71%,#e040fb 100%);
+  background-size:200% 100%;animation:shimmer 3s linear infinite;
+}
+@keyframes shimmer{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.card-footer{
+  padding:8px 10px 12px;
+  background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));
+  border-top:1px solid rgba(255,255,255,0.08);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;backdrop-filter:blur(8px);gap:4px;
+}
+.footer-splash{font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:2px}
+
+/* ── CONTROL BUTTONS ────────────────────────────────────────── */
+.ctrl-btn{
+  font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;cursor:pointer;
+  padding:4px 7px;border:1px solid rgba(255,255,255,0.15);border-radius:4px;
+  transition:color 0.2s,border-color 0.2s,background 0.2s;
+  user-select:none;white-space:nowrap;
+}
+.ctrl-btn:hover{color:#fff;border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08)}
+
+/* Active state for speed buttons */
+#spd-slow:checked ~ .scene .spd-slow,
+#spd-med:checked ~ .scene .spd-med,
+#spd-fast:checked ~ .scene .spd-fast,
+#pauser:checked ~ .scene .pause-btn{
+  color:#fff;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.5);
+}
+/* Default med is active on load */
+.spd-med{color:#fff;background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.4)}
+#spd-slow:checked ~ .scene .spd-med,
+#spd-fast:checked ~ .scene .spd-med{
+  color:rgba(255,255,255,0.6);background:transparent;border-color:rgba(255,255,255,0.15);
+}
+
+/* ── BACK FACE ──────────────────────────────────────────────── */
+.back-frame{
+  position:absolute;inset:0;
+  background-size:contain;background-repeat:no-repeat;background-position:center;
+  opacity:0;transform:scaleX(-1);filter:brightness(0.4) blur(1px);
+  animation-name:fade;animation-duration:4.2s;animation-iteration-count:infinite;
+}
+.back-frame-0{background-image:var(--f0);animation-delay:0.000s}
+.back-frame-1{background-image:var(--f1);animation-delay:0.525s}
+.back-frame-2{background-image:var(--f2);animation-delay:1.050s}
+.back-frame-3{background-image:var(--f3);animation-delay:1.575s}
+.back-frame-4{background-image:var(--f4);animation-delay:2.100s}
+.back-frame-5{background-image:var(--f5);animation-delay:2.625s}
+.back-frame-6{background-image:var(--f6);animation-delay:3.150s}
+.back-frame-7{background-image:var(--f7);animation-delay:3.675s}
+
+/* ── BACK GLASS ─────────────────────────────────────────────── */
+.back-glass{
+  position:absolute;inset:0;background:rgba(255,255,255,0.07);
+  -webkit-backdrop-filter:blur(20px) saturate(180%) brightness(1.1);
+  backdrop-filter:blur(20px) saturate(180%) brightness(1.1);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,0.5),inset 0 -2px 0 rgba(255,255,255,0.08),
+    inset 2px 0 0 rgba(255,255,255,0.15),inset -2px 0 0 rgba(255,255,255,0.15);
+  pointer-events:none;
+}
+.back-glass::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(150deg,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0.04) 30%,transparent 60%);
+}
+
+/* ── BACK CONTENT ───────────────────────────────────────────── */
+.back-content{
+  position:relative;z-index:2;display:flex;flex-direction:column;
+  align-items:center;gap:8px;text-align:center;padding:24px;
+}
+.back-emoji{font-size:52px;filter:drop-shadow(0 2px 20px rgba(0,0,0,0.9))}
+.back-title{font-size:22px;font-weight:bold;letter-spacing:4px;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,1);line-height:1.3}
+.back-sub{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:3px;text-shadow:0 1px 8px rgba(0,0,0,1)}
+.back-badge{font-size:13px;color:var(--tier);padding:8px 18px;border:1px solid var(--tier);border-radius:4px;background:rgba(0,0,0,0.3);letter-spacing:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.25),0 0 16px -4px var(--tier);text-shadow:0 1px 8px rgba(0,0,0,1);margin-top:4px}
+.back-btn-row{display:flex;gap:8px;margin-top:10px}
+.back-flip-btn{font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:2px;cursor:pointer;padding:8px 16px;border:1px solid rgba(255,255,255,0.2);border-radius:6px;background:rgba(255,255,255,0.05);transition:all 0.2s;display:inline-block}
+.back-flip-btn:hover{color:#fff;border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.12)}
+
+/* ── FULLSCREEN FRAMES ──────────────────────────────────────── */
+.overlay-frames{position:absolute;inset:0}
+.overlay-frame{
+  position:absolute;inset:0;
+  background-size:contain;background-repeat:no-repeat;background-position:center;
+  opacity:0;animation-name:fade;animation-duration:4.2s;animation-iteration-count:infinite;
+}
+.of-0{background-image:var(--f0);animation-delay:0.000s}
+.of-1{background-image:var(--f1);animation-delay:0.525s}
+.of-2{background-image:var(--f2);animation-delay:1.050s}
+.of-3{background-image:var(--f3);animation-delay:1.575s}
+.of-4{background-image:var(--f4);animation-delay:2.100s}
+.of-5{background-image:var(--f5);animation-delay:2.625s}
+.of-6{background-image:var(--f6);animation-delay:3.150s}
+.of-7{background-image:var(--f7);animation-delay:3.675s}
+
+/* ── GLASS OVERLAY LAYER ────────────────────────────────────── */
+.glass-layer{
+  position:absolute;inset:0;background:rgba(255,255,255,0.06);
+  -webkit-backdrop-filter:blur(24px) saturate(200%) brightness(1.1) hue-rotate(5deg);
+  backdrop-filter:blur(24px) saturate(200%) brightness(1.1) hue-rotate(5deg);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,0.55),inset 0 -2px 0 rgba(255,255,255,0.08),
+    inset 2px 0 0 rgba(255,255,255,0.15),inset -2px 0 0 rgba(255,255,255,0.15);
+  background-image:
+    linear-gradient(135deg,rgba(255,80,120,0.07) 0%,rgba(120,80,255,0.06) 25%,rgba(80,200,255,0.06) 50%,rgba(80,255,160,0.05) 75%,rgba(255,200,80,0.04) 100%),
+    linear-gradient(to bottom,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0.04) 20%,transparent 50%,rgba(0,0,0,0.08) 100%);
+  pointer-events:none;z-index:1;
+}
+.glass-layer::before{
+  content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.8) 30%,rgba(255,255,255,0.9) 50%,rgba(255,255,255,0.8) 70%,transparent);
+}
+
+/* ── CLOSE HINT ─────────────────────────────────────────────── */
+.close-hint{
+  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,0.45);font-family:'Courier New',monospace;font-size:12px;
+  letter-spacing:2px;border:1px solid rgba(255,255,255,0.1);padding:6px 18px;
+  border-radius:20px;cursor:pointer;z-index:2;white-space:nowrap;
+}
+.close-hint:hover{color:rgba(255,255,255,0.9);border-color:rgba(255,255,255,0.3)}
+</style>
+</head>
+<body>
+
+<!-- ── STATE INPUTS ────────────────────────────────────────── -->
+<input type="checkbox" id="flipper">
+<input type="checkbox" id="fuller">
+<input type="checkbox" id="glasser">
+<input type="checkbox" id="pauser">
+<input type="radio"    id="spd-slow" name="spd">
+<input type="radio"    id="spd-med"  name="spd" checked>
+<input type="radio"    id="spd-fast" name="spd">
+
+<!-- ── MAIN SCENE ─────────────────────────────────────────── -->
+<div class="scene">
+  <div class="card">
+    <div class="edge edge-t"></div>
+    <div class="edge edge-b"></div>
+    <div class="edge edge-l"></div>
+    <div class="edge edge-r"></div>
+
+    <!-- FRONT -->
+    <div class="face front">
+      <div class="card-header">
+        <div class="card-title">Rainbow Legends</div>
+        <div class="card-num">1 OF 16 · COMMON</div>
+      </div>
+      <div class="frames">
+        <div class="frame frame-0"></div>
+        <div class="frame frame-1"></div>
+        <div class="frame frame-2"></div>
+        <div class="frame frame-3"></div>
+        <div class="frame frame-4"></div>
+        <div class="frame frame-5"></div>
+        <div class="frame frame-6"></div>
+        <div class="frame frame-7"></div>
+      </div>
+      <div class="rainbow-bar"></div>
+      <div class="card-footer">
+        <label for="pauser"   class="ctrl-btn pause-btn">⏸</label>
+        <label for="spd-slow" class="ctrl-btn spd-slow">0.5×</label>
+        <label for="spd-med"  class="ctrl-btn spd-med">1×</label>
+        <label for="spd-fast" class="ctrl-btn spd-fast">2×</label>
+        <label for="flipper"  class="ctrl-btn">↺</label>
+        <label for="fuller"   class="ctrl-btn">⤢</label>
+      </div>
+    </div>
+
+    <!-- BACK -->
+    <div class="face back">
+      <div class="back-frame back-frame-0"></div>
+      <div class="back-frame back-frame-1"></div>
+      <div class="back-frame back-frame-2"></div>
+      <div class="back-frame back-frame-3"></div>
+      <div class="back-frame back-frame-4"></div>
+      <div class="back-frame back-frame-5"></div>
+      <div class="back-frame back-frame-6"></div>
+      <div class="back-frame back-frame-7"></div>
+      <div class="back-glass"></div>
+      <div class="back-content">
+        <div class="back-emoji">🌈</div>
+        <div class="back-title">RAINBOW<br>LEGENDS</div>
+        <div class="back-sub">ANIMATED SERIES · VOLUME ONE</div>
+        <div class="back-badge">1 OF 16 · COMMON</div>
+        <div class="back-btn-row">
+          <label for="flipper" class="back-flip-btn">↺ FLIP</label>
+          <label for="glasser" class="back-flip-btn">⤢ GLASS</label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CLEAN FULLSCREEN ────────────────────────────────────── -->
+<div class="overlay">
+  <div class="overlay-frames">
+    <div class="overlay-frame of-0"></div>
+    <div class="overlay-frame of-1"></div>
+    <div class="overlay-frame of-2"></div>
+    <div class="overlay-frame of-3"></div>
+    <div class="overlay-frame of-4"></div>
+    <div class="overlay-frame of-5"></div>
+    <div class="overlay-frame of-6"></div>
+    <div class="overlay-frame of-7"></div>
+  </div>
+  <label for="fuller" class="close-hint">✕ CLOSE</label>
+</div>
+
+<!-- ── GLASS FULLSCREEN ────────────────────────────────────── -->
+<div class="glass-overlay">
+  <div class="overlay-frames">
+    <div class="overlay-frame of-0"></div>
+    <div class="overlay-frame of-1"></div>
+    <div class="overlay-frame of-2"></div>
+    <div class="overlay-frame of-3"></div>
+    <div class="overlay-frame of-4"></div>
+    <div class="overlay-frame of-5"></div>
+    <div class="overlay-frame of-6"></div>
+    <div class="overlay-frame of-7"></div>
+  </div>
+  <div class="glass-layer"></div>
+  <label for="glasser" class="close-hint">✕ CLOSE</label>
+</div>
+
+</body>
+</html>

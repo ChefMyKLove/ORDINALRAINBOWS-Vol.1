@@ -1,3 +1,10 @@
+// The API routes (vercel dev) and this static HTML aren't always the same origin locally — e.g.
+// previewing index.html through a separate static server (VS Code Live Server on :5502, etc.)
+// while `vercel dev` runs on :3000. Relative /api/... fetches 404 silently in that setup. In
+// production both are served from the same Vercel deployment, so this stays '' there.
+window.ORDINAL_API_BASE = (['127.0.0.1', 'localhost'].includes(location.hostname) && location.port !== '3000')
+    ? 'http://localhost:3000' : '';
+
 // Shared Yours Wallet helpers on window.CWI (BRC-100). Current Yours no longer injects window.yours.
 // Each 1sat sits on its own derived key; the wallet keeps that key's derivation in the output's customInstructions.
 (function () {

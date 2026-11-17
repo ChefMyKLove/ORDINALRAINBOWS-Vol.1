@@ -1586,7 +1586,7 @@ async function checkCardOwnershipAndRewards(nft) {
         // BSV waiting for this piece's holder (public, shown to everyone)
         let waitingSats = 0;
         try {
-            const resp = await fetch(`/api/rewards?inscriptionId=${encodeURIComponent(nft.inscriptionId)}`);
+            const resp = await fetch(`${window.ORDINAL_API_BASE || ''}/api/rewards?inscriptionId=${encodeURIComponent(nft.inscriptionId)}`);
             const j = await resp.json();
             waitingSats = Number(j?.allocation?.bsv_claimable || 0);
         } catch (e) {
@@ -1595,10 +1595,13 @@ async function checkCardOwnershipAndRewards(nft) {
         const waitingText = waitingSats > 0
             ? `This piece has rewards waiting for its holder:<span class="amount">⚡ ${bsv(waitingSats)} BSV</span>`
             : 'No rewards are waiting for this piece right now.<br>';
+        // Public regardless of ownership — showRewardDetails() re-fetches /api/rewards itself,
+        // which never checks who's asking, same as the waiting-amount shown above it.
+        const detailsBtn = `<button class="card-3d-claim-btn" style="background:rgba(255,255,255,0.1)" onclick="showRewardDetails('${nft.inscriptionId}', '${(nft.title || nft.id || '').replace(/'/g, "\\'")}')">📜 Show Details</button>`;
 
         if (!isWalletAuthenticated()) {
             backContent.innerHTML = `<div class="card-3d-note">${waitingText}Connect your Yours Wallet to see if it’s yours.</div>`;
-            buttonArea.innerHTML = '<button class="card-3d-claim-btn" onclick="showWalletConnection()">🔗 Connect Yours Wallet</button>';
+            buttonArea.innerHTML = `<button class="card-3d-claim-btn" onclick="showWalletConnection()">🔗 Connect Yours Wallet</button>${detailsBtn}`;
             return;
         }
 
@@ -1610,7 +1613,7 @@ async function checkCardOwnershipAndRewards(nft) {
 
         if (!ownsThisCard) {
             backContent.innerHTML = `<div class="card-3d-note">${waitingText}It isn’t in your connected wallet.</div>`;
-            buttonArea.innerHTML = '';
+            buttonArea.innerHTML = detailsBtn;
             return;
         }
 
@@ -1623,9 +1626,9 @@ async function checkCardOwnershipAndRewards(nft) {
                 </div>
             </div>
         `;
-        buttonArea.innerHTML = waitingSats > 0
+        buttonArea.innerHTML = (waitingSats > 0
             ? `<button class="card-3d-claim-btn" id="card-3d-claim-btn" onclick="claimOrdinalReward('${nft.inscriptionId}','${nft.id}')">✨ Claim ${bsv(waitingSats)} BSV</button>`
-            : '<button class="card-3d-claim-btn" id="card-3d-claim-btn" disabled>Nothing to claim yet</button>';
+            : '<button class="card-3d-claim-btn" id="card-3d-claim-btn" disabled>Nothing to claim yet</button>') + detailsBtn;
 
     } catch (err) {
         console.error('[3D] Error checking ownership:', err);
@@ -1633,6 +1636,69 @@ async function checkCardOwnershipAndRewards(nft) {
         buttonArea.innerHTML = '';
     }
 }
+
+// Full reward + claims history for one piece — public, works whether or not you own it (same
+// /api/rewards endpoint the waiting-amount badge already uses, which never checks ownership).
+async function showRewardDetails(inscriptionId, title) {
+    const bsv = sats => (Number(sats || 0) / 1e8).toFixed(8);
+    const existing = document.getElementById('reward-details-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'reward-details-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML = `
+        <div style="background:#1a1025;border:1px solid rgba(255,255,255,0.12);border-radius:16px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;color:#fff;font-family:inherit;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <div style="font-size:18px;font-weight:700;">📜 ${title || 'Reward History'}</div>
+                <button onclick="document.getElementById('reward-details-overlay').remove()" style="background:none;border:none;color:rgba(255,255,255,0.6);font-size:22px;cursor:pointer;line-height:1;">&times;</button>
+            </div>
+            <div id="reward-details-body" style="font-size:13px;line-height:1.6;color:rgba(255,255,255,0.85);">Loading…</div>
+        </div>`;
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+
+    const body = document.getElementById('reward-details-body');
+    try {
+        const resp = await fetch(`${window.ORDINAL_API_BASE || ''}/api/rewards?inscriptionId=${encodeURIComponent(inscriptionId)}`);
+        const j = await resp.json();
+        if (!j.success) { body.textContent = 'Could not load this piece’s history.'; return; }
+
+        const a = j.allocation || {};
+        const claims = j.claims || [];
+        const summary = `
+            <div style="display:flex;gap:20px;margin-bottom:18px;">
+                <div><div style="color:rgba(255,255,255,0.5);font-size:11px;">TOTAL EVER EARNED</div><div style="font-size:16px;font-weight:700;">⚡ ${bsv(a.bsv_total_earned)} BSV</div></div>
+                <div><div style="color:rgba(255,255,255,0.5);font-size:11px;">CURRENTLY CLAIMABLE</div><div style="font-size:16px;font-weight:700;color:#3dff8f;">⚡ ${bsv(a.bsv_claimable)} BSV</div></div>
+            </div>`;
+
+        const claimsList = claims.length
+            ? claims.map(c => `
+                <div style="padding:10px 0;border-top:1px solid rgba(255,255,255,0.08);">
+                    <div style="display:flex;justify-content:space-between;">
+                        <span style="font-weight:600;">⚡ ${bsv(c.amount)} BSV</span>
+                        <span style="color:${c.status === 'sent' ? '#3dff8f' : 'rgba(255,255,255,0.5)'};text-transform:uppercase;font-size:11px;">${c.status}</span>
+                    </div>
+                    <div style="color:rgba(255,255,255,0.45);font-size:11px;margin-top:3px;">
+                        ${c.claimed_at ? new Date(c.claimed_at).toLocaleDateString() : new Date(c.created_at).toLocaleDateString()}
+                        ${c.txid ? ` · <a href="https://whatsonchain.com/tx/${c.txid}" target="_blank" style="color:#9fd8ff;">view tx</a>` : ''}
+                    </div>
+                </div>`).join('')
+            : '<div style="color:rgba(255,255,255,0.5);padding:10px 0;">No claims have been made on this piece yet.</div>';
+
+        body.innerHTML = `${summary}
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:4px;">CLAIMS HISTORY</div>
+            ${claimsList}
+            <div style="margin-top:16px;font-size:11px;color:rgba(255,255,255,0.35);">
+                Per-event earning history and ownership/transfer trail aren’t tracked yet — only
+                running totals and settled claims are recorded today.
+            </div>`;
+    } catch (err) {
+        console.error('[rewards] details load failed', err);
+        body.textContent = 'Could not load this piece’s history.';
+    }
+}
+window.showRewardDetails = showRewardDetails;
 
 // ---- Drag rotation state ----
 const _card3DState = { rotX: 0, rotY: 0, isDragging: false, startX: 0, startY: 0, prevX: 0, prevY: 0 };
@@ -1841,7 +1907,7 @@ async function claimOrdinalReward(inscriptionId, nftId) {
         }
 
         const body = { inscriptionId, nftId, bsvAddress: window.currentWalletAddress, epoch: 'default', pubKey: proof.pubKey, sig: proof.sig, timestamp };
-        const resp = await fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const resp = await fetch(`${window.ORDINAL_API_BASE || ''}/api/claim`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         const j = await resp.json().catch(() => ({}));
         if (!resp.ok || j.success !== true) {
             showCardMessage('Claim not completed: ' + (j.error || j.message || ('HTTP ' + resp.status)));

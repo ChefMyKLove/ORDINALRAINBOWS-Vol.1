@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Rainbow Legends — all 16 cards</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: #0b0b10; font-family: 'Courier New', monospace; color: #e0e0e0; }
+  h1 { font-size: 16px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 20px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  .cell { background: #14101f; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; }
+  .label { padding: 8px 10px; font-size: 11px; letter-spacing: 1px; display: flex; justify-content: space-between; }
+  .tier { font-weight: 700; }
+  .tier-exotic { color: #ff4d4d; }
+  .tier-legendary { color: #ffb84d; }
+  .tier-epic { color: #c04dff; }
+  .tier-rare { color: #4dc4ff; }
+  .tier-common { color: #9a9a9a; }
+  iframe { width: 100%; height: 420px; border: 0; display: block; background: #050508; }
+</style>
+</head>
+<body>
+<h1>Rainbow Legends — deal-c540eadcbe — all 16 cards</h1>
+<div class="grid" id="grid"></div>
+<script>
+const cards = [
+  {card:1,tier:"Common",file:"card-01-Common.html"},
+  {card:2,tier:"Exotic",file:"card-02-Exotic.html"},
+  {card:3,tier:"Rare",file:"card-03-Rare.html"},
+  {card:4,tier:"Common",file:"card-04-Common.html"},
+  {card:5,tier:"Epic",file:"card-05-Epic.html"},
+  {card:6,tier:"Rare",file:"card-06-Rare.html"},
+  {card:7,tier:"Rare",file:"card-07-Rare.html"},
+  {card:8,tier:"Common",file:"card-08-Common.html"},
+  {card:9,tier:"Legendary",file:"card-09-Legendary.html"},
+  {card:10,tier:"Legendary",file:"card-10-Legendary.html"},
+  {card:11,tier:"Common",file:"card-11-Common.html"},
+  {card:12,tier:"Epic",file:"card-12-Epic.html"},
+  {card:13,tier:"Common",file:"card-13-Common.html"},
+  {card:14,tier:"Common",file:"card-14-Common.html"},
+  {card:15,tier:"Rare",file:"card-15-Rare.html"},
+  {card:16,tier:"Epic",file:"card-16-Epic.html"}
+];
+const grid = document.getElementById('grid');
+for (const c of cards) {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.innerHTML = `<div class="label"><span>Card ${String(c.card).padStart(2,'0')}</span><span class="tier tier-${c.tier.toLowerCase()}">${c.tier}</span></div>
+    <iframe src="${c.file}" loading="lazy"></iframe>`;
+  grid.appendChild(cell);
+}
+</script>
+</body>
+</html>

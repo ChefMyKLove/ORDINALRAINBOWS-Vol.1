@@ -553,6 +553,7 @@ body {
     backdrop-filter: blur(18px) saturate(160%);
     box-shadow: var(--shadow-float);
     transition: transform 0.25s ease, box-shadow 0.25s ease;
+    cursor: pointer;
 }
 .nft-card::before {
     content: '';

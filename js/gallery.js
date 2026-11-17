@@ -158,8 +158,9 @@
         });
         return;
       }
-      const openBtn = e.target.closest('.nft-open');
-      if (openBtn) window.openCard3DModal(openBtn.closest('.nft-card').dataset.id);
+      if (e.target.closest('a')) return; // view-on-chain / order-prints links navigate normally
+      const card = e.target.closest('.nft-card');
+      if (card) window.openCard3DModal(card.dataset.id);
     });
 
     window.addEventListener('or-wallet-changed', () => {
@@ -171,7 +172,7 @@
 
     async function loadRewardBadges() {
       try {
-        const j = await (await fetch('/api/rewards')).json();
+        const j = await (await fetch(`${window.ORDINAL_API_BASE || ''}/api/rewards`)).json();
         window.rewardsByInscription = Object.fromEntries((j.rewards || []).map(a => [a.inscription_id, Number(a.bsv_claimable)]));
         window.dispatchEvent(new Event('or-rewards-changed'));
       } catch (err) {

@@ -15,6 +15,11 @@ deal = json.load(open(os.path.join(deal_dir, "deal.json"), encoding="utf-8"))
 coll = {p["piece"]: p for p in json.load(open(os.path.join(root, "data", "collection.json"), encoding="utf-8"))}
 tpl = open(os.path.join(here, "card-template.html"), encoding="utf-8").read()
 BASE = "https://ordinals.gorillapool.io/content/"
+# Same rarity palette as the mint.html grid strip (reuses its --r2/--r4/--r5/--r6/--r7 hex values).
+TIER_COLORS = {
+    "common": "rgba(255,255,255,0.55)", "uncommon": "#00c853", "rare": "#00cfff",
+    "epic": "#7b51ff", "legendary": "#ff8c00", "exotic": "#e040fb",
+}
 n_cards = len(deal["cards"])
 out = os.path.join(deal_dir, "cards")
 os.makedirs(out, exist_ok=True)
@@ -27,7 +32,8 @@ for c in deal["cards"]:
         assert o and re.fullmatch(r"[0-9a-f]{64}_\d+", o), f"piece {pc} has no valid origin: {o!r}"
         origins.append(o)
     label = f"{c['card']} OF {n_cards} · {c['tier'].upper()}"
-    html = tpl.replace("{{LABEL}}", label)
+    tier_color = TIER_COLORS.get(c["tier"].lower(), "rgba(255,255,255,0.55)")
+    html = tpl.replace("{{LABEL}}", label).replace("{{TIER_COLOR}}", tier_color)
     for i, o in enumerate(origins):
         html = html.replace("{{F%d}}" % i, BASE + o)
     assert "{{" not in html

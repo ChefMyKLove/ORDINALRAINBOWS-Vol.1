@@ -30,7 +30,16 @@ module.exports = async function (req, res) {
     }
     if (!data) return res.status(404).json({ error: 'not found' });
 
-    return res.json({ success: true, allocation: data });
+    // Claims history is public regardless of who currently holds the piece — recipient_address
+    // and txid are already on-chain/public once a claim settles, nothing new is exposed here.
+    const { data: claims, error: claimsErr } = await supabase
+      .from('claims')
+      .select('amount, status, txid, recipient_address, claimed_at, created_at')
+      .eq('inscription_id', inscriptionId)
+      .order('created_at', { ascending: false });
+    if (claimsErr) console.error('[api/rewards] claims lookup failed (non-fatal) —', claimsErr.message);
+
+    return res.json({ success: true, allocation: data, claims: claims || [] });
   } catch (err) {
     console.error('[api/rewards] error', err);
     res.status(500).json({ error: 'internal' });

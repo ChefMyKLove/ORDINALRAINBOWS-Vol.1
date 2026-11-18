@@ -1,8 +1,9 @@
 // api/mint-price.js
 // Public, read-only endpoint. mint.html polls this for display — never trusted as the
 // settlement price (api/mint-complete.js recomputes its own live price at settle time).
-const { priceAt, isOpen, CONFIG, getChainTip } = require('../lib/pricing');
+const { priceAt, isOpen, CONFIG, getChainTip, effectiveBlock } = require('../lib/pricing');
 const { getOrInitCurve } = require('./_pricing-state');
+const { LAUNCH_BLOCK, hasAdminBypass } = require('../lib/launch-gate');
 
 module.exports = async function (req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,11 +28,12 @@ module.exports = async function (req, res) {
       console.warn('[mint-price] chain tip lookup failed (treating as retryable):', tipErr.message);
       return res.status(503).json({ error: 'chain lookup temporarily unavailable — retry shortly' });
     }
+    const mintOpen = tip >= LAUNCH_BLOCK || hasAdminBypass(req);
     const prices = {};
     for (const cardId of cardIds) {
       const row = await getOrInitCurve(cardId, tip);
       const state = { pNum: BigInt(row.p_num), pDen: BigInt(row.p_den), hLast: BigInt(row.h_last) };
-      const price = priceAt(state, tip);
+      const price = priceAt(state, effectiveBlock(state, tip));
       const open = isOpen(row.start_block, tip, { windowBlocks: BigInt(row.window_blocks) });
       prices[cardId] = {
         price_sats: price.toString(),
@@ -41,7 +43,7 @@ module.exports = async function (req, res) {
         edition_count: row.edition_count,
       };
     }
-    return res.json({ tip, prices });
+    return res.json({ tip, mint_open: mintOpen, launch_block: LAUNCH_BLOCK, prices });
   } catch (err) {
     console.error('[mint-price] error', err.message);
     return res.status(500).json({ error: 'internal' });

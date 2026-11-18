@@ -8,8 +8,9 @@
 // which only ever picks distinct cards).
 const supabase = require('./_db');
 const { seedMintAllocations } = require('./seed-mint');
-const { priceAt, settleBuy, splitPayout, isOpen, getChainTip } = require('../lib/pricing');
+const { priceAt, settleBuy, splitPayout, isOpen, getChainTip, effectiveBlock } = require('../lib/pricing');
 const { getOrInitCurve } = require('./_pricing-state');
+const { LAUNCH_BLOCK, hasAdminBypass } = require('../lib/launch-gate');
 
 const HOLDER_WALLET = '1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb';
 const FETCH_TIMEOUT_MS = 5000;
@@ -41,20 +42,24 @@ async function checkHolderPoolPayment(paymentTxid, minSats) {
 
 // Each card's curve is independent and every id in a batch is distinct, so this is just N of
 // the single-card settles run together, verified against one combined payment.
-async function settleCardCurvesBatch(cardIds, tip, paidPoolSats) {
+async function settleCardCurvesBatch(cardIds, tip, paidPoolSats, adminBypass) {
   for (let attempt = 1; attempt <= MAX_SETTLE_ATTEMPTS; attempt++) {
     const rows = {};
     for (const id of cardIds) rows[id] = await getOrInitCurve(id, tip);
-    for (const id of cardIds) {
-      if (!isOpen(rows[id].start_block, tip, { windowBlocks: BigInt(rows[id].window_blocks) })) {
-        return { ok: false, reason: 'window_closed', cardId: id };
+    if (!adminBypass) {
+      for (const id of cardIds) {
+        if (!isOpen(rows[id].start_block, tip, { windowBlocks: BigInt(rows[id].window_blocks) })) {
+          return { ok: false, reason: 'window_closed', cardId: id };
+        }
       }
     }
     const prices = {};
+    const effH = {};
     let totalPool = 0n;
     for (const id of cardIds) {
       const state = { pNum: BigInt(rows[id].p_num), pDen: BigInt(rows[id].p_den), hLast: BigInt(rows[id].h_last) };
-      prices[id] = priceAt(state, tip);
+      effH[id] = effectiveBlock(state, tip);
+      prices[id] = priceAt(state, effH[id]);
       totalPool += splitPayout(prices[id]).holderPool;
     }
     if (BigInt(paidPoolSats) < totalPool) {
@@ -65,13 +70,13 @@ async function settleCardCurvesBatch(cardIds, tip, paidPoolSats) {
     let allOk = true;
     for (const id of cardIds) {
       const state = { pNum: BigInt(rows[id].p_num), pDen: BigInt(rows[id].p_den), hLast: BigInt(rows[id].h_last) };
-      const settled = settleBuy(state, tip);
+      const settled = settleBuy(state, effH[id]);
       const editionNumber = rows[id].edition_count + 1;
       const { data: updated, error } = await supabase
         .from('card_curves')
         .update({
           p_num: settled.state.pNum.toString(), p_den: settled.state.pDen.toString(),
-          h_last: tip, edition_count: editionNumber, updated_at: new Date().toISOString(),
+          h_last: Number(effH[id]), edition_count: editionNumber, updated_at: new Date().toISOString(),
         })
         .eq('card_id', id).eq('p_num', rows[id].p_num).eq('p_den', rows[id].p_den).eq('h_last', rows[id].h_last)
         .select();
@@ -104,6 +109,7 @@ module.exports = async function (req, res) {
       return res.status(400).json({ error: 'duplicate card ids in one batch are not supported yet' });
     }
 
+    const adminBypass = hasAdminBypass(req);
     let tip;
     try {
       tip = await getChainTip();
@@ -112,13 +118,18 @@ module.exports = async function (req, res) {
       return res.status(202).json({ retry: true, error: 'chain lookup temporarily unavailable — retry shortly' });
     }
 
+    if (!adminBypass && tip < LAUNCH_BLOCK) {
+      return res.status(403).json({ retry: false, error: 'Minting opens soon — check back later.' });
+    }
+
     let initialTotal = 0n;
     for (const id of cardIds) {
       const row = await getOrInitCurve(id, tip);
-      if (!isOpen(row.start_block, tip, { windowBlocks: BigInt(row.window_blocks) })) {
+      if (!adminBypass && !isOpen(row.start_block, tip, { windowBlocks: BigInt(row.window_blocks) })) {
         return res.status(403).json({ retry: false, error: `mint window is not open for card ${id}` });
       }
-      const price = priceAt({ pNum: BigInt(row.p_num), pDen: BigInt(row.p_den), hLast: BigInt(row.h_last) }, tip);
+      const state = { pNum: BigInt(row.p_num), pDen: BigInt(row.p_den), hLast: BigInt(row.h_last) };
+      const price = priceAt(state, effectiveBlock(state, tip));
       initialTotal += splitPayout(price).holderPool;
     }
 
@@ -133,7 +144,7 @@ module.exports = async function (req, res) {
       return res.status(500).json({ error: 'internal' });
     }
 
-    const settled = await settleCardCurvesBatch(cardIds, tip, paidSats);
+    const settled = await settleCardCurvesBatch(cardIds, tip, paidSats, adminBypass);
     if (!settled.ok) {
       if (settled.reason === 'window_closed') return res.status(403).json({ retry: false, error: `mint window closed for card ${settled.cardId}` });
       if (settled.reason === 'price_moved') return res.status(402).json({ retry: false, error: 'price moved before settlement — retry at the new price' });

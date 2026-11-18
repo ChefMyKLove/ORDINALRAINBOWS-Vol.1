@@ -7,8 +7,9 @@
 const fetch = require('node-fetch');
 const supabase = require('./_db');
 const { seedMintAllocations } = require('./seed-mint');
-const { priceAt, settleBuy, splitPayout, isOpen, getChainTip } = require('../lib/pricing');
+const { priceAt, settleBuy, splitPayout, isOpen, getChainTip, effectiveBlock } = require('../lib/pricing');
 const { getOrInitCurve } = require('./_pricing-state');
+const { LAUNCH_BLOCK, hasAdminBypass } = require('../lib/launch-gate');
 
 const HOLDER_WALLET = '1r1rJXu5znptbcSKYuFW74eDZ3zJtsAwb'; // == TREASURY_ADDRESS in api/payout.js
 const FETCH_TIMEOUT_MS = 3000;
@@ -56,26 +57,29 @@ async function checkHolderPoolPayment(paymentTxid, minSats) {
 // every attempt — if a concurrent buyer's settle wins the race and bumps the price, the already-
 // verified payment is re-checked against the *new* price, and rejected (402, same shape as an
 // ordinary underpayment) rather than silently settling at a price the buyer didn't actually pay.
-async function settleCardCurve(cardId, tip, paidPoolSats) {
+async function settleCardCurve(cardId, tip, paidPoolSats, adminBypass) {
   for (let attempt = 1; attempt <= MAX_SETTLE_ATTEMPTS; attempt++) {
     const row = await getOrInitCurve(cardId, tip);
-    if (!isOpen(row.start_block, tip, { windowBlocks: BigInt(row.window_blocks) })) {
+    // Every card's window opens at LAUNCH_BLOCK, so before that real block arrives this check
+    // would always fail — admin testing bypasses it on purpose (see lib/launch-gate.js).
+    if (!adminBypass && !isOpen(row.start_block, tip, { windowBlocks: BigInt(row.window_blocks) })) {
       return { ok: false, reason: 'window_closed' };
     }
     const state = { pNum: BigInt(row.p_num), pDen: BigInt(row.p_den), hLast: BigInt(row.h_last) };
-    const price = priceAt(state, tip);
+    const h = effectiveBlock(state, tip);
+    const price = priceAt(state, h);
     const { holderPool } = splitPayout(price);
     if (BigInt(paidPoolSats) < holderPool) {
       return { ok: false, reason: 'price_moved', requiredPoolSats: holderPool.toString(), price: price.toString() };
     }
 
-    const settled = settleBuy(state, tip);
+    const settled = settleBuy(state, h);
     const editionNumber = row.edition_count + 1;
     const { data: updated, error } = await supabase
       .from('card_curves')
       .update({
         p_num: settled.state.pNum.toString(), p_den: settled.state.pDen.toString(),
-        h_last: tip, edition_count: editionNumber, updated_at: new Date().toISOString(),
+        h_last: Number(h), edition_count: editionNumber, updated_at: new Date().toISOString(),
       })
       .eq('card_id', cardId).eq('p_num', row.p_num).eq('p_den', row.p_den).eq('h_last', row.h_last)
       .select();
@@ -107,6 +111,7 @@ module.exports = async function (req, res) {
     // (e.g. 'deal-c540eadcbe-card-01'), stable across editions of the same card — no second ID
     // scheme needed on the wire.
     const cardId = nft_id;
+    const adminBypass = hasAdminBypass(req);
     let tip;
     try {
       tip = await getChainTip();
@@ -117,18 +122,22 @@ module.exports = async function (req, res) {
       return res.status(202).json({ retry: true, error: 'chain lookup temporarily unavailable — retry shortly' });
     }
 
+    // Hard gate on real minting until LAUNCH_BLOCK — lets the site be public (browsing, live
+    // prices) ahead of the actual marketing launch. Bypassed with x-admin-secret for testing.
+    if (!adminBypass && tip < LAUNCH_BLOCK) {
+      return res.status(403).json({ retry: false, error: 'Minting opens soon — check back later.' });
+    }
+
     // First pass: how much is required right now, purely to know what to check the on-chain
     // payment against. The authoritative check happens again, fresh, inside settleCardCurve —
     // this first read is never trusted as the final price, only as a floor for "did they pay
     // enough to even be worth settling."
     const initialRow = await getOrInitCurve(cardId, tip);
-    if (!isOpen(initialRow.start_block, tip, { windowBlocks: BigInt(initialRow.window_blocks) })) {
+    if (!adminBypass && !isOpen(initialRow.start_block, tip, { windowBlocks: BigInt(initialRow.window_blocks) })) {
       return res.status(403).json({ retry: false, error: 'mint window is not open for this card' });
     }
-    const initialPrice = priceAt(
-      { pNum: BigInt(initialRow.p_num), pDen: BigInt(initialRow.p_den), hLast: BigInt(initialRow.h_last) },
-      tip
-    );
+    const initialState = { pNum: BigInt(initialRow.p_num), pDen: BigInt(initialRow.p_den), hLast: BigInt(initialRow.h_last) };
+    const initialPrice = priceAt(initialState, effectiveBlock(initialState, tip));
     const requiredPoolSats = Number(splitPayout(initialPrice).holderPool);
 
     const { status, paidSats } = await checkHolderPoolPayment(payment_txid, requiredPoolSats);
@@ -150,7 +159,7 @@ module.exports = async function (req, res) {
       return res.status(500).json({ error: 'internal' });
     }
 
-    const settled = await settleCardCurve(cardId, tip, paidSats);
+    const settled = await settleCardCurve(cardId, tip, paidSats, adminBypass);
     if (!settled.ok) {
       if (settled.reason === 'window_closed') return res.status(403).json({ retry: false, error: 'mint window closed for this card' });
       if (settled.reason === 'price_moved') return res.status(402).json({ retry: false, error: 'price moved before settlement — retry at the new price' });
